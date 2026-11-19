@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finanças Pro | Dashboard & Controle</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cobalt: {
+                            950: '#070b19',
+                            900: '#0f172a',
+                            800: '#192568',
+                            700: '#1e3a8a',
+                        },
+                        cyan: {
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #070b19; color: #f8fafc; font-family: 'Inter', sans-serif; }
+        .card-glass { background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(34, 211, 238, 0.15); backdrop-filter: blur(10px); }
+        .nav-btn.active { background: linear-gradient(90deg, rgba(34, 211, 238, 0.2) 0%, transparent 100%); border-left: 3px solid #22d3ee; color: #22d3ee; }
+    </style>
+</head>
+<body class="flex flex-col md:flex-row min-h-screen">
+
+    <!-- Sidebar -->
+    <aside class="w-full md:w-64 bg-cobalt-900 border-b md:border-r border-slate-800 flex flex-col justify-between p-4">
+        <div>
+            <div class="flex items-center gap-3 px-2 py-4 mb-6 border-b border-slate-800">
+                <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-400 to-cobalt-700 flex items-center justify-center text-white font-bold">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <span class="font-bold text-lg tracking-wide text-white">Finanças<span class="text-cyan-400">Pro</span></span>
+            </div>
+            <nav class="space-y-1">
+                <button onclick="switchTab('dashboard')" id="btn-dashboard" class="nav-btn active w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800/50 transition">
+                    <i class="fa-solid fa-gauge-high w-5"></i> Dashboard
+                </button>
+                <button onclick="switchTab('lancamentos')" id="btn-lancamentos" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800/50 transition">
+                    <i class="fa-solid fa-money-bill-transfer w-5"></i> Lançamentos
+                </button>
+                <button onclick="switchTab('investimentos')" id="btn-investimentos" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800/50 transition">
+                    <i class="fa-solid fa-sack-dollar w-5"></i> Investimentos & Previsão
+                </button>
+                <button onclick="switchTab('configuracoes')" id="btn-configuracoes" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800/50 transition">
+                    <i class="fa-solid fa-credit-card w-5"></i> Cartões & Categorias
+                </button>
+            </nav>
+        </div>
+        <div class="mt-8 pt-4 border-t border-slate-800 text-xs text-slate-500 px-2">
+            <p id="status-conexao"><i class="fa-solid fa-circle text-amber-500 mr-1"></i> Conectando...</p>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-4 md:p-8 overflow-y-auto">
+        
+        <!-- Filtros Globais (Mês / Ano) -->
+        <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+            <div>
+                <h1 id="page-title" class="text-2xl font-bold text-white">Visão Geral</h1>
+                <p class="text-sm text-slate-400">Acompanhamento financeiro e projeções</p>
+            </div>
+            <div class="flex items-center gap-3 bg-cobalt-900 p-2 rounded-xl border border-slate-800">
+                <select id="filtro-mes" onchange="atualizarTudo()" class="bg-transparent text-sm font-medium text-white px-2 py-1 outline-none">
+                    <option value="01" class="bg-cobalt-900">Janeiro</option>
+                    <option value="02" class="bg-cobalt-900">Fevereiro</option>
+                    <option value="03" class="bg-cobalt-900">Março</option>
+                    <option value="04" class="bg-cobalt-900">Abril</option>
+                    <option value="05" class="bg-cobalt-900">Maio</option>
+                    <option value="06" class="bg-cobalt-900">Junho</option>
+                    <option value="07" class="bg-cobalt-900">Julho</option>
+                    <option value="08" class="bg-cobalt-900">Agosto</option>
+                    <option value="09" class="bg-cobalt-900">Setembro</option>
+                    <option value="10" class="bg-cobalt-900">Outubro</option>
+                    <option value="11" class="bg-cobalt-900">Novembro</option>
+                    <option value="12" class="bg-cobalt-900">Dezembro</option>
+                </select>
+                <span class="text-slate-600">/</span>
+                <select id="filtro-ano" onchange="atualizarTudo()" class="bg-transparent text-sm font-medium text-cyan-400 px-2 py-1 outline-none">
+                    <option value="2025" class="bg-cobalt-900">2025</option>
+                    <option value="2026" class="bg-cobalt-900" selected>2026</option>
+                    <option value="2027" class="bg-cobalt-900">2027</option>
+                </select>
+            </div>
+        </header>
+
+        <!-- ABA 1: DASHBOARD -->
+        <section id="tab-dashboard" class="space-y-6">
+            <!-- Cards Resumo -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="card-glass p-5 rounded-2xl">
+                    <p class="text-xs uppercase tracking-wider text-slate-400">Recebimentos (Mês)</p>
+                    <h2 id="kpi-receitas" class="text-2xl font-bold text-emerald-400 mt-1">R$ 0,00</h2>
+                </div>
+                <div class="card-glass p-5 rounded-2xl">
+                    <p class="text-xs uppercase tracking-wider text-slate-400">Gastos (Mês/Fatura)</p>
+                    <h2 id="kpi-despesas" class="text-2xl font-bold text-rose-400 mt-1">R$ 0,00</h2>
+                </div>
+                <div class="card-glass p-5 rounded-2xl">
+                    <p class="text-xs uppercase tracking-wider text-slate-400">Saldo do Mês</p>
+                    <h2 id="kpi-saldo" class="text-2xl font-bold text-cyan-400 mt-1">R$ 0,00</h2>
+                </div>
+                <div class="card-glass p-5 rounded-2xl">
+                    <p class="text-xs uppercase tracking-wider text-slate-400">Projeção Investida (Dez)</p>
+                    <h2 id="kpi-investimento" class="text-2xl font-bold text-purple-400 mt-1">R$ 0,00</h2>
+                </div>
+            </div>
+
+            <!-- Gráfico de Linha (Evolução Anual) -->
+            <div class="card-glass p-6 rounded-2xl">
+                <h3 class="text-base font-semibold text-white mb-4">Evolução Anual: Recebimentos vs. Gastos (<span id="label-ano-grafico">2026</span>)</h3>
+                <div class="h-72">
+                    <canvas id="chart-linha-anual"></canvas>
+                </div>
+            </div>
+
+            <!-- Gráficos de Pizza (Categorias e Métodos/Cartões) -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="card-glass p-6 rounded-2xl">
+                    <h3 class="text-base font-semibold text-white mb-4">Gastos por Categoria (Mês)</h3>
+                    <div class="h-64 flex justify-center">
+                        <canvas id="chart-pizza-categorias"></canvas>
+                    </div>
+                </div>
+                <div class="card-glass p-6 rounded-2xl">
+                    <h3 class="text-base font-semibold text-white mb-4">Gastos por Método / Cartão (Mês)</h3>
+                    <div class="h-64 flex justify-center">
+                        <canvas id="chart-pizza-metodos"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABA 2: LANÇAMENTOS -->
+        <section id="tab-lancamentos" class="hidden space-y-6">
+            <div class="card-glass p-6 rounded-2xl">
+                <h3 class="text-lg font-semibold text-white mb-4">Novo Lançamento</h3>
+                <form onsubmit="salvarTransacao(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Tipo</label>
+                        <select id="tx-tipo" onchange="toggleCamposDespesa()" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                            <option value="despesa">Despesa (Gasto)</option>
+                            <option value="receita">Receita (Recebimento)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Descrição</label>
+                        <input type="text" id="tx-descricao" required placeholder="Ex: Supermercado, Salário..." class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Valor (R$)</label>
+                        <input type="number" step="0.01" id="tx-valor" required placeholder="0.00" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Data da Operação</label>
+                        <input type="date" id="tx-data" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                    </div>
+                    <div id="wrap-categoria">
+                        <label class="block text-xs text-slate-400 mb-1">Categoria</label>
+                        <select id="tx-categoria" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white"></select>
+                    </div>
+                    <div id="wrap-forma">
+                        <label class="block text-xs text-slate-400 mb-1">Forma de Pagamento</label>
+                        <select id="tx-forma" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white"></select>
+                    </div>
+                    <div class="md:col-span-3 flex justify-end mt-2">
+                        <button type="submit" class="bg-cyan-500 hover:bg-cyan-400 text-cobalt-950 font-bold px-6 py-2.5 rounded-lg text-sm transition">
+                            <i class="fa-solid fa-plus mr-1"></i> Registrar Lançamento
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tabela de Lançamentos do Mês -->
+            <div class="card-glass p-6 rounded-2xl overflow-x-auto">
+                <h3 class="text-base font-semibold text-white mb-4">Extrato de Competência (Mês Selecionado)</h3>
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-800 text-xs text-slate-400 uppercase">
+                            <th class="py-3 px-2">Data Compra</th>
+                            <th class="py-3 px-2">Fatura/Comp.</th>
+                            <th class="py-3 px-2">Descrição</th>
+                            <th class="py-3 px-2">Categoria</th>
+                            <th class="py-3 px-2">Pagamento</th>
+                            <th class="py-3 px-2 text-right">Valor</th>
+                            <th class="py-3 px-2 text-center">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lista-transacoes" class="text-sm divide-y divide-slate-800/60"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ABA 3: INVESTIMENTOS & PREVISÃO DE RECEBÍVEIS -->
+        <section id="tab-investimentos" class="hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Cadastro de Investimento -->
+                <div class="card-glass p-6 rounded-2xl">
+                    <h3 class="text-lg font-semibold text-white mb-4">Registrar Investimento (Juros Compostos)</h3>
+                    <form onsubmit="salvarInvestimento(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Ativo / Aplicação</label>
+                            <input type="text" id="inv-nome" required placeholder="Ex: Tesouro Selic, CDB 110%" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Valor Aportado (R$)</label>
+                                <input type="number" step="0.01" id="inv-valor" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Rendimento Mensal (%)</label>
+                                <input type="number" step="0.01" id="inv-taxa" required placeholder="Ex: 0.95" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Data do Aporte</label>
+                            <input type="date" id="inv-data" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                        </div>
+                        <button type="submit" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 rounded-lg text-sm transition">
+                            Adicionar Investimento
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Cadastro de Recebíveis Previstos -->
+                <div class="card-glass p-6 rounded-2xl">
+                    <h3 class="text-lg font-semibold text-white mb-4">Previsão de Recebíveis (Até Fim do Ano)</h3>
+                    <form onsubmit="salvarPrevisao(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Descrição da Receita Prevista</label>
+                            <input type="text" id="prev-desc" required placeholder="Ex: Salário Líquido, Aluguel..." class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Valor Mensal Previsto (R$)</label>
+                            <input type="number" step="0.01" id="prev-valor" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Mês Início</label>
+                                <input type="month" id="prev-inicio" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Mês Fim</label>
+                                <input type="month" id="prev-fim" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg text-sm transition">
+                            Salvar Previsão
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tabelas de Projeção -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="card-glass p-6 rounded-2xl">
+                    <h3 class="text-base font-semibold text-white mb-3">Projeção de Investimentos (Até Dezembro)</h3>
+                    <div id="lista-investimentos" class="space-y-3 text-sm"></div>
+                </div>
+                <div class="card-glass p-6 rounded-2xl">
+                    <h3 class="text-base font-semibold text-white mb-3">Recebíveis Futuros Programados</h3>
+                    <div id="lista-previsoes" class="space-y-3 text-sm"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABA 4: CARTÕES & CATEGORIAS -->
+        <section id="tab-configuracoes" class="hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Cadastrar Cartão -->
+                <div class="card-glass p-6 rounded-2xl">
+                    <h3 class="text-base font-semibold text-white mb-4">Cadastrar Cartão de Crédito</h3>
+                    <form onsubmit="salvarCartao(event)" class="space-y-3">
+                        <input type="text" id="card-apelido" required placeholder="Apelido (Ex: Nubank Roxinho)" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Dia Fechamento</label>
+                                <input type="number" min="1" max="31" id="card-fechamento" required placeholder="Ex: 25" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Dia Vencimento</label>
+                                <input type="number" min="1" max="31" id="card-vencimento" required placeholder="Ex: 05" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full bg-cyan-500 text-cobalt-950 font-bold py-2 rounded-lg text-sm">Salvar Cartão</button>
+                    </form>
+                    <div id="lista-cartoes" class="mt-4 space-y-2 text-xs text-slate-300"></div>
+                </div>
+
+                <!-- Cadastrar Método de Pagamento -->
+                <div class="card-glass p-6 rounded-2xl">
+                    <h3 class="text-base font-semibold text-white mb-4">Métodos de Pagamento</h3>
+                    <form onsubmit="salvarMetodo(event)" class="space-y-3">
+                        <input type="text" id="met-nome" required placeholder="Ex: Pix, Dinheiro, Vale..." class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                        <button type="submit" class="w-full bg-cyan-500 text-cobalt-950 font-bold py-2 rounded-lg text-sm">Adicionar Método</button>
+                    </form>
+                    <div id="lista-metodos" class="mt-4 space-y-2 text-xs text-slate-300"></div>
+                </div>
+
+                <!-- Cadastrar Categoria -->
+                <div class="card-glass p-6 rounded-2xl">
+                    <h3 class="text-base font-semibold text-white mb-4">Categorias de Despesa</h3>
+                    <form onsubmit="salvarCategoria(event)" class="space-y-3">
+                        <div class="flex gap-2">
+                            <input type="text" id="cat-nome" required placeholder="Nome da Categoria" class="flex-1 bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                            <input type="color" id="cat-cor" value="#22d3ee" class="h-10 w-12 bg-cobalt-950 border border-slate-700 rounded-lg cursor-pointer">
+                        </div>
+                        <button type="submit" class="w-full bg-cyan-500 text-cobalt-950 font-bold py-2 rounded-lg text-sm">Adicionar Categoria</button>
+                    </form>
+                    <div id="lista-categorias" class="mt-4 space-y-2 text-xs text-slate-300"></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // =========================================================================
+        // 1. CONFIGURAÇÃO DO SUPABASE (SUBSTITUA PELAS SUAS CHAVES DO PROJETO)
+        // =========================================================================
+        const SUPABASE_URL = 'https://SUA-URL-AQUI.supabase.co';
+        const SUPABASE_ANON_KEY = 'SUA-CHAVE-ANON-AQUI';
+        const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Estado Global
+        let state = {
+            categorias: [],
+            metodos: [],
+            cartoes: [],
+            transacoes: [],
+            investimentos: [],
+            previsoes: []
+        };
+
+        let charts = { linha: null, pizzaCat: null, pizzaMet: null };
+
+        // Inicialização
+        window.addEventListener('DOMContentLoaded', async () => {
+            const hoje = new Date();
+            document.getElementById('filtro-mes').value = String(hoje.getMonth() + 1).padStart(2, '0');
+            document.getElementById('filtro-ano').value = String(hoje.getFullYear());
+            document.getElementById('tx-data').valueAsDate = hoje;
+            document.getElementById('inv-data').valueAsDate = hoje;
+            
+            await carregarDadosBanco();
+        });
+
+        async function carregarDadosBanco() {
+            try {
+                const [cat, met, card, tx, inv, prev] = await Promise.all([
+                    db.from('categorias').select('*').order('nome'),
+                    db.from('metodos_pagamento').select('*').order('nome'),
+                    db.from('cartoes').select('*').order('apelido'),
+                    db.from('transacoes').select('*').order('data_compra', { ascending: false }),
+                    db.from('investimentos').select('*').order('data_aporte', { ascending: false }),
+                    db.from('previsao_recebiveis').select('*').order('mes_inicio')
+                ]);
+
+                if (cat.error) throw cat.error;
+
+                state.categorias = cat.data || [];
+                state.metodos = met.data || [];
+                state.cartoes = card.data || [];
+                state.transacoes = tx.data || [];
+                state.investimentos = inv.data || [];
+                state.previsoes = prev.data || [];
+
+                document.getElementById('status-conexao').innerHTML = '<i class="fa-solid fa-circle text-emerald-400 mr-1"></i> Supabase Conectado';
+                popularSelects();
+                atualizarTudo();
+            } catch (err) {
+                console.error(err);
+                document.getElementById('status-conexao').innerHTML = '<i class="fa-solid fa-circle text-rose-500 mr-1"></i> Erro de Conexão (Verifique Chaves)';
+            }
+        }
+
+        // Navegação entre abas
+        function switchTab(tabId) {
+            ['dashboard', 'lancamentos', 'investimentos', 'configuracoes'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`btn-${t}`).classList.remove('active');
+            });
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            document.getElementById(`btn-${tabId}`).classList.add('active');
+        }
+
+        function popularSelects() {
+            const selCat = document.getElementById('tx-categoria');
+            selCat.innerHTML = state.categorias.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+
+            const selForma = document.getElementById('tx-forma');
+            let htmlForma = '<optgroup label="Cartões de Crédito">';
+            state.cartoes.forEach(c => {
+                htmlForma += `<option value="cartao_${c.id}">💳 ${c.apelido} (Fecha dia ${c.dia_fechamento})</option>`;
+            });
+            htmlForma += '</optgroup><optgroup label="Outros Métodos">';
+            state.metodos.forEach(m => {
+                htmlForma += `<option value="metodo_${m.id}">💵 ${m.nome}</option>`;
+            });
+            htmlForma += '</optgroup>';
+            selForma.innerHTML = htmlForma;
+
+            // Renderizar listas da aba Configurações
+            document.getElementById('lista-cartoes').innerHTML = state.cartoes.map(c => 
+                `<div class="flex justify-between items-center bg-cobalt-950 p-2 rounded border border-slate-800">
+                    <span><strong>${c.apelido}</strong> (Fecha: ${c.dia_fechamento} | Vence: ${c.dia_vencimento})</span>
+                    <button onclick="deletarItem('cartoes', '${c.id}')" class="text-rose-400 hover:text-rose-300"><i class="fa-solid fa-trash"></i></button>
+                </div>`
+            ).join('');
+
+            document.getElementById('lista-metodos').innerHTML = state.metodos.map(m => 
+                `<div class="flex justify-between items-center bg-cobalt-950 p-2 rounded border border-slate-800">
+                    <span>${m.nome}</span>
+                    <button onclick="deletarItem('metodos_pagamento', '${m.id}')" class="text-rose-400 hover:text-rose-300"><i class="fa-solid fa-trash"></i></button>
+                </div>`
+            ).join('');
+
+            document.getElementById('lista-categorias').innerHTML = state.categorias.map(c => 
+                `<div class="flex justify-between items-center bg-cobalt-950 p-2 rounded border border-slate-800">
+                    <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:${c.cor}"></span>${c.nome}</span>
+                    <button onclick="deletarItem('categorias', '${c.id}')" class="text-rose-400 hover:text-rose-300"><i class="fa-solid fa-trash"></i></button>
+                </div>`
+            ).join('');
+        }
+
+        // =========================================================================
+        // 2. CÁLCULO DE MÊS DA FATURA DO CARTÃO
+        // =========================================================================
+        function calcularMesCompetencia(dataCompraStr, cartao) {
+            const [anoStr, mesStr, diaStr] = dataCompraStr.split('-');
+            let ano = parseInt(anoStr);
+            let mes = parseInt(mesStr); // 1 a 12
+            const dia = parseInt(diaStr);
+
+            if (cartao) {
+                // Se comprou no dia do fechamento ou depois, vai para a próxima fatura
+                if (dia >= cartao.dia_fechamento) {
+                    mes += 1;
+                }
+                // Se o vencimento é em dia menor que o fechamento (ex: fecha 25, vence 05), o pagamento ocorre no mês seguinte ao fechamento
+                if (cartao.dia_vencimento < cartao.dia_fechamento) {
+                    mes += 1;
+                }
+            }
+
+            while (mes > 12) {
+                mes -= 12;
+                ano += 1;
+            }
+            return `${ano}-${String(mes).padStart(2, '0')}`;
+        }
+
+        // =========================================================================
+        // 3. SALVAR REGISTROS NO SUPABASE
+        // =========================================================================
+        async function salvarTransacao(e) {
+            e.preventDefault();
+            const tipo = document.getElementById('tx-tipo').value;
+            const descricao = document.getElementById('tx-descricao').value;
+            const valor = parseFloat(document.getElementById('tx-valor').value);
+            const data_compra = document.getElementById('tx-data').value;
+            const categoria_id = document.getElementById('tx-categoria').value || null;
+            const formaVal = document.getElementById('tx-forma').value;
+
+            let cartao_id = null;
+            let metodo_id = null;
+            let cartaoObj = null;
+
+            if (tipo === 'despesa' && formaVal) {
+                if (formaVal.startsWith('cartao_')) {
+                    cartao_id = formaVal.replace('cartao_', '');
+                    cartaoObj = state.cartoes.find(c => c.id === cartao_id);
+                } else if (formaVal.startsWith('metodo_')) {
+                    metodo_id = formaVal.replace('metodo_', '');
+                }
+            }
+
+            const mes_competencia = calcularMesCompetencia(data_compra, cartaoObj);
+
+            const { error } = await db.from('transacoes').insert([{
+                tipo, descricao, valor, data_compra, mes_competencia, categoria_id, metodo_id, cartao_id
+            }]);
+
+            if (!error) {
+                e.target.reset();
+                document.getElementById('tx-data').valueAsDate = new Date();
+                await carregarDadosBanco();
+            } else {
+                alert('Erro ao salvar lançamento: ' + error.message);
+            }
+        }
+
+        async function salvarCartao(e) {
+            e.preventDefault();
+            const apelido = document.getElementById('card-apelido').value;
+            const dia_fechamento = parseInt(document.getElementById('card-fechamento').value);
+            const dia_vencimento = parseInt(document.getElementById('card-vencimento').value);
+            await db.from('cartoes').insert([{ apelido, dia_fechamento, dia_vencimento }]);
+            e.target.reset();
+            await carregarDadosBanco();
+        }
+
+        async function salvarMetodo(e) {
+            e.preventDefault();
+            const nome = document.getElementById('met-nome').value;
+            await db.from('metodos_pagamento').insert([{ nome }]);
+            e.target.reset();
+            await carregarDadosBanco();
+        }
+
+        async function salvarCategoria(e) {
+            e.preventDefault();
+            const nome = document.getElementById('cat-nome').value;
+            const cor = document.getElementById('cat-cor').value;
+            await db.from('categorias').insert([{ nome, cor }]);
+            e.target.reset();
+            await carregarDadosBanco();
+        }
+
+        async function salvarInvestimento(e) {
+            e.preventDefault();
+            const nome = document.getElementById('inv-nome').value;
+            const valor_inicial = parseFloat(document.getElementById('inv-valor').value);
+            const taxa_mensal = parseFloat(document.getElementById('inv-taxa').value);
+            const data_aporte = document.getElementById('inv-data').value;
+            await db.from('investimentos').insert([{ nome, valor_inicial, taxa_mensal, data_aporte }]);
+            e.target.reset();
+            await carregarDadosBanco();
+        }
+
+        async function salvarPrevisao(e) {
+            e.preventDefault();
+            const descricao = document.getElementById('prev-desc').value;
+            const valor = parseFloat(document.getElementById('prev-valor').value);
+            const mes_inicio = document.getElementById('prev-inicio').value;
+            const mes_fim = document.getElementById('prev-fim').value;
+            await db.from('previsao_recebiveis').insert([{ descricao, valor, mes_inicio, mes_fim }]);
+            e.target.reset();
+            await carregarDadosBanco();
+        }
+
+        async function deletarItem(tabela, id) {
+            if (!confirm('Deseja excluir este registro?')) return;
+            await db.from(tabela).delete().eq('id', id);
+            await carregarDadosBanco();
+        }
+
+        // =========================================================================
+        // 4. ATUALIZAÇÃO DE DASHBOARD, GRÁFICOS E PROJEÇÕES
+        // =========================================================================
+        function formatBRL(val) {
+            return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        function atualizarTudo() {
+            const mesSel = document.getElementById('filtro-mes').value;
+            const anoSel = document.getElementById('filtro-ano').value;
+            const compAtual = `${anoSel}-${mesSel}`;
+            document.getElementById('label-ano-grafico').innerText = anoSel;
+
+            // Filtrar transações do mês/ano selecionado
+            const txMes = state.transacoes.filter(t => t.mes_competencia === compAtual);
+            
+            const receitasMes = txMes.filter(t => t.tipo === 'receita').reduce((acc, t) => acc + Number(t.valor), 0);
+            const despesasMes = txMes.filter(t => t.tipo === 'despesa').reduce((acc, t) => acc + Number(t.valor), 0);
+            const saldoMes = receitasMes - despesasMes;
+
+            document.getElementById('kpi-receitas').innerText = formatBRL(receitasMes);
+            document.getElementById('kpi-despesas').innerText = formatBRL(despesasMes);
+            document.getElementById('kpi-saldo').innerText = formatBRL(saldoMes);
+
+            renderizarTabelaTransacoes(txMes);
+            renderizarInvestimentosEPrevisoes(anoSel);
+            renderizarGraficos(anoSel, txMes);
+        }
+
+        function renderizarTabelaTransacoes(txMes) {
+            const tbody = document.getElementById('lista-transacoes');
+            if (txMes.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="py-6 text-center text-slate-500">Nenhum lançamento para esta competência.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = txMes.map(t => {
+                const cat = state.categorias.find(c => c.id === t.categoria_id);
+                let formaNome = '-';
+                if (t.cartao_id) {
+                    const card = state.cartoes.find(c => c.id === t.cartao_id);
+                    formaNome = card ? `💳 ${card.apelido}` : 'Cartão';
+                } else if (t.metodo_id) {
+                    const met = state.metodos.find(m => m.id === t.metodo_id);
+                    formaNome = met ? met.nome : 'Método';
+                }
+
+                const corValor = t.tipo === 'receita' ? 'text-emerald-400' : 'text-rose-400';
+                const sinal = t.tipo === 'receita' ? '+' : '-';
+
+                return `
+                    <tr class="hover:bg-slate-800/30">
+                        <td class="py-3 px-2 text-slate-300">${t.data_compra.split('-').reverse().join('/')}</td>
+                        <td class="py-3 px-2 text-cyan-400 font-mono text-xs">${t.mes_competencia}</td>
+                        <td class="py-3 px-2 font-medium text-white">${t.descricao}</td>
+                        <td class="py-3 px-2"><span class="px-2 py-0.5 rounded text-xs" style="background:${cat?.cor || '#334155'}33; color:${cat?.cor || '#cbd5e1'}">${cat?.nome || 'Geral'}</span></td>
+                        <td class="py-3 px-2 text-slate-300">${formaNome}</td>
+                        <td class="py-3 px-2 text-right font-semibold ${corValor}">${sinal} ${formatBRL(Number(t.valor))}</td>
+                        <td class="py-3 px-2 text-center">
+                            <button onclick="deletarItem('transacoes', '${t.id}')" class="text-slate-500 hover:text-rose-400"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderizarInvestimentosEPrevisoes(anoSel) {
+            let totalProjetadoDez = 0;
+            const anoAtual = parseInt(anoSel);
+
+            const htmlInv = state.investimentos.map(inv => {
+                const [anoAp, mesAp] = inv.data_aporte.split('-').map(Number);
+                // Meses de rendimento até Dezembro do ano selecionado
+                let mesesRendimento = 0;
+                if (anoAp < anoAtual) {
+                    mesesRendimento = 12;
+                } else if (anoAp === anoAtual) {
+                    mesesRendimento = Math.max(0, 12 - mesAp);
+                }
+
+                const taxa = Number(inv.taxa_mensal) / 100;
+                const montanteFinal = Number(inv.valor_inicial) * Math.pow(1 + taxa, mesesRendimento);
+                totalProjetadoDez += montanteFinal;
+
+                return `
+                    <div class="bg-cobalt-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center">
+                        <div>
+                            <p class="font-semibold text-white">${inv.nome}</p>
+                            <p class="text-xs text-slate-400">Inicial: ${formatBRL(Number(inv.valor_inicial))} | Taxa: ${inv.taxa_mensal}% a.m. (${mesesRendimento} meses até Dez)</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-purple-400 font-bold">${formatBRL(montanteFinal)}</p>
+                            <button onclick="deletarItem('investimentos', '${inv.id}')" class="text-xs text-rose-400">Excluir</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('kpi-investimento').innerText = formatBRL(totalProjetadoDez);
+            document.getElementById('lista-investimentos').innerHTML = htmlInv || '<p class="text-slate-500">Nenhum investimento cadastrado.</p>';
+
+            const htmlPrev = state.previsoes.map(p => `
+                <div class="bg-cobalt-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center">
+                    <div>
+                        <p class="font-semibold text-white">${p.descricao}</p>
+                        <p class="text-xs text-slate-400">Período: ${p.mes_inicio} até ${p.mes_fim}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-emerald-400 font-bold">${formatBRL(Number(p.valor))}/mês</p>
+                        <button onclick="deletarItem('previsao_recebiveis', '${p.id}')" class="text-xs text-rose-400">Excluir</button>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('lista-previsoes').innerHTML = htmlPrev || '<p class="text-slate-500">Nenhuma previsão cadastrada.</p>';
+        }
+
+        function renderizarGraficos(anoSel, txMes) {
+            const mesesLabels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+            const dadosReceitas = Array(12).fill(0);
+            const dadosDespesas = Array(12).fill(0);
+            const dadosPrevistos = Array(12).fill(0);
+
+            state.transacoes.forEach(t => {
+                if (t.mes_competencia.startsWith(anoSel)) {
+                    const idx = parseInt(t.mes_competencia.split('-')[1]) - 1;
+                    if (t.tipo === 'receita') dadosReceitas[idx] += Number(t.valor);
+                    if (t.tipo === 'despesa') dadosDespesas[idx] += Number(t.valor);
+                }
+            });
+
+            // Somar previsões de recebíveis nos meses correspondentes
+            for (let m = 1; m <= 12; m++) {
+                const comp = `${anoSel}-${String(m).padStart(2, '0')}`;
+                state.previsoes.forEach(p => {
+                    if (comp >= p.mes_inicio && comp <= p.mes_fim) {
+                        dadosPrevistos[m - 1] += Number(p.valor);
+                    }
+                });
+            }
+
+            // 1. Gráfico de Linha Anual
+            if (charts.linha) charts.linha.destroy();
+            charts.linha = new Chart(document.getElementById('chart-linha-anual'), {
+                type: 'line',
+                data: {
+                    labels: mesesLabels,
+                    datasets: [
+                        { label: 'Recebimentos Realizados', data: dadosReceitas, borderColor: '#10b981', backgroundColor: '#10b98122', tension: 0.3, fill: true },
+                        { label: 'Recebíveis Previstos', data: dadosPrevistos, borderColor: '#22d3ee', borderDash: [5, 5], tension: 0.3 },
+                        { label: 'Gastos (Faturas/Despesas)', data: dadosDespesas, borderColor: '#f43f5e', backgroundColor: '#f43f5e22', tension: 0.3, fill: true }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#cbd5e1' } } },
+                    scales: {
+                        x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } },
+                        y: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } }
+                    }
+                }
+            });
+
+            // 2. Gráfico Pizza por Categoria
+            const despesasMes = txMes.filter(t => t.tipo === 'despesa');
+            const mapCat = {};
+            const coresCat = [];
+            despesasMes.forEach(d => {
+                const cat = state.categorias.find(c => c.id === d.categoria_id);
+                const nome = cat ? cat.nome : 'Sem Categoria';
+                if (!mapCat[nome]) {
+                    mapCat[nome] = 0;
+                    coresCat.push(cat ? cat.cor : '#64748b');
+                }
+                mapCat[nome] += Number(d.valor);
+            });
+
+            if (charts.pizzaCat) charts.pizzaCat.destroy();
+            charts.pizzaCat = new Chart(document.getElementById('chart-pizza-categorias'), {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(mapCat),
+                    datasets: [{ data: Object.values(mapCat), backgroundColor: coresCat, borderWidth: 0 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#cbd5e1' } } } }
+            });
+
+            // 3. Gráfico Pizza por Método / Cartão
+            const mapMet = {};
+            despesasMes.forEach(d => {
+                let nome = 'Outros';
+                if (d.cartao_id) {
+                    const c = state.cartoes.find(x => x.id === d.cartao_id);
+                    nome = c ? `Cartão: ${c.apelido}` : 'Cartão';
+                } else if (d.metodo_id) {
+                    const m = state.metodos.find(x => x.id === d.metodo_id);
+                    nome = m ? m.nome : 'Método';
+                }
+                mapMet[nome] = (mapMet[nome] || 0) + Number(d.valor);
+            });
+
+            if (charts.pizzaMet) charts.pizzaMet.destroy();
+            charts.pizzaMet = new Chart(document.getElementById('chart-pizza-metodos'), {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(mapMet),
+                    datasets: [{
+                        data: Object.values(mapMet),
+                        backgroundColor: ['#22d3ee', '#8b5cf6', '#f59e0b', '#10b981', '#ec4899', '#3b82f6'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#cbd5e1' } } } }
+            });
+        }
+    </script>
+</body>
+</html>
