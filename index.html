@@ -975,7 +975,6 @@
         let charts = { linha: null, pizzaCat: null, pizzaMet: null, comparativo: null, modalCatMes: null };
         const NOMES_MESES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
-        // Helpers para separar categorias de Despesa e Receita
         function obterCategoriasPorTipo(tipoAlvo) {
             const doBanco = state.categorias.filter(c => {
                 const tipoCat = c.tipo || state.tiposCategoriasMap[String(c.id)] || 'despesa';
@@ -1084,32 +1083,69 @@
         // =========================================================================
         // CÁLCULO DE INVESTIMENTOS (TOTAL INVESTIDO + RENDIMENTO DO MÊS)
         // =========================================================================
+        function calcularRendimentoAtivoNoMes(inv, compAlvo) {
+            const compAporte = inv.data_aporte.slice(0, 7);
+            const diffMeses = diferencaMeses(compAporte, compAlvo);
+            const principal = Number(inv.valor_inicial);
+            const taxa = Number(inv.taxa_mensal) / 100;
+
+            if (diffMeses < 0) {
+                return { ativo: false, principal: 0, rendimentoMes: 0, saldoNoMes: 0 };
+            }
+
+            if (diffMeses === 0) {
+                // No mês do aporte, calcula proporcional aos dias restantes no mês (dia 1 = 100% da taxa)
+                const [anoAp, mesAp, diaAp] = inv.data_aporte.split('-').map(Number);
+                const diasNoMes = new Date(anoAp, mesAp, 0).getDate();
+                const diasAtivos = Math.max(1, diasNoMes - diaAp + 1);
+                const fatorProporcional = diasAtivos / diasNoMes;
+                const rendimentoMes = principal * taxa * fatorProporcional;
+
+                return {
+                    ativo: true,
+                    principal,
+                    rendimentoMes,
+                    saldoNoMes: principal + rendimentoMes
+                };
+            }
+
+            // Nos meses seguintes: juros compostos considerando o 1º mês proporcional + meses cheios anteriores
+            const [anoAp, mesAp, diaAp] = inv.data_aporte.split('-').map(Number);
+            const diasNoMes = new Date(anoAp, mesAp, 0).getDate();
+            const diasAtivos = Math.max(1, diasNoMes - diaAp + 1);
+            const fatorPrimeiroMes = diasAtivos / diasNoMes;
+
+            const saldoAposPrimeiroMes = principal * (1 + taxa * fatorPrimeiroMes);
+            const saldoAntesDoMesAlvo = saldoAposPrimeiroMes * Math.pow(1 + taxa, diffMeses - 1);
+            const rendimentoMes = saldoAntesDoMesAlvo * taxa;
+
+            return {
+                ativo: true,
+                principal,
+                rendimentoMes,
+                saldoNoMes: saldoAntesDoMesAlvo + rendimentoMes
+            };
+        }
+
         function calcularInvestimentosNoMes(compAlvo) {
             let totalInvestido = 0;
             let rendimentoMesTotal = 0;
             const detalhes = [];
 
             state.investimentos.forEach(inv => {
-                const compAporte = inv.data_aporte.slice(0, 7);
-                const diffMeses = diferencaMeses(compAporte, compAlvo);
-                const principal = Number(inv.valor_inicial);
-                const taxa = Number(inv.taxa_mensal) / 100;
+                const res = calcularRendimentoAtivoNoMes(inv, compAlvo);
+                if (!res.ativo) return;
 
-                if (diffMeses < 0) return;
+                totalInvestido += res.principal;
+                rendimentoMesTotal += res.rendimentoMes;
 
-                totalInvestido += principal;
-                const saldoAntesDoMes = principal * Math.pow(1 + taxa, diffMeses);
-                const rendimentoNesteMes = diffMeses === 0 ? 0 : saldoAntesDoMes * taxa;
-                const saldoFinalNoMes = saldoAntesDoMes + rendimentoNesteMes;
-
-                rendimentoMesTotal += rendimentoNesteMes;
                 detalhes.push({
                     nome: inv.nome,
-                    principal,
+                    principal: res.principal,
                     taxaPercent: Number(inv.taxa_mensal),
                     dataAporte: inv.data_aporte,
-                    rendimentoMes: rendimentoNesteMes,
-                    saldoNoMes: saldoFinalNoMes
+                    rendimentoMes: res.rendimentoMes,
+                    saldoNoMes: res.saldoNoMes
                 });
             });
 
@@ -1167,7 +1203,8 @@
                 document.getElementById('rec-descricao').value = tx.descricao;
                 document.getElementById('rec-valor').value = tx.valor;
                 document.getElementById('rec-data').value = tx.data_compra;
-                document.getElementById('rec-categoria').value = tx.categoria_id || '';
+                const localCat = localStorage.getItem(`fp_tx_cat_local_${tx.id}`);
+                document.getElementById('rec-categoria').value = localCat || tx.categoria_id || '';
                 document.getElementById('wrap-rec-repetir').classList.add('hidden');
             } else {
                 document.getElementById('titulo-modal-recebimento').innerText = 'Novo Recebimento';
@@ -1199,6 +1236,8 @@
                 if (error) { alert('Erro ao editar recebimento: ' + error.message); return; }
                 if (catVal && String(catVal).startsWith('local_cat_')) {
                     localStorage.setItem(`fp_tx_cat_local_${id}`, catVal);
+                } else {
+                    localStorage.removeItem(`fp_tx_cat_local_${id}`);
                 }
             } else {
                 const repetir = document.getElementById('rec-repetir-check').checked;
@@ -1790,7 +1829,6 @@
             document.getElementById('wrap-parcelamento').style.display = isDespesa ? 'block' : 'none';
             document.getElementById('lbl-tx-categoria').innerText = isDespesa ? 'Categoria de Gasto' : 'Categoria de Recebimento';
 
-            // Filtra o select de categoria conforme Despesa ou Receita
             const cats = obterCategoriasPorTipo(tipo);
             const sel = document.getElementById('tx-categoria');
             sel.innerHTML = cats.length > 0
@@ -1852,19 +1890,15 @@
             const catsDespesa = obterCategoriasPorTipo('despesa');
             const catsReceita = obterCategoriasPorTipo('receita');
 
-            // Atualiza select de categorias da aba Lançamentos conforme o tipo selecionado
             toggleCamposDespesa();
 
-            // Select de categorias de boletos (apenas gastos)
             document.getElementById('bol-categoria').innerHTML = '<option value="">Sem Categoria</option>' +
                 catsDespesa.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
 
-            // Select de categorias de recebimentos (exclusivo de recebimentos)
             document.getElementById('rec-categoria').innerHTML = catsReceita.length > 0
                 ? '<option value="">Sem Categoria</option>' + catsReceita.map(c => `<option value="${c.id}">${c.nome}</option>`).join('')
                 : '<option value="">Nenhuma categoria de recebimento</option>';
 
-            // Filtro do Dashboard (agrupado por Gastos e Recebimentos)
             const selDashCat = document.getElementById('dash-filtro-categoria');
             let htmlDashCat = '<option value="todas">Todas as Categorias</option>';
             if (catsDespesa.length > 0) {
@@ -1897,7 +1931,6 @@
             selDashForma.innerHTML = '<option value="todas">Todos os Cartões e Métodos</option>' + htmlForma;
             if (dashFormaAtual) selDashForma.value = dashFormaAtual;
 
-            // Listas na aba Configurações
             document.getElementById('lista-cartoes').innerHTML = state.cartoes.map(c => 
                 `<div class="flex justify-between items-center bg-cobalt-950 p-2.5 rounded-lg border border-slate-800">
                     <span>💳 <strong>${c.apelido}</strong> <span class="text-slate-400">(Fecha: ${c.dia_fechamento} | Vence: ${c.dia_vencimento})</span></span>
@@ -1940,7 +1973,6 @@
             const cor = corInput.value;
             if (!nome) return;
 
-            // Tenta salvar com coluna 'tipo' no Supabase
             const resComTipo = await db.from('categorias').insert([{ nome, cor, tipo: tipoCategoria }]).select();
 
             if (!resComTipo.error && resComTipo.data && resComTipo.data[0]) {
@@ -1951,7 +1983,6 @@
                 return;
             }
 
-            // Fallback se a tabela 'categorias' no banco não possuir a coluna 'tipo'
             const resSemTipo = await db.from('categorias').insert([{ nome, cor }]).select();
             if (!resSemTipo.error && resSemTipo.data && resSemTipo.data[0]) {
                 state.tiposCategoriasMap[String(resSemTipo.data[0].id)] = tipoCategoria;
@@ -2264,21 +2295,17 @@
 
         function renderizarInvestimentosEPrevisoes(compMensal) {
             const htmlInv = state.investimentos.map(inv => {
-                const compAporte = inv.data_aporte.slice(0, 7);
-                const diffMeses = Math.max(0, diferencaMeses(compAporte, compMensal));
+                const res = calcularRendimentoAtivoNoMes(inv, compMensal);
                 const principal = Number(inv.valor_inicial);
-                const taxa = Number(inv.taxa_mensal) / 100;
-                const saldoAntesDoMes = principal * Math.pow(1 + taxa, diffMeses);
-                const rendMes = diffMeses === 0 ? 0 : saldoAntesDoMes * taxa;
 
                 return `
                     <div class="bg-cobalt-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center">
                         <div>
                             <p class="font-semibold text-white">${inv.nome}</p>
-                            <p class="text-xs text-slate-400">Aplicado: ${formatBRL(principal)} • ${inv.taxa_mensal}% a.m.</p>
+                            <p class="text-xs text-slate-400">Aplicado: ${formatBRL(principal)} • ${inv.taxa_mensal}% a.m. (${inv.data_aporte.split('-').reverse().join('/')})</p>
                         </div>
                         <div class="text-right">
-                            <p class="text-emerald-400 font-bold">+${formatBRL(rendMes)} <span class="text-[10px] font-normal text-slate-400">/mês</span></p>
+                            <p class="text-emerald-400 font-bold">+${formatBRL(res.rendimentoMes)} <span class="text-[10px] font-normal text-slate-400">/mês</span></p>
                             <button onclick="deletarItem('investimentos', '${inv.id}')" class="text-xs text-rose-400">Excluir</button>
                         </div>
                     </div>
