@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finanças Pro | Dashboard & Controle</title>
+    <title>Finanças Pro | Controle Financeiro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -31,8 +31,8 @@
     </script>
     <style>
         body { background-color: #070b19; color: #f8fafc; font-family: 'Inter', sans-serif; }
-        .card-glass { background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(34, 211, 238, 0.15); backdrop-filter: blur(10px); transition: all 0.2s ease; }
-        .nav-btn.active { background: linear-gradient(90deg, rgba(34, 211, 238, 0.2) 0%, transparent 100%); border-left: 3px solid #22d3ee; color: #22d3ee; }
+        .card-glass { background: rgba(15, 23, 42, 0.78); border: 1px solid rgba(148, 163, 184, 0.12); backdrop-filter: blur(10px); transition: all 0.2s ease; }
+        .nav-btn.active { background: linear-gradient(90deg, rgba(34, 211, 238, 0.16) 0%, transparent 100%); border-left: 3px solid #22d3ee; color: #22d3ee; }
         .period-btn.active { background-color: #22d3ee; color: #070b19; font-weight: 700; }
         .edit-mode-ring { border: 1px dashed rgba(34, 211, 238, 0.65) !important; }
     </style>
@@ -40,55 +40,51 @@
 <body class="flex flex-col md:flex-row min-h-screen">
 
     <!-- Sidebar -->
-    <aside class="w-full md:w-64 bg-cobalt-900 border-b md:border-r border-slate-800 flex flex-col justify-between p-4 shrink-0">
+    <aside class="w-full md:w-60 bg-cobalt-900/95 border-b md:border-r border-slate-800/80 flex flex-col justify-between p-4 shrink-0">
         <div>
-            <div class="flex items-center gap-3 px-2 py-4 mb-6 border-b border-slate-800">
-                <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-400 to-cobalt-700 flex items-center justify-center text-white font-bold">
+            <div class="flex items-center gap-3 px-2 py-3 mb-6 border-b border-slate-800/80">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-cobalt-700 flex items-center justify-center text-white font-bold text-sm">
                     <i class="fa-solid fa-chart-line"></i>
                 </div>
-                <span class="font-bold text-lg tracking-wide text-white">Finanças<span class="text-cyan-400">Pro</span></span>
+                <span class="font-bold text-base tracking-wide text-white">Finanças<span class="text-cyan-400">Pro</span></span>
             </div>
             <nav class="space-y-1">
-                <button onclick="switchTab('dashboard')" id="btn-dashboard" class="nav-btn active w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800/50 transition">
-                    <i class="fa-solid fa-gauge-high w-5"></i> Dashboard
+                <button onclick="switchTab('dashboard')" id="btn-dashboard" class="nav-btn active w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800/50 transition">
+                    <i class="fa-solid fa-gauge-high w-4"></i> Dashboard
                 </button>
-                <button onclick="switchTab('lancamentos')" id="btn-lancamentos" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800/50 transition">
-                    <i class="fa-solid fa-money-bill-transfer w-5"></i> Lançamentos
+                <button onclick="switchTab('lancamentos')" id="btn-lancamentos" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800/50 transition">
+                    <i class="fa-solid fa-money-bill-transfer w-4"></i> Lançamentos
                 </button>
-                <button onclick="switchTab('investimentos')" id="btn-investimentos" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800/50 transition">
-                    <i class="fa-solid fa-sack-dollar w-5"></i> Salários, Recebíveis & Invest.
+                <button onclick="switchTab('investimentos')" id="btn-investimentos" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800/50 transition">
+                    <i class="fa-solid fa-sack-dollar w-4"></i> Recebíveis & Invest.
                 </button>
-                <button onclick="switchTab('configuracoes')" id="btn-configuracoes" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800/50 transition">
-                    <i class="fa-solid fa-credit-card w-5"></i> Cartões & Categorias
+                <button onclick="switchTab('configuracoes')" id="btn-configuracoes" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800/50 transition">
+                    <i class="fa-solid fa-credit-card w-4"></i> Cartões & Categorias
                 </button>
             </nav>
         </div>
-        <div class="mt-8 pt-4 border-t border-slate-800 text-xs text-slate-500 px-2 space-y-1">
+        <div class="mt-8 pt-3 border-t border-slate-800/80 text-[11px] text-slate-500 px-2">
             <p id="status-conexao"><i class="fa-solid fa-circle text-amber-500 mr-1"></i> Conectando...</p>
-            <p id="resumo-vinculos" class="text-[11px] text-slate-500"></p>
         </div>
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 p-4 md:p-8 overflow-y-auto">
+    <main class="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full overflow-y-auto">
         
-        <!-- Filtros Globais (Mês / Ano + Limite Mensal) -->
-        <header class="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-6">
+        <!-- Cabeçalho Limpo e Direto -->
+        <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <div>
-                <h1 id="page-title" class="text-2xl font-bold text-white">Visão Geral</h1>
-                <p id="page-subtitle" class="text-sm text-slate-400">Acompanhamento financeiro, vencimentos e projeções</p>
+                <h1 id="page-title" class="text-xl font-bold text-white">Visão Geral</h1>
+                <p id="badge-periodo-ativo" class="text-xs text-slate-400 mt-0.5">Competência selecionada</p>
             </div>
-            <div class="flex flex-wrap items-center gap-3">
-                <button onclick="abrirModalBoleto()" class="bg-cobalt-900 hover:bg-cobalt-800 border border-amber-400/30 text-amber-300 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition">
-                    <i class="fa-solid fa-barcode"></i> Cadastrar Boleto Programado
+
+            <div class="flex flex-wrap items-center gap-2.5">
+                <button onclick="abrirModalLimite()" class="bg-cobalt-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-cyan-400 px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-sliders text-cyan-400"></i> Limite Mensal
                 </button>
 
-                <button onclick="abrirModalLimite()" class="bg-cobalt-900 hover:bg-cobalt-800 border border-cyan-400/30 text-cyan-400 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition">
-                    <i class="fa-solid fa-sliders"></i> Definir Limite Mensal
-                </button>
-
-                <div class="flex items-center gap-2 bg-cobalt-900 p-2 rounded-xl border border-slate-800">
-                    <select id="filtro-mes" onchange="atualizarTudo()" class="bg-transparent text-sm font-medium text-white px-2 py-1 outline-none">
+                <div class="flex items-center gap-1.5 bg-cobalt-900 px-3 py-1.5 rounded-xl border border-slate-800">
+                    <select id="filtro-mes" onchange="atualizarTudo()" class="bg-transparent text-xs font-semibold text-white outline-none cursor-pointer">
                         <option value="01" class="bg-cobalt-900">Janeiro</option>
                         <option value="02" class="bg-cobalt-900">Fevereiro</option>
                         <option value="03" class="bg-cobalt-900">Março</option>
@@ -103,7 +99,7 @@
                         <option value="12" class="bg-cobalt-900">Dezembro</option>
                     </select>
                     <span class="text-slate-600">/</span>
-                    <select id="filtro-ano" onchange="atualizarTudo()" class="bg-transparent text-sm font-medium text-cyan-400 px-2 py-1 outline-none">
+                    <select id="filtro-ano" onchange="atualizarTudo()" class="bg-transparent text-xs font-semibold text-cyan-400 outline-none cursor-pointer">
                         <option value="2025" class="bg-cobalt-900">2025</option>
                         <option value="2026" class="bg-cobalt-900" selected>2026</option>
                         <option value="2027" class="bg-cobalt-900">2027</option>
@@ -112,302 +108,204 @@
             </div>
         </header>
 
-        <!-- ABA 1: DASHBOARD -->
-        <section id="tab-dashboard" class="space-y-6">
+        <!-- ABA 1: DASHBOARD SIMPLIFICADO -->
+        <section id="tab-dashboard" class="space-y-5">
             
-            <!-- Barra de Controles, Filtros e Personalização do Dashboard -->
-            <div class="card-glass p-4 rounded-2xl space-y-4">
-                <div class="flex flex-wrap justify-between items-center gap-3">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <span class="text-xs uppercase tracking-wider text-slate-400 mr-1">Período:</span>
-                        <div class="inline-flex bg-cobalt-950 p-1 rounded-xl border border-slate-800">
-                            <button onclick="setPeriodoDashboard('mensal')" id="per-mensal" class="period-btn active px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 transition">Mensal</button>
-                            <button onclick="setPeriodoDashboard('bimestral')" id="per-bimestral" class="period-btn px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 transition">Bimestral</button>
-                            <button onclick="setPeriodoDashboard('anual')" id="per-anual" class="period-btn px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 transition">Anual</button>
-                        </div>
-                        <span id="badge-periodo-ativo" class="ml-1 text-xs text-cyan-400 font-semibold"></span>
-                    </div>
-
-                    <div class="flex flex-wrap items-center gap-2">
-                        <button onclick="abrirModalOcultos()" id="btn-cards-ocultos" class="hidden bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/40 text-amber-300 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition">
-                            <i class="fa-solid fa-eye"></i> Exibir Cards Ocultos (<span id="count-cards-ocultos">0</span>)
-                        </button>
-
-                        <button onclick="toggleModoEdicaoDashboard()" id="btn-editar-layout" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition">
-                            <i class="fa-solid fa-up-right-and-down-left-from-center"></i> Personalizar Cards
-                        </button>
-
-                        <button onclick="abrirModalComparativo()" class="bg-cobalt-800 hover:bg-cobalt-700 border border-cyan-400/30 text-cyan-400 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition">
-                            <i class="fa-solid fa-code-compare"></i> Comparar Meses
-                        </button>
-                    </div>
+            <!-- Barra Minimalista de Controles -->
+            <div class="flex flex-wrap justify-between items-center gap-3">
+                <div class="inline-flex bg-cobalt-900 p-1 rounded-xl border border-slate-800">
+                    <button onclick="setPeriodoDashboard('mensal')" id="per-mensal" class="period-btn active px-3 py-1 rounded-lg text-xs text-slate-300 transition">Mensal</button>
+                    <button onclick="setPeriodoDashboard('bimestral')" id="per-bimestral" class="period-btn px-3 py-1 rounded-lg text-xs text-slate-300 transition">Bimestral</button>
+                    <button onclick="setPeriodoDashboard('anual')" id="per-anual" class="period-btn px-3 py-1 rounded-lg text-xs text-slate-300 transition">Anual</button>
                 </div>
 
-                <!-- Filtros Secundários do Dashboard -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-slate-800/80">
-                    <div>
-                        <label class="block text-[11px] uppercase tracking-wider text-slate-400 mb-1">Filtrar por Categoria</label>
-                        <select id="dash-filtro-categoria" onchange="atualizarTudo()" class="w-full bg-cobalt-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-cyan-400">
-                            <option value="todas">Todas as Categorias</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[11px] uppercase tracking-wider text-slate-400 mb-1">Filtrar por Cartão / Método</label>
-                        <select id="dash-filtro-forma" onchange="atualizarTudo()" class="w-full bg-cobalt-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-cyan-400">
-                            <option value="todas">Todos os Cartões e Métodos</option>
-                        </select>
-                    </div>
-                    <div class="flex items-end">
-                        <button onclick="limparFiltrosDashboard()" class="w-full bg-cobalt-950 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white py-2 px-3 rounded-lg text-xs transition">
-                            <i class="fa-solid fa-filter-circle-xmark mr-1"></i> Limpar Filtros
-                        </button>
-                    </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <button onclick="togglePainelFiltrosDash()" id="btn-toggle-filtros-dash" class="bg-cobalt-900 hover:bg-slate-800 border border-slate-800 text-slate-300 px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-filter text-cyan-400"></i> Filtros
+                    </button>
+
+                    <button onclick="abrirModalComparativo()" class="bg-cobalt-900 hover:bg-slate-800 border border-slate-800 text-slate-300 px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-code-compare text-cyan-400"></i> Comparar
+                    </button>
+
+                    <button onclick="abrirModalOcultos()" id="btn-cards-ocultos" class="hidden bg-cobalt-900 hover:bg-slate-800 border border-slate-800 text-amber-300 px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-plus"></i> Mais Cards (<span id="count-cards-ocultos">0</span>)
+                    </button>
+
+                    <button onclick="toggleModoEdicaoDashboard()" id="btn-editar-layout" class="bg-cobalt-900 hover:bg-slate-800 border border-slate-800 text-slate-300 px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-sliders"></i> Layout
+                    </button>
                 </div>
             </div>
 
-            <!-- GRADE DE CARDS EDITÁVEIS -->
+            <!-- Gaveta de Filtros (Oculta por padrão para não poluir) -->
+            <div id="gaveta-filtros-dash" class="hidden card-glass p-4 rounded-2xl grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                    <label class="block text-[11px] text-slate-400 mb-1">Categoria</label>
+                    <select id="dash-filtro-categoria" onchange="atualizarTudo()" class="w-full bg-cobalt-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white outline-none">
+                        <option value="todas">Todas as Categorias</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[11px] text-slate-400 mb-1">Cartão ou Método</label>
+                    <select id="dash-filtro-forma" onchange="atualizarTudo()" class="w-full bg-cobalt-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white outline-none">
+                        <option value="todas">Todos os Cartões e Métodos</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button onclick="limparFiltrosDashboard()" class="w-full bg-cobalt-950 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white py-2 px-3 rounded-lg text-xs transition">
+                        Limpar Filtros
+                    </button>
+                </div>
+            </div>
+
+            <!-- GRADE DE CARDS LIMPA -->
             <div id="dashboard-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
-                <!-- CARD 1: Recebimentos -->
-                <div data-card-id="kpi_receitas" data-card-title="Recebimentos do Período" class="dash-card card-glass p-5 rounded-2xl relative">
+                <!-- 1. Recebimentos -->
+                <div data-card-id="kpi_receitas" data-card-title="Recebimentos" class="dash-card card-glass p-5 rounded-2xl">
                     <div class="card-edit-toolbar hidden mb-3 pb-2 border-b border-slate-800 flex justify-between items-center text-[11px]">
                         <div class="flex items-center gap-1">
-                            <span class="text-slate-400 mr-1">Tamanho:</span>
-                            <button onclick="setCardSpan('kpi_receitas', 1)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">P</button>
-                            <button onclick="setCardSpan('kpi_receitas', 2)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">M</button>
-                            <button onclick="setCardSpan('kpi_receitas', 4)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">G</button>
+                            <button onclick="setCardSpan('kpi_receitas', 1)" class="span-btn px-2 py-0.5 rounded bg-slate-800">P</button>
+                            <button onclick="setCardSpan('kpi_receitas', 2)" class="span-btn px-2 py-0.5 rounded bg-slate-800">M</button>
+                            <button onclick="setCardSpan('kpi_receitas', 4)" class="span-btn px-2 py-0.5 rounded bg-slate-800">G</button>
                         </div>
-                        <button onclick="toggleCardVisibility('kpi_receitas', false)" class="text-rose-400 hover:text-rose-300"><i class="fa-solid fa-eye-slash"></i> Ocultar</button>
+                        <button onclick="toggleCardVisibility('kpi_receitas', false)" class="text-rose-400">Ocultar</button>
                     </div>
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p id="lbl-kpi-receitas" class="text-xs uppercase tracking-wider text-slate-400">Recebimentos</p>
-                            <h2 id="kpi-receitas" class="text-2xl font-bold text-emerald-400 mt-1">R$ 0,00</h2>
-                        </div>
-                        <span class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center"><i class="fa-solid fa-arrow-trend-up"></i></span>
-                    </div>
-                    <p id="sub-kpi-receitas" class="text-xs text-slate-400 mt-2">+ R$ 0,00 previstos</p>
+                    <p id="lbl-kpi-receitas" class="text-xs text-slate-400">Recebimentos</p>
+                    <h2 id="kpi-receitas" class="text-2xl font-bold text-emerald-400 mt-1">R$ 0,00</h2>
+                    <p id="sub-kpi-receitas" class="text-[11px] text-slate-500 mt-2">+ R$ 0,00 previstos</p>
                 </div>
 
-                <!-- CARD 2: Gastos -->
-                <div data-card-id="kpi_despesas" data-card-title="Gastos do Período" class="dash-card card-glass p-5 rounded-2xl relative">
+                <!-- 2. Gastos + Barra de Limite Integrada -->
+                <div data-card-id="kpi_despesas" data-card-title="Gastos & Limite" class="dash-card card-glass p-5 rounded-2xl">
                     <div class="card-edit-toolbar hidden mb-3 pb-2 border-b border-slate-800 flex justify-between items-center text-[11px]">
                         <div class="flex items-center gap-1">
-                            <span class="text-slate-400 mr-1">Tamanho:</span>
-                            <button onclick="setCardSpan('kpi_despesas', 1)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">P</button>
-                            <button onclick="setCardSpan('kpi_despesas', 2)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">M</button>
-                            <button onclick="setCardSpan('kpi_despesas', 4)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">G</button>
+                            <button onclick="setCardSpan('kpi_despesas', 1)" class="span-btn px-2 py-0.5 rounded bg-slate-800">P</button>
+                            <button onclick="setCardSpan('kpi_despesas', 2)" class="span-btn px-2 py-0.5 rounded bg-slate-800">M</button>
+                            <button onclick="setCardSpan('kpi_despesas', 4)" class="span-btn px-2 py-0.5 rounded bg-slate-800">G</button>
                         </div>
-                        <button onclick="toggleCardVisibility('kpi_despesas', false)" class="text-rose-400 hover:text-rose-300"><i class="fa-solid fa-eye-slash"></i> Ocultar</button>
+                        <button onclick="toggleCardVisibility('kpi_despesas', false)" class="text-rose-400">Ocultar</button>
                     </div>
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p id="lbl-kpi-despesas" class="text-xs uppercase tracking-wider text-slate-400">Gastos</p>
-                            <h2 id="kpi-despesas" class="text-2xl font-bold text-rose-400 mt-1">R$ 0,00</h2>
-                        </div>
-                        <span class="w-9 h-9 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center"><i class="fa-solid fa-arrow-trend-down"></i></span>
+                    <div class="flex justify-between items-baseline">
+                        <p id="lbl-kpi-despesas" class="text-xs text-slate-400">Gastos</p>
+                        <span id="dash-limite-perc" class="text-[11px] font-bold text-slate-400"></span>
                     </div>
-                    <p id="sub-kpi-despesas" class="text-xs text-slate-400 mt-2">0 lançamentos no filtro</p>
-                </div>
-
-                <!-- CARD 3: Saldo e Taxa de Economia -->
-                <div data-card-id="kpi_saldo" data-card-title="Saldo & Economia" class="dash-card card-glass p-5 rounded-2xl relative">
-                    <div class="card-edit-toolbar hidden mb-3 pb-2 border-b border-slate-800 flex justify-between items-center text-[11px]">
-                        <div class="flex items-center gap-1">
-                            <span class="text-slate-400 mr-1">Tamanho:</span>
-                            <button onclick="setCardSpan('kpi_saldo', 1)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">P</button>
-                            <button onclick="setCardSpan('kpi_saldo', 2)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">M</button>
-                            <button onclick="setCardSpan('kpi_saldo', 4)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">G</button>
-                        </div>
-                        <button onclick="toggleCardVisibility('kpi_saldo', false)" class="text-rose-400 hover:text-rose-300"><i class="fa-solid fa-eye-slash"></i> Ocultar</button>
-                    </div>
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p id="lbl-kpi-saldo" class="text-xs uppercase tracking-wider text-slate-400">Saldo do Período</p>
-                            <h2 id="kpi-saldo" class="text-2xl font-bold text-cyan-400 mt-1">R$ 0,00</h2>
-                        </div>
-                        <span class="w-9 h-9 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center"><i class="fa-solid fa-wallet"></i></span>
-                    </div>
-                    <p id="sub-kpi-saldo" class="text-xs text-slate-400 mt-2">Taxa de poupança: 0%</p>
-                </div>
-
-                <!-- CARD 4: Projeção Investida -->
-                <div data-card-id="kpi_investimento" data-card-title="Projeção Investida (Dez)" class="dash-card card-glass p-5 rounded-2xl relative">
-                    <div class="card-edit-toolbar hidden mb-3 pb-2 border-b border-slate-800 flex justify-between items-center text-[11px]">
-                        <div class="flex items-center gap-1">
-                            <span class="text-slate-400 mr-1">Tamanho:</span>
-                            <button onclick="setCardSpan('kpi_investimento', 1)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">P</button>
-                            <button onclick="setCardSpan('kpi_investimento', 2)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">M</button>
-                            <button onclick="setCardSpan('kpi_investimento', 4)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">G</button>
-                        </div>
-                        <button onclick="toggleCardVisibility('kpi_investimento', false)" class="text-rose-400 hover:text-rose-300"><i class="fa-solid fa-eye-slash"></i> Ocultar</button>
-                    </div>
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-xs uppercase tracking-wider text-slate-400">Projeção Investida (Dez)</p>
-                            <h2 id="kpi-investimento" class="text-2xl font-bold text-purple-400 mt-1">R$ 0,00</h2>
-                        </div>
-                        <span class="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center"><i class="fa-solid fa-gem"></i></span>
-                    </div>
-                    <p id="sub-kpi-investimento" class="text-xs text-slate-400 mt-2">0 ativos aplicados</p>
-                </div>
-
-                <!-- CARD 5: Controle de Cartões & Boletos Programados (Vencimentos e Pagamentos) -->
-                <div data-card-id="card_faturas" data-card-title="Controle de Cartões & Boletos Programados" class="dash-card card-glass p-6 rounded-2xl relative">
-                    <div class="card-edit-toolbar hidden mb-3 pb-2 border-b border-slate-800 flex justify-between items-center text-[11px]">
-                        <div class="flex items-center gap-1">
-                            <span class="text-slate-400 mr-1">Tamanho:</span>
-                            <button onclick="setCardSpan('card_faturas', 1)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">P</button>
-                            <button onclick="setCardSpan('card_faturas', 2)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">M</button>
-                            <button onclick="setCardSpan('card_faturas', 4)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">G</button>
-                        </div>
-                        <button onclick="toggleCardVisibility('card_faturas', false)" class="text-rose-400 hover:text-rose-300"><i class="fa-solid fa-eye-slash"></i> Ocultar</button>
-                    </div>
-                    <div class="flex flex-wrap justify-between items-center gap-2 mb-4">
-                        <div>
-                            <h3 class="text-base font-semibold text-white flex items-center gap-2">
-                                <i class="fa-solid fa-calendar-check text-cyan-400"></i> Cartões & Boletos Programados (<span id="lbl-vencimentos-mes">Mês</span>)
-                            </h3>
-                            <p class="text-xs text-slate-400">Acompanhe datas de vencimento e marque o que já foi pago</p>
-                        </div>
-                        <button onclick="abrirModalBoleto()" class="bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/40 text-amber-300 px-3 py-1.5 rounded-lg text-xs font-semibold transition">
-                            + Novo Boleto
-                        </button>
-                    </div>
-                    <div id="dash-lista-vencimentos" class="space-y-2.5 text-xs"></div>
-                </div>
-
-                <!-- CARD 6: Barra de Progresso do Limite de Gastos -->
-                <div data-card-id="card_limite" data-card-title="Barra de Limite de Gastos" class="dash-card card-glass p-5 rounded-2xl relative flex flex-col justify-between">
-                    <div class="card-edit-toolbar hidden mb-3 pb-2 border-b border-slate-800 flex justify-between items-center text-[11px]">
-                        <div class="flex items-center gap-1">
-                            <span class="text-slate-400 mr-1">Tamanho:</span>
-                            <button onclick="setCardSpan('card_limite', 1)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">P</button>
-                            <button onclick="setCardSpan('card_limite', 2)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">M</button>
-                            <button onclick="setCardSpan('card_limite', 4)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">G</button>
-                        </div>
-                        <button onclick="toggleCardVisibility('card_limite', false)" class="text-rose-400 hover:text-rose-300"><i class="fa-solid fa-eye-slash"></i> Ocultar</button>
-                    </div>
-                    <div class="flex flex-wrap justify-between items-center gap-2 mb-2">
-                        <div>
-                            <h3 class="text-sm font-semibold text-white flex items-center gap-2">
-                                <i class="fa-solid fa-gauge text-cyan-400"></i> Meta / Limite de Gastos (<span id="dash-limite-rotulo">Mensal</span>)
-                            </h3>
-                            <p id="dash-limite-detalhe" class="text-xs text-slate-400 mt-0.5">Nenhum limite definido para este mês.</p>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <span id="dash-limite-perc" class="text-sm font-bold text-cyan-400">0%</span>
-                            <button onclick="abrirModalLimite()" class="text-xs bg-cobalt-950 hover:bg-slate-800 border border-slate-700 text-slate-300 px-2.5 py-1 rounded-lg transition">
-                                Editar Limite
-                            </button>
-                        </div>
-                    </div>
-                    <div class="w-full h-3.5 bg-cobalt-950 rounded-full overflow-hidden border border-slate-800 p-0.5 my-2">
+                    <h2 id="kpi-despesas" class="text-2xl font-bold text-rose-400 mt-1">R$ 0,00</h2>
+                    <!-- Mini barra de progresso do limite integrada -->
+                    <div class="w-full h-1.5 bg-cobalt-950 rounded-full overflow-hidden mt-2.5">
                         <div id="dash-limite-barra" class="h-full rounded-full bg-cyan-400 transition-all duration-500" style="width: 0%"></div>
                     </div>
-                    <div class="flex justify-between text-[11px] text-slate-400">
-                        <span id="dash-limite-gasto">Gasto: R$ 0,00</span>
-                        <span id="dash-limite-restante">Disponível: R$ 0,00</span>
-                    </div>
+                    <p id="dash-limite-detalhe" class="text-[11px] text-slate-500 mt-1.5">Sem limite definido</p>
                 </div>
 
-                <!-- CARD 7: Ticket Médio e Maior Despesa -->
-                <div data-card-id="card_estatisticas" data-card-title="Ticket Médio & Maior Gasto" class="dash-card card-glass p-5 rounded-2xl relative">
+                <!-- 3. Saldo -->
+                <div data-card-id="kpi_saldo" data-card-title="Saldo Líquido" class="dash-card card-glass p-5 rounded-2xl">
                     <div class="card-edit-toolbar hidden mb-3 pb-2 border-b border-slate-800 flex justify-between items-center text-[11px]">
                         <div class="flex items-center gap-1">
-                            <span class="text-slate-400 mr-1">Tamanho:</span>
-                            <button onclick="setCardSpan('card_estatisticas', 1)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">P</button>
-                            <button onclick="setCardSpan('card_estatisticas', 2)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">M</button>
-                            <button onclick="setCardSpan('card_estatisticas', 4)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">G</button>
+                            <button onclick="setCardSpan('kpi_saldo', 1)" class="span-btn px-2 py-0.5 rounded bg-slate-800">P</button>
+                            <button onclick="setCardSpan('kpi_saldo', 2)" class="span-btn px-2 py-0.5 rounded bg-slate-800">M</button>
+                            <button onclick="setCardSpan('kpi_saldo', 4)" class="span-btn px-2 py-0.5 rounded bg-slate-800">G</button>
                         </div>
-                        <button onclick="toggleCardVisibility('card_estatisticas', false)" class="text-rose-400 hover:text-rose-300"><i class="fa-solid fa-eye-slash"></i> Ocultar</button>
+                        <button onclick="toggleCardVisibility('kpi_saldo', false)" class="text-rose-400">Ocultar</button>
                     </div>
-                    <h3 class="text-sm font-semibold text-white mb-3"><i class="fa-solid fa-chart-simple text-cyan-400 mr-2"></i>Indicadores de Consumo</h3>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        <div class="bg-cobalt-950/80 p-3 rounded-xl border border-slate-800/80">
-                            <p class="text-[11px] text-slate-400">Ticket Médio</p>
-                            <p id="stat-ticket-medio" class="text-sm font-bold text-white mt-0.5">R$ 0,00</p>
-                        </div>
-                        <div class="bg-cobalt-950/80 p-3 rounded-xl border border-slate-800/80">
-                            <p class="text-[11px] text-slate-400">Maior Gasto</p>
-                            <p id="stat-maior-gasto" class="text-sm font-bold text-rose-400 mt-0.5">R$ 0,00</p>
-                            <p id="stat-maior-gasto-desc" class="text-[10px] text-slate-500 truncate">-</p>
-                        </div>
-                        <div class="bg-cobalt-950/80 p-3 rounded-xl border border-slate-800/80">
-                            <p class="text-[11px] text-slate-400">Gasto no Crédito</p>
-                            <p id="stat-total-credito" class="text-sm font-bold text-amber-400 mt-0.5">R$ 0,00</p>
-                        </div>
-                        <div class="bg-cobalt-950/80 p-3 rounded-xl border border-slate-800/80">
-                            <p class="text-[11px] text-slate-400">À Vista / Boletos</p>
-                            <p id="stat-total-vista" class="text-sm font-bold text-emerald-400 mt-0.5">R$ 0,00</p>
-                        </div>
-                    </div>
+                    <p id="lbl-kpi-saldo" class="text-xs text-slate-400">Saldo do Período</p>
+                    <h2 id="kpi-saldo" class="text-2xl font-bold text-cyan-400 mt-1">R$ 0,00</h2>
+                    <p id="sub-kpi-saldo" class="text-[11px] text-slate-500 mt-2">Economia: 0%</p>
                 </div>
 
-                <!-- CARD 8: Gráfico de Linha Anual -->
-                <div data-card-id="chart_linha" data-card-title="Gráfico de Evolução Anual" class="dash-card card-glass p-6 rounded-2xl relative">
+                <!-- 4. Investimentos -->
+                <div data-card-id="kpi_investimento" data-card-title="Projeção Investida" class="dash-card card-glass p-5 rounded-2xl">
                     <div class="card-edit-toolbar hidden mb-3 pb-2 border-b border-slate-800 flex justify-between items-center text-[11px]">
                         <div class="flex items-center gap-1">
-                            <span class="text-slate-400 mr-1">Tamanho:</span>
-                            <button onclick="setCardSpan('chart_linha', 1)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">P</button>
-                            <button onclick="setCardSpan('chart_linha', 2)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">M</button>
-                            <button onclick="setCardSpan('chart_linha', 4)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">G</button>
+                            <button onclick="setCardSpan('kpi_investimento', 1)" class="span-btn px-2 py-0.5 rounded bg-slate-800">P</button>
+                            <button onclick="setCardSpan('kpi_investimento', 2)" class="span-btn px-2 py-0.5 rounded bg-slate-800">M</button>
+                            <button onclick="setCardSpan('kpi_investimento', 4)" class="span-btn px-2 py-0.5 rounded bg-slate-800">G</button>
                         </div>
-                        <button onclick="toggleCardVisibility('chart_linha', false)" class="text-rose-400 hover:text-rose-300"><i class="fa-solid fa-eye-slash"></i> Ocultar</button>
+                        <button onclick="toggleCardVisibility('kpi_investimento', false)" class="text-rose-400">Ocultar</button>
                     </div>
-                    <h3 class="text-base font-semibold text-white mb-4">Evolução Anual: Recebimentos vs. Gastos (<span id="label-ano-grafico">2026</span>)</h3>
-                    <div class="h-72">
+                    <p class="text-xs text-slate-400">Investido (Projeção Dez)</p>
+                    <h2 id="kpi-investimento" class="text-2xl font-bold text-purple-400 mt-1">R$ 0,00</h2>
+                    <p id="sub-kpi-investimento" class="text-[11px] text-slate-500 mt-2">0 ativos</p>
+                </div>
+
+                <!-- 5. Contas a Pagar: Cartões & Boletos Programados -->
+                <div data-card-id="card_faturas" data-card-title="Cartões & Boletos a Pagar" class="dash-card card-glass p-5 rounded-2xl">
+                    <div class="card-edit-toolbar hidden mb-3 pb-2 border-b border-slate-800 flex justify-between items-center text-[11px]">
+                        <div class="flex items-center gap-1">
+                            <button onclick="setCardSpan('card_faturas', 1)" class="span-btn px-2 py-0.5 rounded bg-slate-800">P</button>
+                            <button onclick="setCardSpan('card_faturas', 2)" class="span-btn px-2 py-0.5 rounded bg-slate-800">M</button>
+                            <button onclick="setCardSpan('card_faturas', 4)" class="span-btn px-2 py-0.5 rounded bg-slate-800">G</button>
+                        </div>
+                        <button onclick="toggleCardVisibility('card_faturas', false)" class="text-rose-400">Ocultar</button>
+                    </div>
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-sm font-semibold text-white">Cartões & Boletos (<span id="lbl-vencimentos-mes">Mês</span>)</h3>
+                        <button onclick="abrirModalBoleto()" class="text-xs text-cyan-400 hover:underline">+ Boleto</button>
+                    </div>
+                    <div id="dash-lista-vencimentos" class="space-y-2 text-xs"></div>
+                </div>
+
+                <!-- 6. Gráfico de Linha Anual -->
+                <div data-card-id="chart_linha" data-card-title="Evolução Anual" class="dash-card card-glass p-5 rounded-2xl">
+                    <div class="card-edit-toolbar hidden mb-3 pb-2 border-b border-slate-800 flex justify-between items-center text-[11px]">
+                        <div class="flex items-center gap-1">
+                            <button onclick="setCardSpan('chart_linha', 1)" class="span-btn px-2 py-0.5 rounded bg-slate-800">P</button>
+                            <button onclick="setCardSpan('chart_linha', 2)" class="span-btn px-2 py-0.5 rounded bg-slate-800">M</button>
+                            <button onclick="setCardSpan('chart_linha', 4)" class="span-btn px-2 py-0.5 rounded bg-slate-800">G</button>
+                        </div>
+                        <button onclick="toggleCardVisibility('chart_linha', false)" class="text-rose-400">Ocultar</button>
+                    </div>
+                    <h3 class="text-sm font-semibold text-white mb-3">Evolução Anual (<span id="label-ano-grafico">2026</span>)</h3>
+                    <div class="h-60">
                         <canvas id="chart-linha-anual"></canvas>
                     </div>
                 </div>
 
-                <!-- CARD 9: Gráfico Pizza Categorias -->
-                <div data-card-id="chart_cat" data-card-title="Gráfico Gastos por Categoria" class="dash-card card-glass p-6 rounded-2xl relative">
+                <!-- 7. Gráfico Pizza Categorias (Oculto por padrão para manter o dashboard limpo) -->
+                <div data-card-id="chart_cat" data-card-title="Gráfico por Categoria" class="dash-card card-glass p-5 rounded-2xl">
                     <div class="card-edit-toolbar hidden mb-3 pb-2 border-b border-slate-800 flex justify-between items-center text-[11px]">
                         <div class="flex items-center gap-1">
-                            <span class="text-slate-400 mr-1">Tamanho:</span>
-                            <button onclick="setCardSpan('chart_cat', 1)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">P</button>
-                            <button onclick="setCardSpan('chart_cat', 2)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">M</button>
-                            <button onclick="setCardSpan('chart_cat', 4)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">G</button>
+                            <button onclick="setCardSpan('chart_cat', 1)" class="span-btn px-2 py-0.5 rounded bg-slate-800">P</button>
+                            <button onclick="setCardSpan('chart_cat', 2)" class="span-btn px-2 py-0.5 rounded bg-slate-800">M</button>
+                            <button onclick="setCardSpan('chart_cat', 4)" class="span-btn px-2 py-0.5 rounded bg-slate-800">G</button>
                         </div>
-                        <button onclick="toggleCardVisibility('chart_cat', false)" class="text-rose-400 hover:text-rose-300"><i class="fa-solid fa-eye-slash"></i> Ocultar</button>
+                        <button onclick="toggleCardVisibility('chart_cat', false)" class="text-rose-400">Ocultar</button>
                     </div>
-                    <h3 id="titulo-pizza-cat" class="text-base font-semibold text-white mb-4">Gastos por Categoria</h3>
-                    <div class="h-64 flex justify-center">
+                    <h3 id="titulo-pizza-cat" class="text-sm font-semibold text-white mb-3">Gastos por Categoria</h3>
+                    <div class="h-56 flex justify-center">
                         <canvas id="chart-pizza-categorias"></canvas>
                     </div>
                 </div>
 
-                <!-- CARD 10: Gráfico Pizza Métodos / Cartões -->
-                <div data-card-id="chart_met" data-card-title="Gráfico Gastos por Cartão / Método" class="dash-card card-glass p-6 rounded-2xl relative">
+                <!-- 8. Gráfico Pizza Métodos / Cartões (Oculto por padrão) -->
+                <div data-card-id="chart_met" data-card-title="Gráfico por Cartão / Método" class="dash-card card-glass p-5 rounded-2xl">
                     <div class="card-edit-toolbar hidden mb-3 pb-2 border-b border-slate-800 flex justify-between items-center text-[11px]">
                         <div class="flex items-center gap-1">
-                            <span class="text-slate-400 mr-1">Tamanho:</span>
-                            <button onclick="setCardSpan('chart_met', 1)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">P</button>
-                            <button onclick="setCardSpan('chart_met', 2)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">M</button>
-                            <button onclick="setCardSpan('chart_met', 4)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">G</button>
+                            <button onclick="setCardSpan('chart_met', 1)" class="span-btn px-2 py-0.5 rounded bg-slate-800">P</button>
+                            <button onclick="setCardSpan('chart_met', 2)" class="span-btn px-2 py-0.5 rounded bg-slate-800">M</button>
+                            <button onclick="setCardSpan('chart_met', 4)" class="span-btn px-2 py-0.5 rounded bg-slate-800">G</button>
                         </div>
-                        <button onclick="toggleCardVisibility('chart_met', false)" class="text-rose-400 hover:text-rose-300"><i class="fa-solid fa-eye-slash"></i> Ocultar</button>
+                        <button onclick="toggleCardVisibility('chart_met', false)" class="text-rose-400">Ocultar</button>
                     </div>
-                    <h3 id="titulo-pizza-met" class="text-base font-semibold text-white mb-4">Gastos por Método / Cartão</h3>
-                    <div class="h-64 flex justify-center">
+                    <h3 id="titulo-pizza-met" class="text-sm font-semibold text-white mb-3">Gastos por Método / Cartão</h3>
+                    <div class="h-56 flex justify-center">
                         <canvas id="chart-pizza-metodos"></canvas>
                     </div>
                 </div>
 
-                <!-- CARD 11: Ranking Top Categorias -->
-                <div data-card-id="card_ranking" data-card-title="Ranking de Categorias" class="dash-card card-glass p-6 rounded-2xl relative">
+                <!-- 9. Ranking Top Categorias (Oculto por padrão) -->
+                <div data-card-id="card_ranking" data-card-title="Ranking de Categorias" class="dash-card card-glass p-5 rounded-2xl">
                     <div class="card-edit-toolbar hidden mb-3 pb-2 border-b border-slate-800 flex justify-between items-center text-[11px]">
                         <div class="flex items-center gap-1">
-                            <span class="text-slate-400 mr-1">Tamanho:</span>
-                            <button onclick="setCardSpan('card_ranking', 1)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">P</button>
-                            <button onclick="setCardSpan('card_ranking', 2)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">M</button>
-                            <button onclick="setCardSpan('card_ranking', 4)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">G</button>
+                            <button onclick="setCardSpan('card_ranking', 1)" class="span-btn px-2 py-0.5 rounded bg-slate-800">P</button>
+                            <button onclick="setCardSpan('card_ranking', 2)" class="span-btn px-2 py-0.5 rounded bg-slate-800">M</button>
+                            <button onclick="setCardSpan('card_ranking', 4)" class="span-btn px-2 py-0.5 rounded bg-slate-800">G</button>
                         </div>
-                        <button onclick="toggleCardVisibility('card_ranking', false)" class="text-rose-400 hover:text-rose-300"><i class="fa-solid fa-eye-slash"></i> Ocultar</button>
+                        <button onclick="toggleCardVisibility('card_ranking', false)" class="text-rose-400">Ocultar</button>
                     </div>
-                    <h3 class="text-base font-semibold text-white mb-3"><i class="fa-solid fa-ranking-star text-amber-400 mr-2"></i>Onde Você Mais Gastou</h3>
-                    <div id="dash-ranking-categorias" class="space-y-3 text-xs"></div>
+                    <h3 class="text-sm font-semibold text-white mb-3">Principais Categorias</h3>
+                    <div id="dash-ranking-categorias" class="space-y-2.5 text-xs"></div>
                 </div>
 
             </div>
@@ -421,54 +319,49 @@
                 <div class="card-glass p-5 rounded-2xl">
                     <div class="flex justify-between items-start">
                         <div>
-                            <p class="text-xs uppercase tracking-wider text-slate-400">Total Gasto no Mês</p>
+                            <p class="text-xs text-slate-400">Total Gasto no Mês</p>
                             <h2 id="tx-kpi-gasto" class="text-2xl font-bold text-rose-400 mt-1">R$ 0,00</h2>
                         </div>
-                        <button onclick="abrirModalCategoriasMes()" class="bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/40 text-rose-300 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+                        <button onclick="abrirModalCategoriasMes()" class="bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/30 text-rose-300 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
                             <i class="fa-solid fa-chart-pie"></i> Por Categoria
                         </button>
                     </div>
-                    <p id="tx-kpi-gasto-sub" class="text-xs text-slate-400 mt-2">Competência selecionada</p>
+                    <p id="tx-kpi-gasto-sub" class="text-xs text-slate-500 mt-2">Competência selecionada</p>
                 </div>
 
                 <div class="card-glass p-5 rounded-2xl">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-xs uppercase tracking-wider text-slate-400">Recebidos / A Receber no Mês</p>
-                            <h2 id="tx-kpi-recebido" class="text-2xl font-bold text-emerald-400 mt-1">R$ 0,00</h2>
-                        </div>
-                        <span class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center"><i class="fa-solid fa-hand-holding-dollar"></i></span>
-                    </div>
-                    <p id="tx-kpi-recebido-sub" class="text-xs text-slate-400 mt-2">Registrados + Previstos</p>
+                    <p class="text-xs text-slate-400">Recebidos / A Receber no Mês</p>
+                    <h2 id="tx-kpi-recebido" class="text-2xl font-bold text-emerald-400 mt-1">R$ 0,00</h2>
+                    <p id="tx-kpi-recebido-sub" class="text-xs text-slate-500 mt-2">Registrados + Previstos</p>
                 </div>
 
                 <div class="card-glass p-5 rounded-2xl flex flex-col justify-between">
                     <div class="flex justify-between items-center mb-1">
-                        <p class="text-xs uppercase tracking-wider text-slate-400">Limite de Gasto do Mês</p>
-                        <button onclick="abrirModalLimite()" class="text-[11px] text-cyan-400 hover:underline">Definir / Editar</button>
+                        <p class="text-xs text-slate-400">Limite de Gasto do Mês</p>
+                        <button onclick="abrirModalLimite()" class="text-[11px] text-cyan-400 hover:underline">Definir</button>
                     </div>
                     <div class="flex items-baseline justify-between my-1">
                         <span id="tx-limite-texto" class="text-sm font-bold text-white">Sem limite definido</span>
                         <span id="tx-limite-perc" class="text-xs font-bold text-cyan-400">0%</span>
                     </div>
-                    <div class="w-full h-3 bg-cobalt-950 rounded-full overflow-hidden border border-slate-800 p-0.5">
+                    <div class="w-full h-2.5 bg-cobalt-950 rounded-full overflow-hidden">
                         <div id="tx-limite-barra" class="h-full rounded-full bg-cyan-400 transition-all duration-500" style="width: 0%"></div>
                     </div>
-                    <p id="tx-limite-restante" class="text-[11px] text-slate-400 mt-1.5">Configure um limite para acompanhar</p>
+                    <p id="tx-limite-restante" class="text-[11px] text-slate-500 mt-1.5">Configure um limite para acompanhar</p>
                 </div>
             </div>
 
             <!-- Barra de Ação para Novo Lançamento -->
             <div class="flex flex-wrap justify-between items-center gap-3 card-glass p-4 rounded-2xl">
                 <div>
-                    <h3 class="text-base font-semibold text-white">Controle de Lançamentos</h3>
-                    <p class="text-xs text-slate-400">Compras no cartão antes do fechamento entram no mês atual; após o fechamento entram no mês seguinte.</p>
+                    <h3 class="text-sm font-semibold text-white">Extrato de Lançamentos</h3>
+                    <p class="text-xs text-slate-400">Compras no cartão após o fechamento vão para o mês seguinte</p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button onclick="abrirModalBoleto()" class="bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/40 text-amber-300 font-semibold px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 transition">
+                    <button onclick="abrirModalBoleto()" class="bg-cobalt-950 hover:bg-slate-800 border border-amber-400/30 text-amber-300 font-semibold px-3.5 py-2 rounded-xl text-xs flex items-center gap-2 transition">
                         <i class="fa-solid fa-barcode"></i> Boleto Programado
                     </button>
-                    <button onclick="toggleFormLancamento()" id="btn-toggle-form-tx" class="bg-cyan-500 hover:bg-cyan-400 text-cobalt-950 font-bold px-5 py-2.5 rounded-xl text-sm flex items-center gap-2 transition">
+                    <button onclick="toggleFormLancamento()" id="btn-toggle-form-tx" class="bg-cyan-500 hover:bg-cyan-400 text-cobalt-950 font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 transition">
                         <i class="fa-solid fa-plus"></i> Fazer Novo Registro
                     </button>
                 </div>
@@ -477,8 +370,8 @@
             <!-- Formulário Oculto por Padrão -->
             <div id="container-form-lancamento" class="hidden card-glass p-6 rounded-2xl border border-cyan-400/40">
                 <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-800">
-                    <h3 class="text-lg font-semibold text-cyan-400">Preencher Dados do Registro</h3>
-                    <button type="button" onclick="toggleFormLancamento(false)" class="text-slate-400 hover:text-white text-sm">
+                    <h3 class="text-base font-semibold text-cyan-400">Novo Registro</h3>
+                    <button type="button" onclick="toggleFormLancamento(false)" class="text-slate-400 hover:text-white text-xs">
                         <i class="fa-solid fa-xmark mr-1"></i> Fechar
                     </button>
                 </div>
@@ -487,7 +380,7 @@
                         <label class="block text-xs text-slate-400 mb-1">Tipo</label>
                         <select id="tx-tipo" onchange="toggleCamposDespesa()" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
                             <option value="despesa">Despesa (Gasto)</option>
-                            <option value="receita">Receita (Recebimento Avulso)</option>
+                            <option value="receita">Receita (Recebimento)</option>
                         </select>
                     </div>
                     <div>
@@ -495,26 +388,25 @@
                         <input type="text" id="tx-descricao" required placeholder="Ex: Notebook, Supermercado..." class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
                     </div>
                     <div>
-                        <label class="block text-xs text-slate-400 mb-1" id="lbl-tx-valor">Valor (R$)</label>
+                        <label class="block text-xs text-slate-400 mb-1">Valor (R$)</label>
                         <input type="number" step="0.01" id="tx-valor" oninput="atualizarPreviewParcelas()" required placeholder="0.00" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
                     </div>
                     <div>
                         <label class="block text-xs text-slate-400 mb-1">Data da Compra / Operação</label>
                         <input type="date" id="tx-data" onchange="atualizarPreviewParcelas()" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
                     </div>
-                    <div id="wrap-categoria">
+                    <div>
                         <label class="block text-xs text-slate-400 mb-1">Categoria</label>
                         <select id="tx-categoria" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white"></select>
                     </div>
                     <div id="wrap-forma">
                         <div class="flex justify-between items-center mb-1">
-                            <label class="block text-xs text-slate-400">Cartão ou Método de Pagamento</label>
+                            <label class="block text-xs text-slate-400">Cartão ou Método</label>
                             <button type="button" onclick="switchTab('configuracoes')" class="text-[11px] text-cyan-400 hover:underline">+ Cadastrar</button>
                         </div>
                         <select id="tx-forma" onchange="atualizarPreviewParcelas()" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white"></select>
                     </div>
 
-                    <!-- Seção de Compra Parcelada -->
                     <div id="wrap-parcelamento" class="md:col-span-3 bg-cobalt-950/90 p-4 rounded-xl border border-slate-800 space-y-3">
                         <div class="flex flex-wrap items-center justify-between gap-4">
                             <label class="inline-flex items-center gap-2.5 cursor-pointer select-none">
@@ -540,19 +432,14 @@
                     </div>
 
                     <div class="md:col-span-3 flex justify-end gap-3 mt-2">
-                        <button type="button" onclick="toggleFormLancamento(false)" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2.5 rounded-lg text-sm transition">
-                            Cancelar
-                        </button>
-                        <button type="submit" class="bg-cyan-500 hover:bg-cyan-400 text-cobalt-950 font-bold px-6 py-2.5 rounded-lg text-sm transition">
-                            <i class="fa-solid fa-check mr-1"></i> Salvar Lançamento
-                        </button>
+                        <button type="button" onclick="toggleFormLancamento(false)" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg text-xs transition">Cancelar</button>
+                        <button type="submit" class="bg-cyan-500 hover:bg-cyan-400 text-cobalt-950 font-bold px-5 py-2 rounded-lg text-xs transition">Salvar Lançamento</button>
                     </div>
                 </form>
             </div>
 
             <!-- Tabela de Lançamentos do Mês -->
             <div class="card-glass p-6 rounded-2xl overflow-x-auto">
-                <h3 class="text-base font-semibold text-white mb-4">Extrato de Competência (Mês Selecionado)</h3>
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="border-b border-slate-800 text-xs text-slate-400 uppercase">
@@ -574,27 +461,27 @@
         <section id="tab-investimentos" class="hidden space-y-6">
             
             <!-- Cadastro de Salário -->
-            <div class="card-glass p-6 rounded-2xl border border-emerald-500/20">
+            <div class="card-glass p-6 rounded-2xl">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 pb-3 border-b border-slate-800">
                     <div>
-                        <h3 class="text-lg font-semibold text-emerald-400"><i class="fa-solid fa-money-check-dollar mr-2"></i>Cadastro de Salário / Recebimentos por Mês</h3>
-                        <p class="text-xs text-slate-400">Registre um valor fixo por X meses ou informe valores específicos diferentes para cada mês</p>
+                        <h3 class="text-base font-semibold text-emerald-400">Cadastro de Salário / Recebimentos</h3>
+                        <p class="text-xs text-slate-400">Informe valores específicos por mês ou repita um valor fixo</p>
                     </div>
                     <div class="inline-flex bg-cobalt-950 p-1 rounded-xl border border-slate-800">
-                        <button type="button" onclick="setModoSalario('variavel')" id="btn-sal-variavel" class="period-btn active px-3 py-1.5 rounded-lg text-xs transition">Valores Específicos / Mês</button>
-                        <button type="button" onclick="setModoSalario('fixo')" id="btn-sal-fixo" class="period-btn px-3 py-1.5 rounded-lg text-xs text-slate-300 transition">Repetir por X Meses</button>
+                        <button type="button" onclick="setModoSalario('variavel')" id="btn-sal-variavel" class="period-btn active px-3 py-1 rounded-lg text-xs transition">Valores Específicos / Mês</button>
+                        <button type="button" onclick="setModoSalario('fixo')" id="btn-sal-fixo" class="period-btn px-3 py-1 rounded-lg text-xs text-slate-300 transition">Repetir por X Meses</button>
                     </div>
                 </div>
 
-                <!-- MODO A: Valores Específicos por Mês -->
+                <!-- MODO A -->
                 <form id="form-salario-variavel" onsubmit="salvarSalarioVariavel(event)" class="space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-xs text-slate-400 mb-1">Descrição do Recebimento</label>
+                            <label class="block text-xs text-slate-400 mb-1">Descrição</label>
                             <input type="text" id="sal-var-desc" required value="Salário" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
                         </div>
                         <div>
-                            <label class="block text-xs text-slate-400 mb-1">Ano de Referência</label>
+                            <label class="block text-xs text-slate-400 mb-1">Ano</label>
                             <select id="sal-var-ano" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
                                 <option value="2025">2025</option>
                                 <option value="2026" selected>2026</option>
@@ -607,17 +494,16 @@
                         </div>
                     </div>
 
-                    <p class="text-xs text-slate-400">Preencha apenas os meses que deseja registrar:</p>
                     <div id="grade-meses-salario" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3"></div>
 
                     <div class="flex justify-end">
-                        <button type="submit" class="bg-emerald-500 hover:bg-emerald-400 text-cobalt-950 font-bold px-6 py-2.5 rounded-lg text-sm transition">
-                            <i class="fa-solid fa-save mr-1"></i> Registrar Salários Preenchidos
+                        <button type="submit" class="bg-emerald-500 hover:bg-emerald-400 text-cobalt-950 font-bold px-5 py-2 rounded-lg text-xs transition">
+                            Registrar Salários Preenchidos
                         </button>
                     </div>
                 </form>
 
-                <!-- MODO B: Valor Fixo por X Meses -->
+                <!-- MODO B -->
                 <form id="form-salario-fixo" onsubmit="salvarSalarioFixo(event)" class="hidden grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
                     <div>
                         <label class="block text-xs text-slate-400 mb-1">Descrição</label>
@@ -632,18 +518,16 @@
                         <input type="month" id="sal-fixo-inicio" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
                     </div>
                     <div>
-                        <label class="block text-xs text-slate-400 mb-1">Quantidade de Meses (X)</label>
+                        <label class="block text-xs text-slate-400 mb-1">Qtd. Meses (X)</label>
                         <input type="number" min="1" max="36" id="sal-fixo-qtd" required value="6" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
                     </div>
                     <div>
-                        <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-400 text-cobalt-950 font-bold py-2.5 rounded-lg text-sm transition">
-                            Gerar Meses
-                        </button>
+                        <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-400 text-cobalt-950 font-bold py-2.5 rounded-lg text-xs transition">Gerar Meses</button>
                     </div>
                 </form>
             </div>
 
-            <!-- Botões para Abrir Popups de Investimentos e Previsão de Recebíveis -->
+            <!-- Listas com Botões para Popups de Investimentos e Previsão de Recebíveis -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="card-glass p-6 rounded-2xl">
                     <div class="flex flex-wrap justify-between items-center gap-3 mb-4 pb-3 border-b border-slate-800">
@@ -651,7 +535,7 @@
                             <h3 class="text-base font-semibold text-white">Investimentos (Projeção até Dez)</h3>
                             <p class="text-xs text-slate-400">Aportes e juros compostos</p>
                         </div>
-                        <button onclick="abrirModalInvestimento()" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 transition">
+                        <button onclick="abrirModalInvestimento()" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 transition">
                             <i class="fa-solid fa-plus"></i> Adicionar Investimento
                         </button>
                     </div>
@@ -661,10 +545,10 @@
                 <div class="card-glass p-6 rounded-2xl">
                     <div class="flex flex-wrap justify-between items-center gap-3 mb-4 pb-3 border-b border-slate-800">
                         <div>
-                            <h3 class="text-base font-semibold text-white">Recebíveis Futuros Programados</h3>
-                            <p class="text-xs text-slate-400">Linha tracejada no gráfico anual</p>
+                            <h3 class="text-base font-semibold text-white">Previsão de Recebíveis Futuros</h3>
+                            <p class="text-xs text-slate-400">Valores previstos para os próximos meses</p>
                         </div>
-                        <button onclick="abrirModalPrevisao()" class="bg-cyan-500 hover:bg-cyan-400 text-cobalt-950 font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 transition">
+                        <button onclick="abrirModalPrevisao()" class="bg-cyan-500 hover:bg-cyan-400 text-cobalt-950 font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 transition">
                             <i class="fa-solid fa-plus"></i> Nova Previsão
                         </button>
                     </div>
@@ -676,11 +560,10 @@
         <!-- ABA 4: CARTÕES & CATEGORIAS -->
         <section id="tab-configuracoes" class="hidden space-y-6">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Cadastrar Cartão -->
                 <div class="card-glass p-6 rounded-2xl">
-                    <h3 class="text-base font-semibold text-white mb-4">Cadastrar Cartão de Crédito</h3>
+                    <h3 class="text-base font-semibold text-white mb-4">Cartões de Crédito</h3>
                     <form onsubmit="salvarCartao(event)" class="space-y-3">
-                        <input type="text" id="card-apelido" required placeholder="Apelido (Ex: Nubank Roxinho)" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                        <input type="text" id="card-apelido" required placeholder="Apelido (Ex: Nubank)" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
                         <div class="grid grid-cols-2 gap-2">
                             <div>
                                 <label class="block text-xs text-slate-400 mb-1">Dia Fechamento</label>
@@ -691,30 +574,28 @@
                                 <input type="number" min="1" max="31" id="card-vencimento" required placeholder="Ex: 05" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
                             </div>
                         </div>
-                        <button type="submit" class="w-full bg-cyan-500 hover:bg-cyan-400 text-cobalt-950 font-bold py-2 rounded-lg text-sm transition">Salvar Cartão</button>
+                        <button type="submit" class="w-full bg-cyan-500 hover:bg-cyan-400 text-cobalt-950 font-bold py-2 rounded-lg text-xs transition">Salvar Cartão</button>
                     </form>
                     <div id="lista-cartoes" class="mt-4 space-y-2 text-xs text-slate-300"></div>
                 </div>
 
-                <!-- Cadastrar Método de Pagamento -->
                 <div class="card-glass p-6 rounded-2xl">
                     <h3 class="text-base font-semibold text-white mb-4">Métodos de Pagamento</h3>
                     <form onsubmit="salvarMetodo(event)" class="space-y-3">
-                        <input type="text" id="met-nome" required placeholder="Ex: Pix, Dinheiro, Vale..." class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
-                        <button type="submit" class="w-full bg-cyan-500 hover:bg-cyan-400 text-cobalt-950 font-bold py-2 rounded-lg text-sm transition">Adicionar Método</button>
+                        <input type="text" id="met-nome" required placeholder="Ex: Pix, Dinheiro..." class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                        <button type="submit" class="w-full bg-cyan-500 hover:bg-cyan-400 text-cobalt-950 font-bold py-2 rounded-lg text-xs transition">Adicionar Método</button>
                     </form>
                     <div id="lista-metodos" class="mt-4 space-y-2 text-xs text-slate-300"></div>
                 </div>
 
-                <!-- Cadastrar Categoria -->
                 <div class="card-glass p-6 rounded-2xl">
-                    <h3 class="text-base font-semibold text-white mb-4">Categorias de Despesa</h3>
+                    <h3 class="text-base font-semibold text-white mb-4">Categorias</h3>
                     <form onsubmit="salvarCategoria(event)" class="space-y-3">
                         <div class="flex gap-2">
                             <input type="text" id="cat-nome" required placeholder="Nome da Categoria" class="flex-1 bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
                             <input type="color" id="cat-cor" value="#22d3ee" class="h-10 w-12 bg-cobalt-950 border border-slate-700 rounded-lg cursor-pointer">
                         </div>
-                        <button type="submit" class="w-full bg-cyan-500 hover:bg-cyan-400 text-cobalt-950 font-bold py-2 rounded-lg text-sm transition">Adicionar Categoria</button>
+                        <button type="submit" class="w-full bg-cyan-500 hover:bg-cyan-400 text-cobalt-950 font-bold py-2 rounded-lg text-xs transition">Adicionar Categoria</button>
                     </form>
                     <div id="lista-categorias" class="mt-4 space-y-2 text-xs text-slate-300"></div>
                 </div>
@@ -725,9 +606,9 @@
 
     <!-- MODAL EDITAR LANÇAMENTO -->
     <div id="modal-editar-tx" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-cobalt-900 border border-cyan-400/30 rounded-2xl w-full max-w-lg p-6 space-y-4">
+        <div class="bg-cobalt-900 border border-slate-700 rounded-2xl w-full max-w-lg p-6 space-y-4">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-pen-to-square text-cyan-400 mr-2"></i>Editar Lançamento</h3>
+                <h3 class="text-base font-bold text-white">Editar Lançamento</h3>
                 <button onclick="fecharModalEditarTx()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form onsubmit="salvarEdicaoTransacao(event)" class="space-y-3">
@@ -770,8 +651,8 @@
                     </div>
                 </div>
                 <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
-                    <button type="button" onclick="fecharModalEditarTx()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg text-xs">Cancelar</button>
-                    <button type="submit" class="bg-cyan-500 hover:bg-cyan-400 text-cobalt-950 font-bold px-5 py-2 rounded-lg text-xs">Salvar Alterações</button>
+                    <button type="button" onclick="fecharModalEditarTx()" class="bg-slate-800 text-slate-300 px-4 py-2 rounded-lg text-xs">Cancelar</button>
+                    <button type="submit" class="bg-cyan-500 text-cobalt-950 font-bold px-5 py-2 rounded-lg text-xs">Salvar Alterações</button>
                 </div>
             </form>
         </div>
@@ -779,15 +660,12 @@
 
     <!-- MODAL GASTOS POR CATEGORIA DO MÊS (ABA LANÇAMENTOS) -->
     <div id="modal-categorias-mes" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-cobalt-900 border border-rose-400/30 rounded-2xl w-full max-w-2xl p-6 space-y-5 max-h-[90vh] overflow-y-auto">
+        <div class="bg-cobalt-900 border border-slate-700 rounded-2xl w-full max-w-xl p-6 space-y-5 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <div>
-                    <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-chart-pie text-rose-400 mr-2"></i>Gastos por Categoria (<span id="modal-cat-mes-titulo">Mês</span>)</h3>
-                    <p class="text-xs text-slate-400">Distribuição detalhada das despesas da competência selecionada</p>
-                </div>
-                <button onclick="fecharModalCategoriasMes()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+                <h3 class="text-base font-bold text-white">Gastos por Categoria (<span id="modal-cat-mes-titulo">Mês</span>)</h3>
+                <button onclick="fecharModalCategoriasMes()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="h-60 flex justify-center">
+            <div class="h-56 flex justify-center">
                 <canvas id="chart-modal-cat-mes"></canvas>
             </div>
             <div id="lista-modal-cat-mes" class="space-y-2.5 text-xs"></div>
@@ -796,9 +674,9 @@
 
     <!-- MODAL INVESTIMENTO (POPUP) -->
     <div id="modal-investimento" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-cobalt-900 border border-purple-400/30 rounded-2xl w-full max-w-md p-6 space-y-4">
+        <div class="bg-cobalt-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 space-y-4">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-gem text-purple-400 mr-2"></i>Novo Investimento</h3>
+                <h3 class="text-base font-bold text-white">Adicionar Investimento</h3>
                 <button onclick="fecharModalInvestimento()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form onsubmit="salvarInvestimento(event)" class="space-y-4">
@@ -821,8 +699,8 @@
                     <input type="date" id="inv-data" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" onclick="fecharModalInvestimento()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg text-xs">Cancelar</button>
-                    <button type="submit" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-5 py-2 rounded-lg text-xs">Salvar Investimento</button>
+                    <button type="button" onclick="fecharModalInvestimento()" class="bg-slate-800 text-slate-300 px-4 py-2 rounded-lg text-xs">Cancelar</button>
+                    <button type="submit" class="bg-purple-600 text-white font-bold px-5 py-2 rounded-lg text-xs">Salvar</button>
                 </div>
             </form>
         </div>
@@ -830,15 +708,15 @@
 
     <!-- MODAL PREVISÃO DE RECEBÍVEIS (POPUP) -->
     <div id="modal-previsao" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-cobalt-900 border border-cyan-400/30 rounded-2xl w-full max-w-md p-6 space-y-4">
+        <div class="bg-cobalt-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 space-y-4">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-calendar-plus text-cyan-400 mr-2"></i>Previsão de Recebíveis</h3>
+                <h3 class="text-base font-bold text-white">Nova Previsão de Recebíveis</h3>
                 <button onclick="fecharModalPrevisao()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form onsubmit="salvarPrevisao(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs text-slate-400 mb-1">Descrição da Receita Prevista</label>
-                    <input type="text" id="prev-desc" required placeholder="Ex: Restituição, Bônus, Dividendos..." class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                    <label class="block text-xs text-slate-400 mb-1">Descrição</label>
+                    <input type="text" id="prev-desc" required placeholder="Ex: Restituição, Bônus..." class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
                 </div>
                 <div>
                     <label class="block text-xs text-slate-400 mb-1">Valor Mensal Previsto (R$)</label>
@@ -855,27 +733,24 @@
                     </div>
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" onclick="fecharModalPrevisao()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg text-xs">Cancelar</button>
-                    <button type="submit" class="bg-cyan-500 hover:bg-cyan-400 text-cobalt-950 font-bold px-5 py-2 rounded-lg text-xs">Salvar Previsão</button>
+                    <button type="button" onclick="fecharModalPrevisao()" class="bg-slate-800 text-slate-300 px-4 py-2 rounded-lg text-xs">Cancelar</button>
+                    <button type="submit" class="bg-cyan-500 text-cobalt-950 font-bold px-5 py-2 rounded-lg text-xs">Salvar</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL CADASTRAR BOLETO PROGRAMADO -->
+    <!-- MODAL BOLETO PROGRAMADO -->
     <div id="modal-boleto" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-cobalt-900 border border-amber-400/30 rounded-2xl w-full max-w-md p-6 space-y-4">
+        <div class="bg-cobalt-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 space-y-4">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <div>
-                    <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-barcode text-amber-400 mr-2"></i>Cadastrar Boleto Programado</h3>
-                    <p class="text-xs text-slate-400">Aparecerá todos os meses no Dashboard até ser quitado</p>
-                </div>
+                <h3 class="text-base font-bold text-white">Cadastrar Boleto Programado</h3>
                 <button onclick="fecharModalBoleto()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form onsubmit="salvarBoletoProgramado(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs text-slate-400 mb-1">Descrição do Boleto / Conta</label>
-                    <input type="text" id="bol-descricao" required placeholder="Ex: Internet Fibra, Aluguel, Faculdade..." class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                    <label class="block text-xs text-slate-400 mb-1">Descrição do Boleto</label>
+                    <input type="text" id="bol-descricao" required placeholder="Ex: Internet, Aluguel, Faculdade..." class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
@@ -898,22 +773,22 @@
                     </div>
                 </div>
                 <div>
-                    <label class="block text-xs text-slate-400 mb-1">Duração (Opcional)</label>
-                    <input type="number" min="1" max="120" id="bol-parcelas" placeholder="Deixe vazio para repetir todo mês até quitar" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                    <label class="block text-xs text-slate-400 mb-1">Qtd. de Meses (Opcional)</label>
+                    <input type="number" min="1" max="120" id="bol-parcelas" placeholder="Vazio = repete todo mês até quitar" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" onclick="fecharModalBoleto()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg text-xs">Cancelar</button>
-                    <button type="submit" class="bg-amber-400 hover:bg-amber-300 text-cobalt-950 font-bold px-5 py-2 rounded-lg text-xs">Salvar Boleto</button>
+                    <button type="button" onclick="fecharModalBoleto()" class="bg-slate-800 text-slate-300 px-4 py-2 rounded-lg text-xs">Cancelar</button>
+                    <button type="submit" class="bg-amber-400 text-cobalt-950 font-bold px-5 py-2 rounded-lg text-xs">Salvar Boleto</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL DEFINIR LIMITE MENSAL DE GASTOS -->
+    <!-- MODAL DEFINIR LIMITE MENSAL -->
     <div id="modal-limite" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-cobalt-900 border border-cyan-400/30 rounded-2xl w-full max-w-md p-6 space-y-5">
+        <div class="bg-cobalt-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 space-y-4">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-sliders text-cyan-400 mr-2"></i>Limite de Gastos Mensal</h3>
+                <h3 class="text-base font-bold text-white">Limite de Gastos Mensal</h3>
                 <button onclick="fecharModalLimite()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form onsubmit="salvarLimiteMensal(event)" class="space-y-4">
@@ -927,11 +802,11 @@
                 </div>
                 <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer select-none">
                     <input type="checkbox" id="input-limite-padrao" class="accent-cyan-400 w-4 h-4">
-                    Aplicar este valor como padrão para meses sem limite específico
+                    Usar como limite padrão para os demais meses
                 </label>
                 <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" onclick="fecharModalLimite()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg text-xs">Cancelar</button>
-                    <button type="submit" class="bg-cyan-500 hover:bg-cyan-400 text-cobalt-950 font-bold px-5 py-2 rounded-lg text-xs">Salvar Limite</button>
+                    <button type="button" onclick="fecharModalLimite()" class="bg-slate-800 text-slate-300 px-4 py-2 rounded-lg text-xs">Cancelar</button>
+                    <button type="submit" class="bg-cyan-500 text-cobalt-950 font-bold px-5 py-2 rounded-lg text-xs">Salvar Limite</button>
                 </div>
             </form>
         </div>
@@ -939,30 +814,26 @@
 
     <!-- MODAL EXIBIR CARDS OCULTOS -->
     <div id="modal-ocultos" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-cobalt-900 border border-amber-400/30 rounded-2xl w-full max-w-md p-6 space-y-4">
+        <div class="bg-cobalt-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 space-y-4">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-eye text-amber-400 mr-2"></i>Cards Ocultos no Dashboard</h3>
+                <h3 class="text-base font-bold text-white">Cards Ocultos</h3>
                 <button onclick="fecharModalOcultos()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div id="lista-cards-ocultos" class="space-y-2 text-sm"></div>
             <div class="flex justify-between pt-3 border-t border-slate-800">
-                <button onclick="restaurarTodosCards()" class="text-xs text-cyan-400 hover:underline">Restaurar Todos</button>
-                <button onclick="fecharModalOcultos()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-1.5 rounded-lg text-xs">Fechar</button>
+                <button onclick="restaurarTodosCards()" class="text-xs text-cyan-400 hover:underline">Exibir Todos</button>
+                <button onclick="fecharModalOcultos()" class="bg-slate-800 text-slate-200 px-4 py-1.5 rounded-lg text-xs">Fechar</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL COMPARATIVO DE CATEGORIAS ENTRE MESES -->
+    <!-- MODAL COMPARATIVO DE CATEGORIAS -->
     <div id="modal-comparativo" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-cobalt-900 border border-cyan-400/30 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 space-y-6">
+        <div class="bg-cobalt-900 border border-slate-700 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 space-y-6">
             <div class="flex justify-between items-center border-b border-slate-800 pb-4">
-                <div>
-                    <h3 class="text-xl font-bold text-white"><i class="fa-solid fa-code-compare text-cyan-400 mr-2"></i>Comparativo de Gastos por Categoria</h3>
-                    <p class="text-xs text-slate-400">Compare a evolução das suas despesas entre dois meses diferentes</p>
-                </div>
-                <button onclick="fecharModalComparativo()" class="text-slate-400 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+                <h3 class="text-lg font-bold text-white">Comparativo de Categorias entre Meses</h3>
+                <button onclick="fecharModalComparativo()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
             </div>
-
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-cobalt-950 p-4 rounded-xl border border-slate-800">
                 <div>
                     <label class="block text-xs text-cyan-400 font-semibold mb-1">Mês Base (A)</label>
@@ -973,11 +844,9 @@
                     <input type="month" id="comp-mes-b" onchange="gerarComparativo()" class="w-full bg-cobalt-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
                 </div>
             </div>
-
-            <div class="h-64 bg-cobalt-950/60 p-4 rounded-xl border border-slate-800">
+            <div class="h-60 bg-cobalt-950/60 p-4 rounded-xl border border-slate-800">
                 <canvas id="chart-comparativo"></canvas>
             </div>
-
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-sm">
                     <thead>
@@ -985,8 +854,8 @@
                             <th class="py-2 px-3">Categoria</th>
                             <th class="py-2 px-3 text-right" id="th-mes-a">Mês A</th>
                             <th class="py-2 px-3 text-right" id="th-mes-b">Mês B</th>
-                            <th class="py-2 px-3 text-right">Diferença (R$)</th>
-                            <th class="py-2 px-3 text-right">Variação (%)</th>
+                            <th class="py-2 px-3 text-right">Diferença</th>
+                            <th class="py-2 px-3 text-right">Variação</th>
                         </tr>
                     </thead>
                     <tbody id="tbody-comparativo" class="divide-y divide-slate-800/60"></tbody>
@@ -996,25 +865,21 @@
     </div>
 
     <script>
-        // =========================================================================
-        // 1. CONFIGURAÇÃO DO SUPABASE
-        // =========================================================================
         const SUPABASE_URL = 'https://nnttefltarkxoeygvzis.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_DDzBAkJlt7nRH6TyBMp5_A_FJZBwOlC';
         const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        const DEFAULT_LAYOUT = {
+        // Layout limpo e enxuto por padrão (gráficos secundários ficam disponíveis no botão "Mais Cards")
+        const CLEAN_LAYOUT = {
             kpi_receitas: { span: 1, hidden: false },
             kpi_despesas: { span: 1, hidden: false },
             kpi_saldo: { span: 1, hidden: false },
             kpi_investimento: { span: 1, hidden: false },
             card_faturas: { span: 2, hidden: false },
-            card_limite: { span: 2, hidden: false },
-            card_estatisticas: { span: 4, hidden: false },
-            chart_linha: { span: 4, hidden: false },
-            chart_cat: { span: 2, hidden: false },
-            chart_met: { span: 2, hidden: false },
-            card_ranking: { span: 4, hidden: false }
+            chart_linha: { span: 2, hidden: false },
+            chart_cat: { span: 2, hidden: true },
+            chart_met: { span: 2, hidden: true },
+            card_ranking: { span: 4, hidden: true }
         };
 
         let state = {
@@ -1028,7 +893,7 @@
             faturasPagas: JSON.parse(localStorage.getItem('fp_faturas_pagas') || '{}'),
             limitesMensais: JSON.parse(localStorage.getItem('fp_limites_mensais') || '{}'),
             limitePadrao: parseFloat(localStorage.getItem('fp_limite_padrao') || '0'),
-            layout: JSON.parse(localStorage.getItem('fp_dash_layout') || 'null') || JSON.parse(JSON.stringify(DEFAULT_LAYOUT)),
+            layout: JSON.parse(localStorage.getItem('fp_dash_layout_v2') || 'null') || JSON.parse(JSON.stringify(CLEAN_LAYOUT)),
             editMode: false,
             periodoDashboard: 'mensal'
         };
@@ -1036,7 +901,6 @@
         let charts = { linha: null, pizzaCat: null, pizzaMet: null, comparativo: null, modalCatMes: null };
         const NOMES_MESES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
-        // Inicialização
         window.addEventListener('DOMContentLoaded', async () => {
             const hoje = new Date();
             const mesAtualStr = String(hoje.getMonth() + 1).padStart(2, '0');
@@ -1083,7 +947,6 @@
                 state.investimentos = inv.data || [];
                 state.previsoes = prev.data || [];
 
-                // Carrega boletos programados e pagamentos de faturas do Supabase (se tabelas existirem)
                 const bolRes = await db.from('boletos_programados').select('*').order('dia_vencimento');
                 if (!bolRes.error && bolRes.data) {
                     state.boletos = bolRes.data;
@@ -1103,9 +966,7 @@
                     localStorage.setItem('fp_limites_mensais', JSON.stringify(state.limitesMensais));
                 }
 
-                document.getElementById('status-conexao').innerHTML = '<i class="fa-solid fa-circle text-emerald-400 mr-1"></i> Supabase Conectado';
-                document.getElementById('resumo-vinculos').innerText = `${state.cartoes.length} cartão(ões) | ${state.boletos.filter(b => !b.quitado).length} boleto(s)`;
-                
+                document.getElementById('status-conexao').innerHTML = '<i class="fa-solid fa-circle text-emerald-400 mr-1"></i> Conectado';
                 popularSelects();
                 atualizarTudo();
             } catch (err) {
@@ -1125,8 +986,12 @@
             atualizarTudo();
         }
 
+        function togglePainelFiltrosDash() {
+            document.getElementById('gaveta-filtros-dash').classList.toggle('hidden');
+        }
+
         // =========================================================================
-        // 2. BOLETOS PROGRAMADOS E CONTROLE DE PAGAMENTO DE CARTÕES
+        // BOLETOS PROGRAMADOS E CONTROLE DE PAGAMENTO DE CARTÕES
         // =========================================================================
         function abrirModalBoleto() {
             popularSelects();
@@ -1167,7 +1032,6 @@
                 fecharModalBoleto();
                 await carregarDadosBanco();
             } else {
-                // Fallback local caso tabela SQL ainda não tenha sido criada
                 novoBoleto.id = 'local_' + Date.now();
                 state.boletos.push(novoBoleto);
                 localStorage.setItem('fp_boletos_local', JSON.stringify(state.boletos));
@@ -1198,34 +1062,22 @@
             if (!bol) return;
 
             let pagos = Array.isArray(bol.meses_pagos) ? [...bol.meses_pagos] : [];
-            const jaPago = pagos.includes(comp);
-
-            if (jaPago) {
-                pagos = pagos.filter(m => m !== comp);
-            } else {
-                pagos.push(comp);
-            }
+            if (pagos.includes(comp)) pagos = pagos.filter(m => m !== comp);
+            else pagos.push(comp);
 
             bol.meses_pagos = pagos;
-
-            // Se tiver total_parcelas definido e todas já foram pagas, marca como quitado
-            if (bol.total_parcelas && pagos.length >= bol.total_parcelas) {
-                bol.quitado = true;
-            }
+            if (bol.total_parcelas && pagos.length >= bol.total_parcelas) bol.quitado = true;
 
             if (String(boletoId).startsWith('local_')) {
                 localStorage.setItem('fp_boletos_local', JSON.stringify(state.boletos));
             } else {
-                await db.from('boletos_programados')
-                    .update({ meses_pagos: pagos, quitado: bol.quitado })
-                    .eq('id', boletoId);
+                await db.from('boletos_programados').update({ meses_pagos: pagos, quitado: bol.quitado }).eq('id', boletoId);
             }
-
             atualizarTudo();
         }
 
         async function quitarBoletoDefinitivo(boletoId) {
-            if (!confirm('Marcar este boleto programado como totalmente QUITADO? Ele deixará de aparecer nos próximos meses.')) return;
+            if (!confirm('Marcar este boleto como QUITADO? Ele deixará de aparecer nos próximos meses.')) return;
             const bol = state.boletos.find(b => String(b.id) === String(boletoId));
             if (!bol) return;
 
@@ -1244,10 +1096,7 @@
             state.faturasPagas[chave] = novoStatus;
             localStorage.setItem('fp_faturas_pagas', JSON.stringify(state.faturasPagas));
 
-            try {
-                await db.from('pagamentos_faturas').upsert([{ chave, pago: novoStatus }]);
-            } catch (_) {}
-
+            try { await db.from('pagamentos_faturas').upsert([{ chave, pago: novoStatus }]); } catch (_) {}
             atualizarTudo();
         }
 
@@ -1258,7 +1107,6 @@
 
             let itensHtml = '';
 
-            // 1. Cartões de Crédito no Mês
             state.cartoes.forEach(c => {
                 const valorFatura = despesasMes
                     .filter(d => String(d.cartao_id) === String(c.id))
@@ -1269,71 +1117,50 @@
                 const diaVenc = String(c.dia_vencimento).padStart(2, '0');
 
                 itensHtml += `
-                    <div class="flex flex-wrap justify-between items-center gap-2 bg-cobalt-950/90 p-3 rounded-xl border ${pago ? 'border-emerald-500/30 opacity-80' : 'border-slate-800'}">
-                        <div class="flex items-center gap-3">
-                            <button onclick="togglePagamentoFaturaCartao('${c.id}', '${compMensal}')" title="Marcar como Pago/Pendente" class="w-6 h-6 rounded-lg border flex items-center justify-center transition ${pago ? 'bg-emerald-500 border-emerald-400 text-cobalt-950' : 'border-slate-600 text-transparent hover:border-cyan-400'}">
-                                <i class="fa-solid fa-check text-xs"></i>
+                    <div class="flex justify-between items-center bg-cobalt-950/80 px-3 py-2.5 rounded-xl border ${pago ? 'border-emerald-500/20 opacity-70' : 'border-slate-800'}">
+                        <div class="flex items-center gap-2.5">
+                            <button onclick="togglePagamentoFaturaCartao('${c.id}', '${compMensal}')" class="w-5 h-5 rounded border flex items-center justify-center transition ${pago ? 'bg-emerald-500 border-emerald-400 text-cobalt-950' : 'border-slate-600 text-transparent hover:border-cyan-400'}">
+                                <i class="fa-solid fa-check text-[10px]"></i>
                             </button>
                             <div>
-                                <p class="font-semibold text-white flex items-center gap-2">
-                                    💳 ${c.apelido}
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${pago ? 'bg-emerald-500/15 text-emerald-400' : 'bg-amber-500/15 text-amber-300'}">
-                                        ${pago ? 'PAGO' : 'PENDENTE'}
-                                    </span>
-                                </p>
-                                <p class="text-[11px] text-slate-400">Vencimento: <strong class="text-cyan-400">${diaVenc}/${mes}/${ano}</strong> (Fecha dia ${c.dia_fechamento})</p>
+                                <p class="font-medium text-white">💳 ${c.apelido} <span class="text-[10px] ml-1 ${pago ? 'text-emerald-400' : 'text-amber-300'}">${pago ? '• Pago' : `• Vence ${diaVenc}/${mes}`}</span></p>
                             </div>
                         </div>
-                        <div class="text-right">
-                            <p class="font-bold text-sm ${pago ? 'text-emerald-400 line-through' : 'text-white'}">${formatBRL(valorFatura)}</p>
-                        </div>
+                        <span class="font-semibold ${pago ? 'text-emerald-400 line-through' : 'text-white'}">${formatBRL(valorFatura)}</span>
                     </div>
                 `;
             });
 
-            // 2. Boletos Programados Ativos no Mês
             const boletosMes = obterBoletosDoMes(compMensal);
             boletosMes.forEach(b => {
                 const pago = Array.isArray(b.meses_pagos) && b.meses_pagos.includes(compMensal);
                 const diaVenc = String(b.dia_vencimento).padStart(2, '0');
                 const diff = diferencaMeses(b.mes_inicio, compMensal);
-                const badgeParc = b.total_parcelas ? ` (${diff + 1}/${b.total_parcelas})` : ' (Recorrente)';
+                const badgeParc = b.total_parcelas ? ` (${diff + 1}/${b.total_parcelas})` : '';
 
                 itensHtml += `
-                    <div class="flex flex-wrap justify-between items-center gap-2 bg-cobalt-950/90 p-3 rounded-xl border ${pago ? 'border-emerald-500/30 opacity-80' : 'border-amber-500/20'}">
-                        <div class="flex items-center gap-3">
-                            <button onclick="togglePagamentoBoletoMes('${b.id}', '${compMensal}')" title="Marcar parcela do mês como Paga" class="w-6 h-6 rounded-lg border flex items-center justify-center transition ${pago ? 'bg-emerald-500 border-emerald-400 text-cobalt-950' : 'border-slate-600 text-transparent hover:border-amber-400'}">
-                                <i class="fa-solid fa-check text-xs"></i>
+                    <div class="flex justify-between items-center bg-cobalt-950/80 px-3 py-2.5 rounded-xl border ${pago ? 'border-emerald-500/20 opacity-70' : 'border-slate-800'}">
+                        <div class="flex items-center gap-2.5">
+                            <button onclick="togglePagamentoBoletoMes('${b.id}', '${compMensal}')" class="w-5 h-5 rounded border flex items-center justify-center transition ${pago ? 'bg-emerald-500 border-emerald-400 text-cobalt-950' : 'border-slate-600 text-transparent hover:border-amber-400'}">
+                                <i class="fa-solid fa-check text-[10px]"></i>
                             </button>
                             <div>
-                                <p class="font-semibold text-white flex items-center gap-2">
-                                    🧾 ${b.descricao}<span class="text-slate-400 font-normal">${badgeParc}</span>
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${pago ? 'bg-emerald-500/15 text-emerald-400' : 'bg-rose-500/15 text-rose-300'}">
-                                        ${pago ? 'PAGO' : 'A PAGAR'}
-                                    </span>
-                                </p>
-                                <p class="text-[11px] text-slate-400">Vencimento: <strong class="text-amber-300">${diaVenc}/${mes}/${ano}</strong></p>
+                                <p class="font-medium text-white">🧾 ${b.descricao}${badgeParc} <span class="text-[10px] ml-1 ${pago ? 'text-emerald-400' : 'text-amber-300'}">${pago ? '• Pago' : `• Vence ${diaVenc}/${mes}`}</span></p>
                             </div>
                         </div>
-                        <div class="flex items-center gap-3">
-                            <p class="font-bold text-sm ${pago ? 'text-emerald-400 line-through' : 'text-amber-300'}">${formatBRL(Number(b.valor))}</p>
-                            <button onclick="quitarBoletoDefinitivo('${b.id}')" title="Quitar boleto definitivamente" class="text-[11px] bg-slate-800 hover:bg-emerald-600 hover:text-white text-slate-300 px-2 py-1 rounded transition">
-                                Quitar
-                            </button>
+                        <div class="flex items-center gap-2">
+                            <span class="font-semibold ${pago ? 'text-emerald-400 line-through' : 'text-amber-300'}">${formatBRL(Number(b.valor))}</span>
+                            <button onclick="quitarBoletoDefinitivo('${b.id}')" title="Quitar definitivamente" class="text-[10px] text-slate-400 hover:text-emerald-400 px-1.5 py-0.5 rounded bg-slate-800/80">Quitar</button>
                         </div>
                     </div>
                 `;
             });
 
-            if (!itensHtml) {
-                container.innerHTML = '<p class="text-slate-500 py-3">Nenhum cartão ou boleto programado para este mês.</p>';
-            } else {
-                container.innerHTML = itensHtml;
-            }
+            container.innerHTML = itensHtml || '<p class="text-slate-500 py-2">Nenhum cartão ou boleto pendente neste mês.</p>';
         }
 
         // =========================================================================
-        // 3. EDIÇÃO DE LANÇAMENTOS & POPUP DE CATEGORIAS DO MÊS
+        // EDIÇÃO DE LANÇAMENTOS & POPUP DE CATEGORIAS DO MÊS
         // =========================================================================
         function abrirModalEditarTx(id) {
             const tx = state.transacoes.find(t => String(t.id) === String(id));
@@ -1348,13 +1175,9 @@
             document.getElementById('edit-tx-competencia').value = tx.mes_competencia;
             document.getElementById('edit-tx-categoria').value = tx.categoria_id || '';
 
-            if (tx.cartao_id) {
-                document.getElementById('edit-tx-forma').value = `cartao_${tx.cartao_id}`;
-            } else if (tx.metodo_id) {
-                document.getElementById('edit-tx-forma').value = `metodo_${tx.metodo_id}`;
-            } else {
-                document.getElementById('edit-tx-forma').value = '';
-            }
+            if (tx.cartao_id) document.getElementById('edit-tx-forma').value = `cartao_${tx.cartao_id}`;
+            else if (tx.metodo_id) document.getElementById('edit-tx-forma').value = `metodo_${tx.metodo_id}`;
+            else document.getElementById('edit-tx-forma').value = '';
 
             document.getElementById('modal-editar-tx').classList.remove('hidden');
         }
@@ -1385,11 +1208,7 @@
                 .update({ tipo, valor, descricao, data_compra, mes_competencia, categoria_id, cartao_id, metodo_id })
                 .eq('id', id);
 
-            if (error) {
-                alert('Erro ao atualizar lançamento: ' + error.message);
-                return;
-            }
-
+            if (error) { alert('Erro ao atualizar: ' + error.message); return; }
             fecharModalEditarTx();
             await carregarDadosBanco();
         }
@@ -1431,17 +1250,9 @@
                 type: 'doughnut',
                 data: {
                     labels: listaOrdenada.map(i => i.nome),
-                    datasets: [{
-                        data: listaOrdenada.map(i => i.valor),
-                        backgroundColor: listaOrdenada.map(i => i.cor),
-                        borderWidth: 0
-                    }]
+                    datasets: [{ data: listaOrdenada.map(i => i.valor), backgroundColor: listaOrdenada.map(i => i.cor), borderWidth: 0 }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'right', labels: { color: '#cbd5e1' } } }
-                }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#cbd5e1' } } } }
             });
 
             const container = document.getElementById('lista-modal-cat-mes');
@@ -1465,7 +1276,6 @@
                     `;
                 }).join('');
             }
-
             document.getElementById('modal-categorias-mes').classList.remove('hidden');
         }
 
@@ -1474,16 +1284,13 @@
         }
 
         // =========================================================================
-        // 4. POPUPS DE INVESTIMENTOS E PREVISÃO DE RECEBÍVEIS
+        // POPUPS DE INVESTIMENTOS E PREVISÃO DE RECEBÍVEIS
         // =========================================================================
         function abrirModalInvestimento() {
             document.getElementById('inv-data').valueAsDate = new Date();
             document.getElementById('modal-investimento').classList.remove('hidden');
         }
-
-        function fecharModalInvestimento() {
-            document.getElementById('modal-investimento').classList.add('hidden');
-        }
+        function fecharModalInvestimento() { document.getElementById('modal-investimento').classList.add('hidden'); }
 
         function abrirModalPrevisao() {
             const mesSel = document.getElementById('filtro-mes').value;
@@ -1492,13 +1299,10 @@
             document.getElementById('prev-fim').value = `${anoSel}-12`;
             document.getElementById('modal-previsao').classList.remove('hidden');
         }
-
-        function fecharModalPrevisao() {
-            document.getElementById('modal-previsao').classList.add('hidden');
-        }
+        function fecharModalPrevisao() { document.getElementById('modal-previsao').classList.add('hidden'); }
 
         // =========================================================================
-        // 5. PERSONALIZAÇÃO DE TAMANHO E OCULTAÇÃO DE CARDS NO DASHBOARD
+        // PERSONALIZAÇÃO DE TAMANHO E OCULTAÇÃO DE CARDS
         // =========================================================================
         function toggleModoEdicaoDashboard() {
             state.editMode = !state.editMode;
@@ -1507,15 +1311,13 @@
             const cards = document.querySelectorAll('.dash-card');
 
             if (state.editMode) {
-                btn.classList.add('bg-cyan-500', 'text-cobalt-950', 'border-cyan-400');
-                btn.classList.remove('bg-slate-800', 'text-slate-200');
-                btn.innerHTML = '<i class="fa-solid fa-check"></i> Concluir Edição';
+                btn.classList.add('bg-cyan-500', 'text-cobalt-950');
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Concluir';
                 toolbars.forEach(t => t.classList.remove('hidden'));
                 cards.forEach(c => c.classList.add('edit-mode-ring'));
             } else {
-                btn.classList.remove('bg-cyan-500', 'text-cobalt-950', 'border-cyan-400');
-                btn.classList.add('bg-slate-800', 'text-slate-200');
-                btn.innerHTML = '<i class="fa-solid fa-up-right-and-down-left-from-center"></i> Personalizar Cards';
+                btn.classList.remove('bg-cyan-500', 'text-cobalt-950');
+                btn.innerHTML = '<i class="fa-solid fa-sliders"></i> Layout';
                 toolbars.forEach(t => t.classList.add('hidden'));
                 cards.forEach(c => c.classList.remove('edit-mode-ring'));
             }
@@ -1533,9 +1335,7 @@
             state.layout[cardId].hidden = !visible;
             salvarLayoutLocal();
             aplicarLayoutCards();
-            if (!document.getElementById('modal-ocultos').classList.contains('hidden')) {
-                abrirModalOcultos();
-            }
+            if (!document.getElementById('modal-ocultos').classList.contains('hidden')) abrirModalOcultos();
         }
 
         function restaurarTodosCards() {
@@ -1545,9 +1345,7 @@
             fecharModalOcultos();
         }
 
-        function salvarLayoutLocal() {
-            localStorage.setItem('fp_dash_layout', JSON.stringify(state.layout));
-        }
+        function salvarLayoutLocal() { localStorage.setItem('fp_dash_layout_v2', JSON.stringify(state.layout)); }
 
         function aplicarLayoutCards() {
             const cards = document.querySelectorAll('.dash-card');
@@ -1555,35 +1353,22 @@
 
             cards.forEach(card => {
                 const id = card.getAttribute('data-card-id');
-                const cfg = state.layout[id] || DEFAULT_LAYOUT[id] || { span: 1, hidden: false };
+                const cfg = state.layout[id] || CLEAN_LAYOUT[id] || { span: 1, hidden: false };
 
                 card.classList.remove('md:col-span-1', 'md:col-span-2', 'lg:col-span-1', 'lg:col-span-2', 'lg:col-span-4');
-                if (cfg.span === 4) {
-                    card.classList.add('md:col-span-2', 'lg:col-span-4');
-                } else if (cfg.span === 2) {
-                    card.classList.add('md:col-span-2', 'lg:col-span-2');
-                } else {
-                    card.classList.add('md:col-span-1', 'lg:col-span-1');
-                }
+                if (cfg.span === 4) card.classList.add('md:col-span-2', 'lg:col-span-4');
+                else if (cfg.span === 2) card.classList.add('md:col-span-2', 'lg:col-span-2');
+                else card.classList.add('md:col-span-1', 'lg:col-span-1');
 
                 const btns = card.querySelectorAll('.span-btn');
                 btns.forEach((b, idx) => {
                     const mapa = [1, 2, 4];
-                    if (mapa[idx] === cfg.span) {
-                        b.classList.add('bg-cyan-400', 'text-cobalt-950', 'font-bold');
-                        b.classList.remove('bg-slate-800', 'text-slate-300');
-                    } else {
-                        b.classList.remove('bg-cyan-400', 'text-cobalt-950', 'font-bold');
-                        b.classList.add('bg-slate-800', 'text-slate-300');
-                    }
+                    if (mapa[idx] === cfg.span) b.classList.add('bg-cyan-400', 'text-cobalt-950', 'font-bold');
+                    else b.classList.remove('bg-cyan-400', 'text-cobalt-950', 'font-bold');
                 });
 
-                if (cfg.hidden) {
-                    card.classList.add('hidden');
-                    ocultosCount++;
-                } else {
-                    card.classList.remove('hidden');
-                }
+                if (cfg.hidden) { card.classList.add('hidden'); ocultosCount++; }
+                else card.classList.remove('hidden');
             });
 
             const btnOcultos = document.getElementById('btn-cards-ocultos');
@@ -1604,9 +1389,7 @@
                     html += `
                         <div class="flex justify-between items-center bg-cobalt-950 p-3 rounded-xl border border-slate-800">
                             <span class="text-slate-200 font-medium">${title}</span>
-                            <button onclick="toggleCardVisibility('${id}', true)" class="bg-cyan-500 hover:bg-cyan-400 text-cobalt-950 font-bold px-3 py-1 rounded-lg text-xs">
-                                Exibir
-                            </button>
+                            <button onclick="toggleCardVisibility('${id}', true)" class="bg-cyan-500 text-cobalt-950 font-bold px-3 py-1 rounded-lg text-xs">Exibir</button>
                         </div>
                     `;
                 }
@@ -1616,32 +1399,24 @@
             document.getElementById('modal-ocultos').classList.remove('hidden');
         }
 
-        function fecharModalOcultos() {
-            document.getElementById('modal-ocultos').classList.add('hidden');
-        }
+        function fecharModalOcultos() { document.getElementById('modal-ocultos').classList.add('hidden'); }
 
         // =========================================================================
-        // 6. LIMITE DE GASTOS MENSAL E BARRA DE PROGRESSO
+        // LIMITE DE GASTOS MENSAL
         // =========================================================================
         function abrirModalLimite() {
             const mesSel = document.getElementById('filtro-mes').value;
             const anoSel = document.getElementById('filtro-ano').value;
             const comp = `${anoSel}-${mesSel}`;
-
             document.getElementById('input-limite-mes').value = comp;
             const valAtual = obterLimiteDoMes(comp);
             document.getElementById('input-limite-valor').value = valAtual > 0 ? valAtual : '';
             document.getElementById('modal-limite').classList.remove('hidden');
         }
-
-        function fecharModalLimite() {
-            document.getElementById('modal-limite').classList.add('hidden');
-        }
+        function fecharModalLimite() { document.getElementById('modal-limite').classList.add('hidden'); }
 
         function obterLimiteDoMes(comp) {
-            if (state.limitesMensais[comp] !== undefined && state.limitesMensais[comp] > 0) {
-                return Number(state.limitesMensais[comp]);
-            }
+            if (state.limitesMensais[comp] !== undefined && state.limitesMensais[comp] > 0) return Number(state.limitesMensais[comp]);
             return Number(state.limitePadrao || 0);
         }
 
@@ -1658,33 +1433,23 @@
                 state.limitePadrao = valor;
                 localStorage.setItem('fp_limite_padrao', String(valor));
             }
-
-            try {
-                await db.from('limites_mensais').upsert([{ mes_competencia: comp, valor_limite: valor }]);
-            } catch (_) {}
-
+            try { await db.from('limites_mensais').upsert([{ mes_competencia: comp, valor_limite: valor }]); } catch (_) {}
             fecharModalLimite();
             atualizarTudo();
         }
 
-        function atualizarBarraLimite(prefixo, gastoTotal, limiteTotal, rotuloPeriodo) {
+        function atualizarBarraLimite(prefixo, gastoTotal, limiteTotal) {
             const barra = document.getElementById(`${prefixo}-limite-barra`);
             const percEl = document.getElementById(`${prefixo}-limite-perc`);
-            const restEl = document.getElementById(`${prefixo}-limite-restante`);
 
             if (limiteTotal <= 0) {
                 barra.style.width = '0%';
-                barra.className = 'h-full rounded-full bg-slate-700 transition-all duration-500';
-                percEl.innerText = '—';
-                percEl.className = 'text-xs font-bold text-slate-400';
+                percEl.innerText = '';
                 if (prefixo === 'dash') {
-                    document.getElementById('dash-limite-rotulo').innerText = rotuloPeriodo;
-                    document.getElementById('dash-limite-detalhe').innerText = 'Nenhum limite definido. Clique em "Editar Limite".';
-                    document.getElementById('dash-limite-gasto').innerText = `Gasto: ${formatBRL(gastoTotal)}`;
-                    restEl.innerText = 'Sem teto definido';
+                    document.getElementById('dash-limite-detalhe').innerText = 'Sem limite definido';
                 } else {
                     document.getElementById('tx-limite-texto').innerText = 'Sem limite definido';
-                    restEl.innerText = 'Clique em "Definir / Editar" para criar uma meta';
+                    document.getElementById('tx-limite-restante').innerText = 'Clique em "Definir" para criar uma meta';
                 }
                 return;
             }
@@ -1693,43 +1458,30 @@
             const percVisual = Math.min(100, Math.max(0, percReal));
             const restante = limiteTotal - gastoTotal;
 
-            let corBarra = 'bg-cyan-400';
-            let corTexto = 'text-cyan-400';
-            if (percReal >= 100) {
-                corBarra = 'bg-rose-500';
-                corTexto = 'text-rose-400';
-            } else if (percReal >= 75) {
-                corBarra = 'bg-amber-400';
-                corTexto = 'text-amber-400';
-            } else {
-                corBarra = 'bg-emerald-400';
-                corTexto = 'text-emerald-400';
-            }
+            let corBarra = 'bg-emerald-400';
+            let corTexto = 'text-emerald-400';
+            if (percReal >= 100) { corBarra = 'bg-rose-500'; corTexto = 'text-rose-400'; }
+            else if (percReal >= 75) { corBarra = 'bg-amber-400'; corTexto = 'text-amber-400'; }
 
             barra.style.width = `${percVisual}%`;
             barra.className = `h-full rounded-full ${corBarra} transition-all duration-500`;
-            percEl.innerText = `${percReal.toFixed(1)}%`;
-            percEl.className = `text-sm font-bold ${corTexto}`;
+            percEl.innerText = `${percReal.toFixed(0)}% do limite`;
+            percEl.className = `text-[11px] font-bold ${corTexto}`;
 
             if (prefixo === 'dash') {
-                document.getElementById('dash-limite-rotulo').innerText = rotuloPeriodo;
-                document.getElementById('dash-limite-detalhe').innerText = `Teto de ${formatBRL(limiteTotal)} para o período`;
-                document.getElementById('dash-limite-gasto').innerText = `Gasto: ${formatBRL(gastoTotal)}`;
-                restEl.innerText = restante >= 0
-                    ? `Disponível: ${formatBRL(restante)}`
-                    : `Excedido em: ${formatBRL(Math.abs(restante))}`;
-                restEl.className = restante >= 0 ? 'text-emerald-400 font-medium' : 'text-rose-400 font-bold';
+                document.getElementById('dash-limite-detalhe').innerText = restante >= 0
+                    ? `Restam ${formatBRL(restante)} de ${formatBRL(limiteTotal)}`
+                    : `Excedido em ${formatBRL(Math.abs(restante))}`;
             } else {
                 document.getElementById('tx-limite-texto').innerText = `${formatBRL(gastoTotal)} / ${formatBRL(limiteTotal)}`;
-                restEl.innerText = restante >= 0
-                    ? `Restam ${formatBRL(restante)} dentro do limite`
-                    : `Limite ultrapassado em ${formatBRL(Math.abs(restante))}`;
-                restEl.className = restante >= 0 ? 'text-[11px] text-emerald-400 mt-1.5' : 'text-[11px] text-rose-400 font-semibold mt-1.5';
+                document.getElementById('tx-limite-restante').innerText = restante >= 0
+                    ? `Disponível: ${formatBRL(restante)}`
+                    : `Excedido em ${formatBRL(Math.abs(restante))}`;
             }
         }
 
         // =========================================================================
-        // 7. REGRA DE FECHAMENTO DO CARTÃO & FORMULÁRIO DE LANÇAMENTOS
+        // FECHAMENTO DO CARTÃO & TRANSAÇÕES
         // =========================================================================
         function calcularMesCompetencia(dataCompraStr, cartao) {
             const [anoStr, mesStr, diaStr] = dataCompraStr.split('-');
@@ -1737,24 +1489,15 @@
             let mes = parseInt(mesStr);
             const dia = parseInt(diaStr);
 
-            if (cartao && dia > cartao.dia_fechamento) {
-                mes += 1;
-            }
-
-            while (mes > 12) {
-                mes -= 12;
-                ano += 1;
-            }
+            if (cartao && dia > cartao.dia_fechamento) mes += 1;
+            while (mes > 12) { mes -= 12; ano += 1; }
             return `${ano}-${String(mes).padStart(2, '0')}`;
         }
 
         function somarMesesCompetencia(compInicial, mesesAdicionar) {
             let [ano, mes] = compInicial.split('-').map(Number);
             mes += mesesAdicionar;
-            while (mes > 12) {
-                mes -= 12;
-                ano += 1;
-            }
+            while (mes > 12) { mes -= 12; ano += 1; }
             return `${ano}-${String(mes).padStart(2, '0')}`;
         }
 
@@ -1775,17 +1518,14 @@
         }
 
         function toggleCamposDespesa() {
-            const tipo = document.getElementById('tx-tipo').value;
-            const isDespesa = tipo === 'despesa';
+            const isDespesa = document.getElementById('tx-tipo').value === 'despesa';
             document.getElementById('wrap-forma').style.display = isDespesa ? 'block' : 'none';
             document.getElementById('wrap-parcelamento').style.display = isDespesa ? 'block' : 'none';
         }
 
         function toggleParcelamento() {
             const isParcelado = document.getElementById('tx-parcelado').checked;
-            const campos = document.getElementById('campos-parcelas');
-            if (isParcelado) campos.classList.remove('hidden');
-            else campos.classList.add('hidden');
+            document.getElementById('campos-parcelas').classList.toggle('hidden', !isParcelado);
             atualizarPreviewParcelas();
         }
 
@@ -1798,12 +1538,10 @@
 
             let cartaoObj = null;
             if (formaVal.startsWith('cartao_')) {
-                const cId = formaVal.replace('cartao_', '');
-                cartaoObj = state.cartoes.find(c => String(c.id) === String(cId));
+                cartaoObj = state.cartoes.find(c => String(c.id) === formaVal.replace('cartao_', ''));
             }
 
             const primeiraComp = dataCompra ? calcularMesCompetencia(dataCompra, cartaoObj) : '';
-
             if (!isParcelado) {
                 previewEl.innerText = primeiraComp ? `Competência / Fatura: ${primeiraComp}` : '';
                 return;
@@ -1811,32 +1549,18 @@
 
             const numParcelas = Math.max(2, parseInt(document.getElementById('tx-num-parcelas').value) || 2);
             const modoValor = document.getElementById('tx-tipo-valor-parcela').value;
-
-            let valorParcela = 0;
-            let valorTotal = 0;
-            if (modoValor === 'total') {
-                valorTotal = valorInput;
-                valorParcela = valorInput / numParcelas;
-            } else {
-                valorParcela = valorInput;
-                valorTotal = valorInput * numParcelas;
-            }
-
+            const valorParcela = modoValor === 'total' ? (valorInput / numParcelas) : valorInput;
+            const valorTotal = modoValor === 'total' ? valorInput : (valorInput * numParcelas);
             const ultimaComp = primeiraComp ? somarMesesCompetencia(primeiraComp, numParcelas - 1) : '';
-            previewEl.innerText = `${numParcelas}x de ${formatBRL(valorParcela)} (Total: ${formatBRL(valorTotal)}) • Faturas de ${primeiraComp} até ${ultimaComp}`;
+            previewEl.innerText = `${numParcelas}x de ${formatBRL(valorParcela)} (Total: ${formatBRL(valorTotal)}) • ${primeiraComp} até ${ultimaComp}`;
         }
 
         function setPeriodoDashboard(periodo) {
             state.periodoDashboard = periodo;
             ['mensal', 'bimestral', 'anual'].forEach(p => {
                 const el = document.getElementById(`per-${p}`);
-                if (p === periodo) {
-                    el.classList.add('active');
-                    el.classList.remove('text-slate-300');
-                } else {
-                    el.classList.remove('active');
-                    el.classList.add('text-slate-300');
-                }
+                el.classList.toggle('active', p === periodo);
+                if (p !== periodo) el.classList.add('text-slate-300');
             });
             atualizarTudo();
         }
@@ -1855,19 +1579,16 @@
 
             const optionsCat = state.categorias.length > 0
                 ? state.categorias.map(c => `<option value="${c.id}">${c.nome}</option>`).join('')
-                : '<option value="">Nenhuma categoria cadastrada</option>';
+                : '<option value="">Nenhuma categoria</option>';
             
             document.getElementById('tx-categoria').innerHTML = optionsCat;
-            if (catAtual && state.categorias.some(c => String(c.id) === String(catAtual))) {
-                document.getElementById('tx-categoria').value = catAtual;
-            }
+            if (catAtual && state.categorias.some(c => String(c.id) === String(catAtual))) document.getElementById('tx-categoria').value = catAtual;
 
             document.getElementById('edit-tx-categoria').innerHTML = '<option value="">Sem Categoria</option>' + optionsCat;
             document.getElementById('bol-categoria').innerHTML = '<option value="">Sem Categoria</option>' + optionsCat;
 
             const selDashCat = document.getElementById('dash-filtro-categoria');
-            selDashCat.innerHTML = '<option value="todas">Todas as Categorias</option>' +
-                state.categorias.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+            selDashCat.innerHTML = '<option value="todas">Todas as Categorias</option>' + state.categorias.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
             if (dashCatAtual) selDashCat.value = dashCatAtual;
 
             const selSalCat = document.getElementById('sal-var-cat');
@@ -1877,97 +1598,64 @@
 
             const selForma = document.getElementById('tx-forma');
             let htmlForma = '';
-
             if (state.cartoes.length > 0) {
-                htmlForma += '<optgroup label="Cartões de Crédito">';
-                state.cartoes.forEach(c => {
-                    htmlForma += `<option value="cartao_${c.id}">💳 ${c.apelido} (Fecha dia ${c.dia_fechamento} | Vence ${c.dia_vencimento})</option>`;
-                });
+                htmlForma += '<optgroup label="Cartões">';
+                state.cartoes.forEach(c => { htmlForma += `<option value="cartao_${c.id}">💳 ${c.apelido} (Fecha ${c.dia_fechamento})</option>`; });
                 htmlForma += '</optgroup>';
             }
-
             if (state.metodos.length > 0) {
-                htmlForma += '<optgroup label="Métodos de Pagamento">';
-                state.metodos.forEach(m => {
-                    htmlForma += `<option value="metodo_${m.id}">💵 ${m.nome}</option>`;
-                });
+                htmlForma += '<optgroup label="Métodos">';
+                state.metodos.forEach(m => { htmlForma += `<option value="metodo_${m.id}">💵 ${m.nome}</option>`; });
                 htmlForma += '</optgroup>';
             }
 
-            selForma.innerHTML = htmlForma || '<option value="">Cadastre um cartão ou método primeiro</option>';
-            if (formaAtual && Array.from(selForma.options).some(opt => opt.value === formaAtual)) {
-                selForma.value = formaAtual;
-            }
-
-            document.getElementById('edit-tx-forma').innerHTML = '<option value="">Nenhum / Recebimento</option>' + htmlForma;
+            selForma.innerHTML = htmlForma || '<option value="">Cadastre um cartão ou método</option>';
+            if (formaAtual && Array.from(selForma.options).some(opt => opt.value === formaAtual)) selForma.value = formaAtual;
+            document.getElementById('edit-tx-forma').innerHTML = '<option value="">Nenhum</option>' + htmlForma;
 
             const selDashForma = document.getElementById('dash-filtro-forma');
-            selDashForma.innerHTML = '<option value="todas">Todos os Cartões e Métodos</option>' +
-                '<option value="somente_credito">💳 Apenas Cartões de Crédito</option>' +
-                '<option value="somente_vista">💵 Apenas Métodos à Vista / Débito</option>' +
-                htmlForma;
+            selDashForma.innerHTML = '<option value="todas">Todos os Cartões e Métodos</option>' + htmlForma;
             if (dashFormaAtual) selDashForma.value = dashFormaAtual;
 
-            document.getElementById('lista-cartoes').innerHTML = state.cartoes.length > 0
-                ? state.cartoes.map(c => 
-                    `<div class="flex justify-between items-center bg-cobalt-950 p-2.5 rounded-lg border border-slate-800">
-                        <span>💳 <strong>${c.apelido}</strong> <span class="text-slate-400">(Fecha: ${c.dia_fechamento} | Vence: ${c.dia_vencimento})</span></span>
-                        <button onclick="deletarItem('cartoes', '${c.id}')" class="text-rose-400 hover:text-rose-300 px-2"><i class="fa-solid fa-trash"></i></button>
-                    </div>`
-                ).join('')
-                : '<p class="text-slate-500">Nenhum cartão cadastrado.</p>';
+            document.getElementById('lista-cartoes').innerHTML = state.cartoes.map(c => 
+                `<div class="flex justify-between items-center bg-cobalt-950 p-2.5 rounded-lg border border-slate-800">
+                    <span>💳 <strong>${c.apelido}</strong> <span class="text-slate-400">(Fecha: ${c.dia_fechamento} | Vence: ${c.dia_vencimento})</span></span>
+                    <button onclick="deletarItem('cartoes', '${c.id}')" class="text-rose-400 px-2"><i class="fa-solid fa-trash"></i></button>
+                </div>`
+            ).join('') || '<p class="text-slate-500">Nenhum cartão cadastrado.</p>';
 
-            document.getElementById('lista-metodos').innerHTML = state.metodos.length > 0
-                ? state.metodos.map(m => 
-                    `<div class="flex justify-between items-center bg-cobalt-950 p-2.5 rounded-lg border border-slate-800">
-                        <span>💵 ${m.nome}</span>
-                        <button onclick="deletarItem('metodos_pagamento', '${m.id}')" class="text-rose-400 hover:text-rose-300 px-2"><i class="fa-solid fa-trash"></i></button>
-                    </div>`
-                ).join('')
-                : '<p class="text-slate-500">Nenhum método cadastrado.</p>';
+            document.getElementById('lista-metodos').innerHTML = state.metodos.map(m => 
+                `<div class="flex justify-between items-center bg-cobalt-950 p-2.5 rounded-lg border border-slate-800">
+                    <span>💵 ${m.nome}</span>
+                    <button onclick="deletarItem('metodos_pagamento', '${m.id}')" class="text-rose-400 px-2"><i class="fa-solid fa-trash"></i></button>
+                </div>`
+            ).join('') || '<p class="text-slate-500">Nenhum método cadastrado.</p>';
 
-            document.getElementById('lista-categorias').innerHTML = state.categorias.length > 0
-                ? state.categorias.map(c => 
-                    `<div class="flex justify-between items-center bg-cobalt-950 p-2.5 rounded-lg border border-slate-800">
-                        <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:${c.cor}"></span>${c.nome}</span>
-                        <button onclick="deletarItem('categorias', '${c.id}')" class="text-rose-400 hover:text-rose-300 px-2"><i class="fa-solid fa-trash"></i></button>
-                    </div>`
-                ).join('')
-                : '<p class="text-slate-500">Nenhuma categoria cadastrada.</p>';
+            document.getElementById('lista-categorias').innerHTML = state.categorias.map(c => 
+                `<div class="flex justify-between items-center bg-cobalt-950 p-2.5 rounded-lg border border-slate-800">
+                    <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:${c.cor}"></span>${c.nome}</span>
+                    <button onclick="deletarItem('categorias', '${c.id}')" class="text-rose-400 px-2"><i class="fa-solid fa-trash"></i></button>
+                </div>`
+            ).join('') || '<p class="text-slate-500">Nenhuma categoria cadastrada.</p>';
         }
 
         // =========================================================================
-        // 8. SALÁRIOS, TRANSAÇÕES E CADASTROS
+        // SALÁRIOS, TRANSAÇÕES E CADASTROS
         // =========================================================================
         function setModoSalario(modo) {
-            const formVar = document.getElementById('form-salario-variavel');
-            const formFixo = document.getElementById('form-salario-fixo');
-            const btnVar = document.getElementById('btn-sal-variavel');
-            const btnFixo = document.getElementById('btn-sal-fixo');
-
-            if (modo === 'variavel') {
-                formVar.classList.remove('hidden');
-                formFixo.classList.add('hidden');
-                btnVar.classList.add('active');
-                btnFixo.classList.remove('active');
-                btnFixo.classList.add('text-slate-300');
-            } else {
-                formFixo.classList.remove('hidden');
-                formVar.classList.add('hidden');
-                btnFixo.classList.add('active');
-                btnVar.classList.remove('active');
-                btnVar.classList.add('text-slate-300');
-            }
+            document.getElementById('form-salario-variavel').classList.toggle('hidden', modo !== 'variavel');
+            document.getElementById('form-salario-fixo').classList.toggle('hidden', modo !== 'fixo');
+            document.getElementById('btn-sal-variavel').classList.toggle('active', modo === 'variavel');
+            document.getElementById('btn-sal-fixo').classList.toggle('active', modo === 'fixo');
         }
 
         function renderizarGradeSalarios() {
-            const container = document.getElementById('grade-meses-salario');
-            container.innerHTML = NOMES_MESES.map((nome, idx) => {
+            document.getElementById('grade-meses-salario').innerHTML = NOMES_MESES.map((nome, idx) => {
                 const mesNum = String(idx + 1).padStart(2, '0');
                 return `
                     <div class="bg-cobalt-950 p-2.5 rounded-xl border border-slate-800">
                         <label class="block text-xs font-semibold text-cyan-400 mb-1">${nome}</label>
-                        <input type="number" step="0.01" data-mes="${mesNum}" placeholder="R$ 0,00" class="input-sal-mes w-full bg-cobalt-900 border border-slate-700 rounded p-1.5 text-xs text-white outline-none focus:border-emerald-400">
+                        <input type="number" step="0.01" data-mes="${mesNum}" placeholder="R$ 0,00" class="input-sal-mes w-full bg-cobalt-900 border border-slate-700 rounded p-1.5 text-xs text-white outline-none">
                     </div>
                 `;
             }).join('');
@@ -1986,30 +1674,13 @@
                 if (!isNaN(val) && val > 0) {
                     const mes = inp.getAttribute('data-mes');
                     const comp = `${ano}-${mes}`;
-                    registros.push({
-                        tipo: 'receita',
-                        descricao: `${descricao} (${NOMES_MESES[parseInt(mes)-1]}/${ano})`,
-                        valor: val,
-                        data_compra: `${comp}-05`,
-                        mes_competencia: comp,
-                        categoria_id
-                    });
+                    registros.push({ tipo: 'receita', descricao: `${descricao} (${NOMES_MESES[parseInt(mes)-1]}/${ano})`, valor: val, data_compra: `${comp}-05`, mes_competencia: comp, categoria_id });
                 }
             });
 
-            if (registros.length === 0) {
-                alert('Preencha o valor de pelo menos um mês antes de salvar.');
-                return;
-            }
-
+            if (registros.length === 0) { alert('Preencha pelo menos um mês.'); return; }
             const { error } = await db.from('transacoes').insert(registros);
-            if (!error) {
-                inputs.forEach(i => i.value = '');
-                alert(`${registros.length} recebimento(s) registrado(s) com sucesso!`);
-                await carregarDadosBanco();
-            } else {
-                alert('Erro ao registrar salários: ' + error.message);
-            }
+            if (!error) { inputs.forEach(i => i.value = ''); alert('Salários registrados!'); await carregarDadosBanco(); }
         }
 
         async function salvarSalarioFixo(e) {
@@ -2022,29 +1693,14 @@
 
             let [ano, mes] = inicio.split('-').map(Number);
             const registros = [];
-
             for (let i = 0; i < qtd; i++) {
                 const comp = `${ano}-${String(mes).padStart(2, '0')}`;
-                registros.push({
-                    tipo: 'receita',
-                    descricao: `${descricao} (${i + 1}/${qtd})`,
-                    valor,
-                    data_compra: `${comp}-05`,
-                    mes_competencia: comp,
-                    categoria_id: catSalario ? catSalario.id : null
-                });
-                mes++;
-                if (mes > 12) { mes = 1; ano++; }
+                registros.push({ tipo: 'receita', descricao: `${descricao} (${i + 1}/${qtd})`, valor, data_compra: `${comp}-05`, mes_competencia: comp, categoria_id: catSalario ? catSalario.id : null });
+                mes++; if (mes > 12) { mes = 1; ano++; }
             }
 
             const { error } = await db.from('transacoes').insert(registros);
-            if (!error) {
-                e.target.reset();
-                alert(`${qtd} meses de recebimento registrados com sucesso!`);
-                await carregarDadosBanco();
-            } else {
-                alert('Erro ao gerar recebimentos: ' + error.message);
-            }
+            if (!error) { e.target.reset(); alert('Recebimentos registrados!'); await carregarDadosBanco(); }
         }
 
         async function salvarTransacao(e) {
@@ -2056,10 +1712,7 @@
             const categoria_id = document.getElementById('tx-categoria').value || null;
             const formaVal = document.getElementById('tx-forma').value || '';
 
-            let cartao_id = null;
-            let metodo_id = null;
-            let cartaoObj = null;
-
+            let cartao_id = null, metodo_id = null, cartaoObj = null;
             if (tipo === 'despesa' && formaVal) {
                 if (formaVal.startsWith('cartao_')) {
                     cartao_id = formaVal.replace('cartao_', '');
@@ -2071,55 +1724,24 @@
 
             const primeiraCompetencia = calcularMesCompetencia(data_compra, cartaoObj);
             const isParcelado = tipo === 'despesa' && document.getElementById('tx-parcelado').checked;
-
             let registrosParaInserir = [];
 
             if (!isParcelado) {
-                registrosParaInserir.push({
-                    tipo,
-                    descricao,
-                    valor: valorInformado,
-                    data_compra,
-                    mes_competencia: primeiraCompetencia,
-                    categoria_id,
-                    metodo_id,
-                    cartao_id
-                });
+                registrosParaInserir.push({ tipo, descricao, valor: valorInformado, data_compra, mes_competencia: primeiraCompetencia, categoria_id, metodo_id, cartao_id });
             } else {
                 const numParcelas = Math.max(2, parseInt(document.getElementById('tx-num-parcelas').value) || 2);
                 const modoValor = document.getElementById('tx-tipo-valor-parcela').value;
-
-                let valorBaseParcela = 0;
-                let diferencaCentavos = 0;
-
-                if (modoValor === 'total') {
-                    valorBaseParcela = Math.floor((valorInformado / numParcelas) * 100) / 100;
-                    diferencaCentavos = Math.round((valorInformado - (valorBaseParcela * numParcelas)) * 100) / 100;
-                } else {
-                    valorBaseParcela = valorInformado;
-                }
+                let valorBaseParcela = modoValor === 'total' ? Math.floor((valorInformado / numParcelas) * 100) / 100 : valorInformado;
+                let diferencaCentavos = modoValor === 'total' ? Math.round((valorInformado - (valorBaseParcela * numParcelas)) * 100) / 100 : 0;
 
                 for (let i = 0; i < numParcelas; i++) {
                     const compParcela = somarMesesCompetencia(primeiraCompetencia, i);
-                    const valorDestaParcela = (i === numParcelas - 1)
-                        ? Number((valorBaseParcela + diferencaCentavos).toFixed(2))
-                        : Number(valorBaseParcela.toFixed(2));
-
-                    registrosParaInserir.push({
-                        tipo: 'despesa',
-                        descricao: `${descricao} (${i + 1}/${numParcelas})`,
-                        valor: valorDestaParcela,
-                        data_compra,
-                        mes_competencia: compParcela,
-                        categoria_id,
-                        metodo_id,
-                        cartao_id
-                    });
+                    const valorDestaParcela = (i === numParcelas - 1) ? Number((valorBaseParcela + diferencaCentavos).toFixed(2)) : Number(valorBaseParcela.toFixed(2));
+                    registrosParaInserir.push({ tipo: 'despesa', descricao: `${descricao} (${i + 1}/${numParcelas})`, valor: valorDestaParcela, data_compra, mes_competencia: compParcela, categoria_id, metodo_id, cartao_id });
                 }
             }
 
             const { error } = await db.from('transacoes').insert(registrosParaInserir);
-
             if (!error) {
                 e.target.reset();
                 document.getElementById('tx-data').valueAsDate = new Date();
@@ -2127,9 +1749,7 @@
                 toggleCamposDespesa();
                 toggleFormLancamento(false);
                 await carregarDadosBanco();
-            } else {
-                alert('Erro ao salvar lançamento: ' + error.message);
-            }
+            } else { alert('Erro ao salvar: ' + error.message); }
         }
 
         async function salvarCartao(e) {
@@ -2137,34 +1757,17 @@
             const apelido = document.getElementById('card-apelido').value.trim();
             const dia_fechamento = parseInt(document.getElementById('card-fechamento').value);
             const dia_vencimento = parseInt(document.getElementById('card-vencimento').value);
-
-            const { data, error } = await db.from('cartoes')
-                .insert([{ apelido, dia_fechamento, dia_vencimento }])
-                .select();
-
-            if (error) {
-                alert('Erro ao salvar cartão: ' + error.message);
-                return;
-            }
-
+            const { error } = await db.from('cartoes').insert([{ apelido, dia_fechamento, dia_vencimento }]);
+            if (error) { alert('Erro: ' + error.message); return; }
             e.target.reset();
             await carregarDadosBanco();
-            if (data && data[0]) {
-                document.getElementById('tx-forma').value = `cartao_${data[0].id}`;
-            }
-            alert(`Cartão "${apelido}" cadastrado com sucesso!`);
         }
 
         async function salvarMetodo(e) {
             e.preventDefault();
             const nome = document.getElementById('met-nome').value.trim();
             const { error } = await db.from('metodos_pagamento').insert([{ nome }]);
-            if (error) {
-                alert('Erro ao salvar método: ' + error.message);
-                return;
-            }
-            e.target.reset();
-            await carregarDadosBanco();
+            if (!error) { e.target.reset(); await carregarDadosBanco(); }
         }
 
         async function salvarCategoria(e) {
@@ -2172,12 +1775,7 @@
             const nome = document.getElementById('cat-nome').value.trim();
             const cor = document.getElementById('cat-cor').value;
             const { error } = await db.from('categorias').insert([{ nome, cor }]);
-            if (error) {
-                alert('Erro ao salvar categoria: ' + error.message);
-                return;
-            }
-            e.target.reset();
-            await carregarDadosBanco();
+            if (!error) { e.target.reset(); await carregarDadosBanco(); }
         }
 
         async function salvarInvestimento(e) {
@@ -2187,13 +1785,7 @@
             const taxa_mensal = parseFloat(document.getElementById('inv-taxa').value);
             const data_aporte = document.getElementById('inv-data').value;
             const { error } = await db.from('investimentos').insert([{ nome, valor_inicial, taxa_mensal, data_aporte }]);
-            if (error) {
-                alert('Erro ao salvar investimento: ' + error.message);
-                return;
-            }
-            e.target.reset();
-            fecharModalInvestimento();
-            await carregarDadosBanco();
+            if (!error) { e.target.reset(); fecharModalInvestimento(); await carregarDadosBanco(); }
         }
 
         async function salvarPrevisao(e) {
@@ -2203,31 +1795,19 @@
             const mes_inicio = document.getElementById('prev-inicio').value;
             const mes_fim = document.getElementById('prev-fim').value;
             const { error } = await db.from('previsao_recebiveis').insert([{ descricao, valor, mes_inicio, mes_fim }]);
-            if (error) {
-                alert('Erro ao salvar previsão: ' + error.message);
-                return;
-            }
-            e.target.reset();
-            fecharModalPrevisao();
-            await carregarDadosBanco();
+            if (!error) { e.target.reset(); fecharModalPrevisao(); await carregarDadosBanco(); }
         }
 
         async function deletarItem(tabela, id) {
             if (!confirm('Deseja excluir este registro?')) return;
             const { error } = await db.from(tabela).delete().eq('id', id);
-            if (error) {
-                alert('Erro ao excluir: ' + error.message);
-                return;
-            }
-            await carregarDadosBanco();
+            if (!error) await carregarDadosBanco();
         }
 
         // =========================================================================
-        // 9. ATUALIZAÇÃO DO DASHBOARD, FILTROS E ABA LANÇAMENTOS
+        // ATUALIZAÇÃO DO DASHBOARD E LANÇAMENTOS
         // =========================================================================
-        function formatBRL(val) {
-            return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        }
+        function formatBRL(val) { return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
 
         function obterTransacoesPeriodo(mesSel, anoSel) {
             const mesNum = parseInt(mesSel);
@@ -2240,10 +1820,7 @@
             } else if (state.periodoDashboard === 'bimestral') {
                 const mesInicioBim = mesNum % 2 === 1 ? mesNum : mesNum - 1;
                 const mesFimBim = mesInicioBim + 1;
-                comps = [
-                    `${anoSel}-${String(mesInicioBim).padStart(2, '0')}`,
-                    `${anoSel}-${String(mesFimBim).padStart(2, '0')}`
-                ];
+                comps = [`${anoSel}-${String(mesInicioBim).padStart(2, '0')}`, `${anoSel}-${String(mesFimBim).padStart(2, '0')}`];
                 rotulo = `${NOMES_MESES[mesInicioBim - 1]}–${NOMES_MESES[mesFimBim - 1]}/${anoSel}`;
             } else {
                 for (let m = 1; m <= 12; m++) comps.push(`${anoSel}-${String(m).padStart(2, '0')}`);
@@ -2255,43 +1832,28 @@
 
             const listaFiltrada = state.transacoes.filter(t => {
                 if (!comps.includes(t.mes_competencia)) return false;
-
-                if (filtroCat !== 'todas' && String(t.categoria_id) !== String(filtroCat)) {
-                    return false;
-                }
-
+                if (filtroCat !== 'todas' && String(t.categoria_id) !== String(filtroCat)) return false;
                 if (filtroForma !== 'todas') {
                     if (t.tipo === 'receita') return false;
-                    if (filtroForma === 'somente_credito' && !t.cartao_id) return false;
-                    if (filtroForma === 'somente_vista' && !t.metodo_id) return false;
                     if (filtroForma.startsWith('cartao_') && String(t.cartao_id) !== filtroForma.replace('cartao_', '')) return false;
                     if (filtroForma.startsWith('metodo_') && String(t.metodo_id) !== filtroForma.replace('metodo_', '')) return false;
                 }
-
                 return true;
             });
 
-            // Soma limites, recebíveis previstos e boletos programados do período
-            let limitePeriodo = 0;
-            let previstosPeriodo = 0;
-            let boletosPeriodo = [];
-
+            let limitePeriodo = 0, previstosPeriodo = 0, boletosPeriodo = [];
             comps.forEach(c => {
                 limitePeriodo += obterLimiteDoMes(c);
-                state.previsoes.forEach(p => {
-                    if (c >= p.mes_inicio && c <= p.mes_fim) {
-                        previstosPeriodo += Number(p.valor);
-                    }
-                });
+                state.previsoes.forEach(p => { if (c >= p.mes_inicio && c <= p.mes_fim) previstosPeriodo += Number(p.valor); });
                 const bols = obterBoletosDoMes(c).filter(b => {
                     if (filtroCat !== 'todas' && String(b.categoria_id) !== String(filtroCat)) return false;
-                    if (filtroForma !== 'todas' && filtroForma !== 'somente_vista') return false;
+                    if (filtroForma !== 'todas') return false;
                     return true;
                 });
                 boletosPeriodo = boletosPeriodo.concat(bols);
             });
 
-            return { lista: listaFiltrada, rotulo, limitePeriodo, previstosPeriodo, boletosPeriodo, comps };
+            return { lista: listaFiltrada, rotulo, limitePeriodo, previstosPeriodo, boletosPeriodo };
         }
 
         function atualizarTudo() {
@@ -2301,73 +1863,43 @@
             document.getElementById('label-ano-grafico').innerText = anoSel;
 
             const { lista: txPeriodo, rotulo, limitePeriodo, previstosPeriodo, boletosPeriodo } = obterTransacoesPeriodo(mesSel, anoSel);
-            document.getElementById('badge-periodo-ativo').innerText = `Exibindo: ${rotulo}`;
+            document.getElementById('badge-periodo-ativo').innerText = `Competência: ${rotulo}`;
             document.getElementById('lbl-kpi-receitas').innerText = `Recebimentos (${rotulo})`;
             document.getElementById('lbl-kpi-despesas').innerText = `Gastos (${rotulo})`;
-            document.getElementById('titulo-pizza-cat').innerText = `Gastos por Categoria (${rotulo})`;
-            document.getElementById('titulo-pizza-met').innerText = `Gastos por Método / Cartão (${rotulo})`;
 
             const receitasPer = txPeriodo.filter(t => t.tipo === 'receita').reduce((acc, t) => acc + Number(t.valor), 0);
             const despesasList = txPeriodo.filter(t => t.tipo === 'despesa');
             const totalBoletosPer = boletosPeriodo.reduce((acc, b) => acc + Number(b.valor), 0);
             const despesasPer = despesasList.reduce((acc, t) => acc + Number(t.valor), 0) + totalBoletosPer;
             const saldoPer = receitasPer - despesasPer;
-            const taxaPoupanca = receitasPer > 0 ? ((saldoPer / receitasPer) * 100).toFixed(1) : '0.0';
+            const taxaPoupanca = receitasPer > 0 ? ((saldoPer / receitasPer) * 100).toFixed(0) : '0';
 
             document.getElementById('kpi-receitas').innerText = formatBRL(receitasPer);
             document.getElementById('sub-kpi-receitas').innerText = `+ ${formatBRL(previstosPeriodo)} previstos`;
             document.getElementById('kpi-despesas').innerText = formatBRL(despesasPer);
-            document.getElementById('sub-kpi-despesas').innerText = `${despesasList.length} gasto(s) + ${boletosPeriodo.length} boleto(s)`;
             document.getElementById('kpi-saldo').innerText = formatBRL(saldoPer);
             document.getElementById('kpi-saldo').className = `text-2xl font-bold mt-1 ${saldoPer >= 0 ? 'text-cyan-400' : 'text-rose-400'}`;
-            document.getElementById('sub-kpi-saldo').innerText = `Taxa de economia: ${taxaPoupanca}%`;
+            document.getElementById('sub-kpi-saldo').innerText = `Economia: ${taxaPoupanca}%`;
 
-            atualizarBarraLimite('dash', despesasPer, limitePeriodo, rotulo);
+            atualizarBarraLimite('dash', despesasPer, limitePeriodo);
 
-            const qtdItensConsumo = despesasList.length + boletosPeriodo.length;
-            const ticketMedio = qtdItensConsumo > 0 ? despesasPer / qtdItensConsumo : 0;
-            let maiorGastoObj = null;
-            let totalCredito = 0;
-            let totalVista = totalBoletosPer;
-
-            despesasList.forEach(d => {
-                const v = Number(d.valor);
-                if (!maiorGastoObj || v > Number(maiorGastoObj.valor)) maiorGastoObj = d;
-                if (d.cartao_id) totalCredito += v;
-                else totalVista += v;
-            });
-
-            document.getElementById('stat-ticket-medio').innerText = formatBRL(ticketMedio);
-            document.getElementById('stat-maior-gasto').innerText = maiorGastoObj ? formatBRL(Number(maiorGastoObj.valor)) : 'R$ 0,00';
-            document.getElementById('stat-maior-gasto-desc').innerText = maiorGastoObj ? maiorGastoObj.descricao : '-';
-            document.getElementById('stat-total-credito').innerText = formatBRL(totalCredito);
-            document.getElementById('stat-total-vista').innerText = formatBRL(totalVista);
-
-            // Painel de Vencimentos (Cartões + Boletos Programados) do Mês
             const txMesExato = state.transacoes.filter(t => t.mes_competencia === compMensal);
             const despesasMesExato = txMesExato.filter(t => t.tipo === 'despesa');
             renderizarPainelVencimentosDashboard(compMensal, despesasMesExato);
-
-            // Ranking Top Categorias
             renderizarRankingCategoriasDashboard(despesasList, boletosPeriodo, despesasPer);
 
-            // Cards Superiores da Aba Lançamentos (Mês Exato)
+            // Aba Lançamentos
             const boletosMesExato = obterBoletosDoMes(compMensal);
-            const gastoMesExato = despesasMesExato.reduce((acc, t) => acc + Number(t.valor), 0) +
-                boletosMesExato.reduce((acc, b) => acc + Number(b.valor), 0);
+            const gastoMesExato = despesasMesExato.reduce((acc, t) => acc + Number(t.valor), 0) + boletosMesExato.reduce((acc, b) => acc + Number(b.valor), 0);
             const recebidoMesExato = txMesExato.filter(t => t.tipo === 'receita').reduce((acc, t) => acc + Number(t.valor), 0);
             let aReceberPrevistoMes = 0;
-            state.previsoes.forEach(p => {
-                if (compMensal >= p.mes_inicio && compMensal <= p.mes_fim) {
-                    aReceberPrevistoMes += Number(p.valor);
-                }
-            });
+            state.previsoes.forEach(p => { if (compMensal >= p.mes_inicio && compMensal <= p.mes_fim) aReceberPrevistoMes += Number(p.valor); });
 
             document.getElementById('tx-kpi-gasto').innerText = formatBRL(gastoMesExato);
-            document.getElementById('tx-kpi-gasto-sub').innerText = `Competência ${NOMES_MESES[parseInt(mesSel)-1]}/${anoSel} (inclui boletos)`;
+            document.getElementById('tx-kpi-gasto-sub').innerText = `Competência ${NOMES_MESES[parseInt(mesSel)-1]}/${anoSel}`;
             document.getElementById('tx-kpi-recebido').innerText = formatBRL(recebidoMesExato + aReceberPrevistoMes);
             document.getElementById('tx-kpi-recebido-sub').innerText = `Registrado: ${formatBRL(recebidoMesExato)} | Previsto: ${formatBRL(aReceberPrevistoMes)}`;
-            atualizarBarraLimite('tx', gastoMesExato, obterLimiteDoMes(compMensal), compMensal);
+            atualizarBarraLimite('tx', gastoMesExato, obterLimiteDoMes(compMensal));
 
             renderizarTabelaTransacoes(txMesExato);
             renderizarInvestimentosEPrevisoes(anoSel);
@@ -2377,10 +1909,9 @@
         function renderizarRankingCategoriasDashboard(despesasList, boletosPeriodo, totalGeral) {
             const container = document.getElementById('dash-ranking-categorias');
             if (despesasList.length === 0 && boletosPeriodo.length === 0) {
-                container.innerHTML = '<p class="text-slate-500">Nenhum gasto registrado neste filtro.</p>';
+                container.innerHTML = '<p class="text-slate-500">Nenhum gasto registrado.</p>';
                 return;
             }
-
             const mapa = {};
             despesasList.forEach(d => {
                 const cat = state.categorias.find(c => String(c.id) === String(d.categoria_id));
@@ -2389,7 +1920,6 @@
                 if (!mapa[nome]) mapa[nome] = { nome, cor, valor: 0 };
                 mapa[nome].valor += Number(d.valor);
             });
-
             boletosPeriodo.forEach(b => {
                 const cat = state.categorias.find(c => String(c.id) === String(b.categoria_id));
                 const nome = cat ? cat.nome : 'Boletos Programados';
@@ -2400,14 +1930,12 @@
 
             const ordenado = Object.values(mapa).sort((a, b) => b.valor - a.valor).slice(0, 5);
             container.innerHTML = ordenado.map(item => {
-                const perc = totalGeral > 0 ? ((item.valor / totalGeral) * 100).toFixed(1) : 0;
+                const perc = totalGeral > 0 ? ((item.valor / totalGeral) * 100).toFixed(0) : 0;
                 return `
                     <div class="space-y-1">
                         <div class="flex justify-between items-center">
-                            <span class="text-slate-200 font-medium flex items-center gap-2">
-                                <span class="w-2.5 h-2.5 rounded-full" style="background:${item.cor}"></span>${item.nome}
-                            </span>
-                            <span class="text-slate-300 font-semibold">${formatBRL(item.valor)} <span class="text-slate-500">(${perc}%)</span></span>
+                            <span class="text-slate-200 flex items-center gap-2"><span class="w-2 h-2 rounded-full" style="background:${item.cor}"></span>${item.nome}</span>
+                            <span class="text-slate-300 font-semibold">${formatBRL(item.valor)} (${perc}%)</span>
                         </div>
                         <div class="w-full h-1.5 bg-cobalt-950 rounded-full overflow-hidden">
                             <div class="h-full rounded-full" style="width:${perc}%; background:${item.cor}"></div>
@@ -2420,10 +1948,9 @@
         function renderizarTabelaTransacoes(txMes) {
             const tbody = document.getElementById('lista-transacoes');
             if (txMes.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="py-6 text-center text-slate-500">Nenhum lançamento para esta competência.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="py-6 text-center text-slate-500">Nenhum lançamento nesta competência.</td></tr>';
                 return;
             }
-
             tbody.innerHTML = txMes.map(t => {
                 const cat = state.categorias.find(c => String(c.id) === String(t.categoria_id));
                 let formaNome = t.tipo === 'receita' ? 'Recebimento' : '-';
@@ -2434,7 +1961,6 @@
                     const met = state.metodos.find(m => String(m.id) === String(t.metodo_id));
                     formaNome = met ? `💵 ${met.nome}` : 'Método';
                 }
-
                 const corValor = t.tipo === 'receita' ? 'text-emerald-400' : 'text-rose-400';
                 const sinal = t.tipo === 'receita' ? '+' : '-';
 
@@ -2447,8 +1973,8 @@
                         <td class="py-3 px-2 text-slate-300">${formaNome}</td>
                         <td class="py-3 px-2 text-right font-semibold ${corValor}">${sinal} ${formatBRL(Number(t.valor))}</td>
                         <td class="py-3 px-2 text-center space-x-2">
-                            <button onclick="abrirModalEditarTx('${t.id}')" title="Editar" class="text-cyan-400 hover:text-cyan-300"><i class="fa-solid fa-pen-to-square"></i></button>
-                            <button onclick="deletarItem('transacoes', '${t.id}')" title="Excluir" class="text-slate-500 hover:text-rose-400"><i class="fa-solid fa-trash"></i></button>
+                            <button onclick="abrirModalEditarTx('${t.id}')" class="text-cyan-400 hover:text-cyan-300"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="deletarItem('transacoes', '${t.id}')" class="text-slate-500 hover:text-rose-400"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     </tr>
                 `;
@@ -2461,19 +1987,15 @@
 
             const htmlInv = state.investimentos.map(inv => {
                 const [anoAp, mesAp] = inv.data_aporte.split('-').map(Number);
-                let mesesRendimento = 0;
-                if (anoAp < anoAtual) mesesRendimento = 12;
-                else if (anoAp === anoAtual) mesesRendimento = Math.max(0, 12 - mesAp);
-
-                const taxa = Number(inv.taxa_mensal) / 100;
-                const montanteFinal = Number(inv.valor_inicial) * Math.pow(1 + taxa, mesesRendimento);
+                let mesesRendimento = anoAp < anoAtual ? 12 : (anoAp === anoAtual ? Math.max(0, 12 - mesAp) : 0);
+                const montanteFinal = Number(inv.valor_inicial) * Math.pow(1 + Number(inv.taxa_mensal) / 100, mesesRendimento);
                 totalProjetadoDez += montanteFinal;
 
                 return `
                     <div class="bg-cobalt-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center">
                         <div>
                             <p class="font-semibold text-white">${inv.nome}</p>
-                            <p class="text-xs text-slate-400">Inicial: ${formatBRL(Number(inv.valor_inicial))} | Taxa: ${inv.taxa_mensal}% a.m. (${mesesRendimento} meses até Dez)</p>
+                            <p class="text-xs text-slate-400">Inicial: ${formatBRL(Number(inv.valor_inicial))} | ${inv.taxa_mensal}% a.m.</p>
                         </div>
                         <div class="text-right">
                             <p class="text-purple-400 font-bold">${formatBRL(montanteFinal)}</p>
@@ -2484,14 +2006,14 @@
             }).join('');
 
             document.getElementById('kpi-investimento').innerText = formatBRL(totalProjetadoDez);
-            document.getElementById('sub-kpi-investimento').innerText = `${state.investimentos.length} ativo(s) aplicado(s)`;
-            document.getElementById('lista-investimentos').innerHTML = htmlInv || '<p class="text-slate-500">Nenhum investimento cadastrado. Clique no botão acima para adicionar.</p>';
+            document.getElementById('sub-kpi-investimento').innerText = `${state.investimentos.length} ativo(s)`;
+            document.getElementById('lista-investimentos').innerHTML = htmlInv || '<p class="text-slate-500">Nenhum investimento cadastrado.</p>';
 
             const htmlPrev = state.previsoes.map(p => `
                 <div class="bg-cobalt-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center">
                     <div>
                         <p class="font-semibold text-white">${p.descricao}</p>
-                        <p class="text-xs text-slate-400">Período: ${p.mes_inicio} até ${p.mes_fim}</p>
+                        <p class="text-xs text-slate-400">${p.mes_inicio} até ${p.mes_fim}</p>
                     </div>
                     <div class="text-right">
                         <p class="text-emerald-400 font-bold">${formatBRL(Number(p.valor))}/mês</p>
@@ -2500,7 +2022,7 @@
                 </div>
             `).join('');
 
-            document.getElementById('lista-previsoes').innerHTML = htmlPrev || '<p class="text-slate-500">Nenhuma previsão cadastrada. Clique no botão acima para adicionar.</p>';
+            document.getElementById('lista-previsoes').innerHTML = htmlPrev || '<p class="text-slate-500">Nenhuma previsão cadastrada.</p>';
         }
 
         function renderizarGraficos(anoSel, txPeriodo, boletosPeriodo) {
@@ -2518,14 +2040,8 @@
 
             for (let m = 1; m <= 12; m++) {
                 const comp = `${anoSel}-${String(m).padStart(2, '0')}`;
-                state.previsoes.forEach(p => {
-                    if (comp >= p.mes_inicio && comp <= p.mes_fim) {
-                        dadosPrevistos[m - 1] += Number(p.valor);
-                    }
-                });
-                obterBoletosDoMes(comp).forEach(b => {
-                    dadosDespesas[m - 1] += Number(b.valor);
-                });
+                state.previsoes.forEach(p => { if (comp >= p.mes_inicio && comp <= p.mes_fim) dadosPrevistos[m - 1] += Number(p.valor); });
+                obterBoletosDoMes(comp).forEach(b => { dadosDespesas[m - 1] += Number(b.valor); });
             }
 
             if (charts.linha) charts.linha.destroy();
@@ -2534,52 +2050,42 @@
                 data: {
                     labels: NOMES_MESES,
                     datasets: [
-                        { label: 'Recebimentos Registrados', data: dadosReceitas, borderColor: '#10b981', backgroundColor: '#10b98122', tension: 0.3, fill: true },
-                        { label: 'Recebíveis Previstos', data: dadosPrevistos, borderColor: '#22d3ee', borderDash: [5, 5], tension: 0.3 },
-                        { label: 'Gastos (Faturas, Despesas & Boletos)', data: dadosDespesas, borderColor: '#f43f5e', backgroundColor: '#f43f5e22', tension: 0.3, fill: true }
+                        { label: 'Recebimentos', data: dadosReceitas, borderColor: '#10b981', backgroundColor: '#10b98118', tension: 0.3, fill: true },
+                        { label: 'Previstos', data: dadosPrevistos, borderColor: '#22d3ee', borderDash: [4, 4], tension: 0.3 },
+                        { label: 'Gastos', data: dadosDespesas, borderColor: '#f43f5e', backgroundColor: '#f43f5e18', tension: 0.3, fill: true }
                     ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { labels: { color: '#cbd5e1' } } },
+                    plugins: { legend: { labels: { color: '#94a3b8', boxWidth: 12, font: { size: 11 } } } },
                     scales: {
-                        x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } },
-                        y: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } }
+                        x: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { display: false } },
+                        y: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: '#1e293b' } }
                     }
                 }
             });
 
             const despesasPer = txPeriodo.filter(t => t.tipo === 'despesa');
-            const mapCat = {};
-            const coresCat = [];
+            const mapCat = {}, coresCat = [];
             despesasPer.forEach(d => {
                 const cat = state.categorias.find(c => String(c.id) === String(d.categoria_id));
                 const nome = cat ? cat.nome : 'Sem Categoria';
-                if (!mapCat[nome]) {
-                    mapCat[nome] = 0;
-                    coresCat.push(cat ? cat.cor : '#64748b');
-                }
+                if (!mapCat[nome]) { mapCat[nome] = 0; coresCat.push(cat ? cat.cor : '#64748b'); }
                 mapCat[nome] += Number(d.valor);
             });
             boletosPeriodo.forEach(b => {
                 const cat = state.categorias.find(c => String(c.id) === String(b.categoria_id));
-                const nome = cat ? cat.nome : 'Boletos Programados';
-                if (!mapCat[nome]) {
-                    mapCat[nome] = 0;
-                    coresCat.push(cat ? cat.cor : '#f59e0b');
-                }
+                const nome = cat ? cat.nome : 'Boletos';
+                if (!mapCat[nome]) { mapCat[nome] = 0; coresCat.push(cat ? cat.cor : '#f59e0b'); }
                 mapCat[nome] += Number(b.valor);
             });
 
             if (charts.pizzaCat) charts.pizzaCat.destroy();
             charts.pizzaCat = new Chart(document.getElementById('chart-pizza-categorias'), {
                 type: 'doughnut',
-                data: {
-                    labels: Object.keys(mapCat),
-                    datasets: [{ data: Object.values(mapCat), backgroundColor: coresCat, borderWidth: 0 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#cbd5e1' } } } }
+                data: { labels: Object.keys(mapCat), datasets: [{ data: Object.values(mapCat), backgroundColor: coresCat, borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 11 } } } } }
             });
 
             const mapMet = {};
@@ -2587,43 +2093,28 @@
                 let nome = 'Outros';
                 if (d.cartao_id) {
                     const c = state.cartoes.find(x => String(x.id) === String(d.cartao_id));
-                    nome = c ? `Cartão: ${c.apelido}` : 'Cartão';
+                    nome = c ? c.apelido : 'Cartão';
                 } else if (d.metodo_id) {
                     const m = state.metodos.find(x => String(x.id) === String(d.metodo_id));
                     nome = m ? m.nome : 'Método';
                 }
                 mapMet[nome] = (mapMet[nome] || 0) + Number(d.valor);
             });
-            if (boletosPeriodo.length > 0) {
-                mapMet['Boletos Programados'] = boletosPeriodo.reduce((acc, b) => acc + Number(b.valor), 0);
-            }
+            if (boletosPeriodo.length > 0) mapMet['Boletos'] = boletosPeriodo.reduce((acc, b) => acc + Number(b.valor), 0);
 
             if (charts.pizzaMet) charts.pizzaMet.destroy();
             charts.pizzaMet = new Chart(document.getElementById('chart-pizza-metodos'), {
                 type: 'pie',
-                data: {
-                    labels: Object.keys(mapMet),
-                    datasets: [{
-                        data: Object.values(mapMet),
-                        backgroundColor: ['#22d3ee', '#8b5cf6', '#f59e0b', '#10b981', '#ec4899', '#3b82f6'],
-                        borderWidth: 0
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#cbd5e1' } } } }
+                data: { labels: Object.keys(mapMet), datasets: [{ data: Object.values(mapMet), backgroundColor: ['#22d3ee', '#8b5cf6', '#f59e0b', '#10b981', '#ec4899'], borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 11 } } } } }
             });
         }
 
         // =========================================================================
-        // 10. MODAL COMPARATIVO DE CATEGORIAS ENTRE MESES
+        // COMPARATIVO ENTRE MESES
         // =========================================================================
-        function abrirModalComparativo() {
-            document.getElementById('modal-comparativo').classList.remove('hidden');
-            gerarComparativo();
-        }
-
-        function fecharModalComparativo() {
-            document.getElementById('modal-comparativo').classList.add('hidden');
-        }
+        function abrirModalComparativo() { document.getElementById('modal-comparativo').classList.remove('hidden'); gerarComparativo(); }
+        function fecharModalComparativo() { document.getElementById('modal-comparativo').classList.add('hidden'); }
 
         function gerarComparativo() {
             const mesA = document.getElementById('comp-mes-a').value;
@@ -2636,22 +2127,16 @@
             const despA = state.transacoes.filter(t => t.tipo === 'despesa' && t.mes_competencia === mesA);
             const despB = state.transacoes.filter(t => t.tipo === 'despesa' && t.mes_competencia === mesB);
 
-            const categoriasEnvolvidas = new Set();
-            const mapA = {};
-            const mapB = {};
-
+            const categoriasEnvolvidas = new Set(), mapA = {}, mapB = {};
             despA.forEach(d => {
                 const cat = state.categorias.find(c => String(c.id) === String(d.categoria_id));
                 const nome = cat ? cat.nome : 'Sem Categoria';
-                categoriasEnvolvidas.add(nome);
-                mapA[nome] = (mapA[nome] || 0) + Number(d.valor);
+                categoriasEnvolvidas.add(nome); mapA[nome] = (mapA[nome] || 0) + Number(d.valor);
             });
-
             despB.forEach(d => {
                 const cat = state.categorias.find(c => String(c.id) === String(d.categoria_id));
                 const nome = cat ? cat.nome : 'Sem Categoria';
-                categoriasEnvolvidas.add(nome);
-                mapB[nome] = (mapB[nome] || 0) + Number(d.valor);
+                categoriasEnvolvidas.add(nome); mapB[nome] = (mapB[nome] || 0) + Number(d.valor);
             });
 
             const labels = Array.from(categoriasEnvolvidas);
@@ -2661,38 +2146,18 @@
             if (charts.comparativo) charts.comparativo.destroy();
             charts.comparativo = new Chart(document.getElementById('chart-comparativo'), {
                 type: 'bar',
-                data: {
-                    labels,
-                    datasets: [
-                        { label: mesA, data: valsA, backgroundColor: '#22d3ee' },
-                        { label: mesB, data: valsB, backgroundColor: '#a855f7' }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { labels: { color: '#cbd5e1' } } },
-                    scales: {
-                        x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } },
-                        y: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } }
-                    }
-                }
+                data: { labels, datasets: [{ label: mesA, data: valsA, backgroundColor: '#22d3ee' }, { label: mesB, data: valsB, backgroundColor: '#a855f7' }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#cbd5e1' } } } }
             });
 
             const tbody = document.getElementById('tbody-comparativo');
-            if (labels.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="py-4 text-center text-slate-500">Nenhuma despesa encontrada nos meses selecionados.</td></tr>';
-                return;
-            }
+            if (labels.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="py-4 text-center text-slate-500">Sem despesas nos meses selecionados.</td></tr>'; return; }
 
             tbody.innerHTML = labels.map((catNome, idx) => {
-                const vA = valsA[idx];
-                const vB = valsB[idx];
-                const diff = vB - vA;
+                const vA = valsA[idx], vB = valsB[idx], diff = vB - vA;
                 const perc = vA > 0 ? ((diff / vA) * 100).toFixed(1) + '%' : (vB > 0 ? '+100%' : '0%');
                 const corDiff = diff > 0 ? 'text-rose-400' : (diff < 0 ? 'text-emerald-400' : 'text-slate-400');
                 const sinal = diff > 0 ? '+' : '';
-
                 return `
                     <tr>
                         <td class="py-2.5 px-3 font-medium text-white">${catNome}</td>
