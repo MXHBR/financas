@@ -33,6 +33,7 @@
         body { background-color: #070b19; color: #f8fafc; font-family: 'Inter', sans-serif; }
         .card-glass { background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(34, 211, 238, 0.15); backdrop-filter: blur(10px); }
         .nav-btn.active { background: linear-gradient(90deg, rgba(34, 211, 238, 0.2) 0%, transparent 100%); border-left: 3px solid #22d3ee; color: #22d3ee; }
+        .period-btn.active { background-color: #22d3ee; color: #070b19; font-weight: 700; }
     </style>
 </head>
 <body class="flex flex-col md:flex-row min-h-screen">
@@ -54,7 +55,7 @@
                     <i class="fa-solid fa-money-bill-transfer w-5"></i> Lançamentos
                 </button>
                 <button onclick="switchTab('investimentos')" id="btn-investimentos" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800/50 transition">
-                    <i class="fa-solid fa-sack-dollar w-5"></i> Investimentos & Previsão
+                    <i class="fa-solid fa-sack-dollar w-5"></i> Salários, Recebíveis & Invest.
                 </button>
                 <button onclick="switchTab('configuracoes')" id="btn-configuracoes" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800/50 transition">
                     <i class="fa-solid fa-credit-card w-5"></i> Cartões & Categorias
@@ -70,49 +71,70 @@
     <main class="flex-1 p-4 md:p-8 overflow-y-auto">
         
         <!-- Filtros Globais (Mês / Ano) -->
-        <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-8">
             <div>
                 <h1 id="page-title" class="text-2xl font-bold text-white">Visão Geral</h1>
-                <p class="text-sm text-slate-400">Acompanhamento financeiro e projeções</p>
+                <p id="page-subtitle" class="text-sm text-slate-400">Acompanhamento financeiro e projeções</p>
             </div>
-            <div class="flex items-center gap-3 bg-cobalt-900 p-2 rounded-xl border border-slate-800">
-                <select id="filtro-mes" onchange="atualizarTudo()" class="bg-transparent text-sm font-medium text-white px-2 py-1 outline-none">
-                    <option value="01" class="bg-cobalt-900">Janeiro</option>
-                    <option value="02" class="bg-cobalt-900">Fevereiro</option>
-                    <option value="03" class="bg-cobalt-900">Março</option>
-                    <option value="04" class="bg-cobalt-900">Abril</option>
-                    <option value="05" class="bg-cobalt-900">Maio</option>
-                    <option value="06" class="bg-cobalt-900">Junho</option>
-                    <option value="07" class="bg-cobalt-900">Julho</option>
-                    <option value="08" class="bg-cobalt-900">Agosto</option>
-                    <option value="09" class="bg-cobalt-900">Setembro</option>
-                    <option value="10" class="bg-cobalt-900">Outubro</option>
-                    <option value="11" class="bg-cobalt-900">Novembro</option>
-                    <option value="12" class="bg-cobalt-900">Dezembro</option>
-                </select>
-                <span class="text-slate-600">/</span>
-                <select id="filtro-ano" onchange="atualizarTudo()" class="bg-transparent text-sm font-medium text-cyan-400 px-2 py-1 outline-none">
-                    <option value="2025" class="bg-cobalt-900">2025</option>
-                    <option value="2026" class="bg-cobalt-900" selected>2026</option>
-                    <option value="2027" class="bg-cobalt-900">2027</option>
-                </select>
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- Seletor Mês / Ano -->
+                <div class="flex items-center gap-2 bg-cobalt-900 p-2 rounded-xl border border-slate-800">
+                    <select id="filtro-mes" onchange="atualizarTudo()" class="bg-transparent text-sm font-medium text-white px-2 py-1 outline-none">
+                        <option value="01" class="bg-cobalt-900">Janeiro</option>
+                        <option value="02" class="bg-cobalt-900">Fevereiro</option>
+                        <option value="03" class="bg-cobalt-900">Março</option>
+                        <option value="04" class="bg-cobalt-900">Abril</option>
+                        <option value="05" class="bg-cobalt-900">Maio</option>
+                        <option value="06" class="bg-cobalt-900">Junho</option>
+                        <option value="07" class="bg-cobalt-900">Julho</option>
+                        <option value="08" class="bg-cobalt-900">Agosto</option>
+                        <option value="09" class="bg-cobalt-900">Setembro</option>
+                        <option value="10" class="bg-cobalt-900">Outubro</option>
+                        <option value="11" class="bg-cobalt-900">Novembro</option>
+                        <option value="12" class="bg-cobalt-900">Dezembro</option>
+                    </select>
+                    <span class="text-slate-600">/</span>
+                    <select id="filtro-ano" onchange="atualizarTudo()" class="bg-transparent text-sm font-medium text-cyan-400 px-2 py-1 outline-none">
+                        <option value="2025" class="bg-cobalt-900">2025</option>
+                        <option value="2026" class="bg-cobalt-900" selected>2026</option>
+                        <option value="2027" class="bg-cobalt-900">2027</option>
+                    </select>
+                </div>
             </div>
         </header>
 
         <!-- ABA 1: DASHBOARD -->
         <section id="tab-dashboard" class="space-y-6">
+            
+            <!-- Barra de Controles do Dashboard: Período (Mensal/Bimestral/Anual) + Botão Comparativo -->
+            <div class="flex flex-wrap justify-between items-center gap-4 card-glass p-4 rounded-2xl">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs uppercase tracking-wider text-slate-400 mr-2">Exibição:</span>
+                    <div class="inline-flex bg-cobalt-950 p-1 rounded-xl border border-slate-800">
+                        <button onclick="setPeriodoDashboard('mensal')" id="per-mensal" class="period-btn active px-4 py-1.5 rounded-lg text-xs font-medium text-slate-300 transition">Mensal</button>
+                        <button onclick="setPeriodoDashboard('bimestral')" id="per-bimestral" class="period-btn px-4 py-1.5 rounded-lg text-xs font-medium text-slate-300 transition">Bimestral</button>
+                        <button onclick="setPeriodoDashboard('anual')" id="per-anual" class="period-btn px-4 py-1.5 rounded-lg text-xs font-medium text-slate-300 transition">Anual</button>
+                    </div>
+                    <span id="badge-periodo-ativo" class="ml-2 text-xs text-cyan-400 font-medium hidden sm:inline"></span>
+                </div>
+
+                <button onclick="abrirModalComparativo()" class="bg-cobalt-800 hover:bg-cobalt-700 border border-cyan-400/30 text-cyan-400 px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition">
+                    <i class="fa-solid fa-code-compare"></i> Comparar Categorias entre Meses
+                </button>
+            </div>
+
             <!-- Cards Resumo -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="card-glass p-5 rounded-2xl">
-                    <p class="text-xs uppercase tracking-wider text-slate-400">Recebimentos (Mês)</p>
+                    <p id="lbl-kpi-receitas" class="text-xs uppercase tracking-wider text-slate-400">Recebimentos (Mensal)</p>
                     <h2 id="kpi-receitas" class="text-2xl font-bold text-emerald-400 mt-1">R$ 0,00</h2>
                 </div>
                 <div class="card-glass p-5 rounded-2xl">
-                    <p class="text-xs uppercase tracking-wider text-slate-400">Gastos (Mês/Fatura)</p>
+                    <p id="lbl-kpi-despesas" class="text-xs uppercase tracking-wider text-slate-400">Gastos (Mensal)</p>
                     <h2 id="kpi-despesas" class="text-2xl font-bold text-rose-400 mt-1">R$ 0,00</h2>
                 </div>
                 <div class="card-glass p-5 rounded-2xl">
-                    <p class="text-xs uppercase tracking-wider text-slate-400">Saldo do Mês</p>
+                    <p id="lbl-kpi-saldo" class="text-xs uppercase tracking-wider text-slate-400">Saldo do Período</p>
                     <h2 id="kpi-saldo" class="text-2xl font-bold text-cyan-400 mt-1">R$ 0,00</h2>
                 </div>
                 <div class="card-glass p-5 rounded-2xl">
@@ -132,13 +154,13 @@
             <!-- Gráficos de Pizza (Categorias e Métodos/Cartões) -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="card-glass p-6 rounded-2xl">
-                    <h3 class="text-base font-semibold text-white mb-4">Gastos por Categoria (Mês)</h3>
+                    <h3 id="titulo-pizza-cat" class="text-base font-semibold text-white mb-4">Gastos por Categoria</h3>
                     <div class="h-64 flex justify-center">
                         <canvas id="chart-pizza-categorias"></canvas>
                     </div>
                 </div>
                 <div class="card-glass p-6 rounded-2xl">
-                    <h3 class="text-base font-semibold text-white mb-4">Gastos por Método / Cartão (Mês)</h3>
+                    <h3 id="titulo-pizza-met" class="text-base font-semibold text-white mb-4">Gastos por Método / Cartão</h3>
                     <div class="h-64 flex justify-center">
                         <canvas id="chart-pizza-metodos"></canvas>
                     </div>
@@ -148,19 +170,36 @@
 
         <!-- ABA 2: LANÇAMENTOS -->
         <section id="tab-lancamentos" class="hidden space-y-6">
-            <div class="card-glass p-6 rounded-2xl">
-                <h3 class="text-lg font-semibold text-white mb-4">Novo Lançamento</h3>
+            <!-- Barra de Ação para Abrir/Fechar Formulário -->
+            <div class="flex justify-between items-center card-glass p-4 rounded-2xl">
+                <div>
+                    <h3 class="text-base font-semibold text-white">Controle de Lançamentos</h3>
+                    <p class="text-xs text-slate-400">Clique no botão ao lado para registrar uma nova despesa ou receita avulsa</p>
+                </div>
+                <button onclick="toggleFormLancamento()" id="btn-toggle-form-tx" class="bg-cyan-500 hover:bg-cyan-400 text-cobalt-950 font-bold px-5 py-2.5 rounded-xl text-sm flex items-center gap-2 transition">
+                    <i class="fa-solid fa-plus"></i> Fazer Novo Registro
+                </button>
+            </div>
+
+            <!-- Formulário Oculto por Padrão -->
+            <div id="container-form-lancamento" class="hidden card-glass p-6 rounded-2xl border border-cyan-400/40">
+                <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-800">
+                    <h3 class="text-lg font-semibold text-cyan-400">Preencher Dados do Registro</h3>
+                    <button type="button" onclick="toggleFormLancamento(false)" class="text-slate-400 hover:text-white text-sm">
+                        <i class="fa-solid fa-xmark mr-1"></i> Fechar
+                    </button>
+                </div>
                 <form onsubmit="salvarTransacao(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                         <label class="block text-xs text-slate-400 mb-1">Tipo</label>
                         <select id="tx-tipo" onchange="toggleCamposDespesa()" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
                             <option value="despesa">Despesa (Gasto)</option>
-                            <option value="receita">Receita (Recebimento)</option>
+                            <option value="receita">Receita (Recebimento Avulso)</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-xs text-slate-400 mb-1">Descrição</label>
-                        <input type="text" id="tx-descricao" required placeholder="Ex: Supermercado, Salário..." class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                        <input type="text" id="tx-descricao" required placeholder="Ex: Supermercado, Freela..." class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
                     </div>
                     <div>
                         <label class="block text-xs text-slate-400 mb-1">Valor (R$)</label>
@@ -178,9 +217,12 @@
                         <label class="block text-xs text-slate-400 mb-1">Forma de Pagamento</label>
                         <select id="tx-forma" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white"></select>
                     </div>
-                    <div class="md:col-span-3 flex justify-end mt-2">
+                    <div class="md:col-span-3 flex justify-end gap-3 mt-2">
+                        <button type="button" onclick="toggleFormLancamento(false)" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2.5 rounded-lg text-sm transition">
+                            Cancelar
+                        </button>
                         <button type="submit" class="bg-cyan-500 hover:bg-cyan-400 text-cobalt-950 font-bold px-6 py-2.5 rounded-lg text-sm transition">
-                            <i class="fa-solid fa-plus mr-1"></i> Registrar Lançamento
+                            <i class="fa-solid fa-check mr-1"></i> Salvar Lançamento
                         </button>
                     </div>
                 </form>
@@ -192,8 +234,8 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="border-b border-slate-800 text-xs text-slate-400 uppercase">
-                            <th class="py-3 px-2">Data Compra</th>
-                            <th class="py-3 px-2">Fatura/Comp.</th>
+                            <th class="py-3 px-2">Data</th>
+                            <th class="py-3 px-2">Competência</th>
                             <th class="py-3 px-2">Descrição</th>
                             <th class="py-3 px-2">Categoria</th>
                             <th class="py-3 px-2">Pagamento</th>
@@ -206,8 +248,81 @@
             </div>
         </section>
 
-        <!-- ABA 3: INVESTIMENTOS & PREVISÃO DE RECEBÍVEIS -->
+        <!-- ABA 3: SALÁRIOS VARIÁVEIS, RECEBÍVEIS & INVESTIMENTOS -->
         <section id="tab-investimentos" class="hidden space-y-6">
+            
+            <!-- Cadastro de Salário (Fixo por X meses OU Variável mês a mês) -->
+            <div class="card-glass p-6 rounded-2xl border border-emerald-500/20">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 pb-3 border-b border-slate-800">
+                    <div>
+                        <h3 class="text-lg font-semibold text-emerald-400"><i class="fa-solid fa-money-check-dollar mr-2"></i>Cadastro de Salário / Recebimentos por Mês</h3>
+                        <p class="text-xs text-slate-400">Registre um valor fixo por X meses ou informe valores específicos diferentes para cada mês</p>
+                    </div>
+                    <div class="inline-flex bg-cobalt-950 p-1 rounded-xl border border-slate-800">
+                        <button type="button" onclick="setModoSalario('variavel')" id="btn-sal-variavel" class="period-btn active px-3 py-1.5 rounded-lg text-xs transition">Valores Específicos / Mês</button>
+                        <button type="button" onclick="setModoSalario('fixo')" id="btn-sal-fixo" class="period-btn px-3 py-1.5 rounded-lg text-xs text-slate-300 transition">Repetir por X Meses</button>
+                    </div>
+                </div>
+
+                <!-- MODO A: Valores Específicos por Mês (Salário Variável) -->
+                <form id="form-salario-variavel" onsubmit="salvarSalarioVariavel(event)" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Descrição do Recebimento</label>
+                            <input type="text" id="sal-var-desc" required value="Salário" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Ano de Referência</label>
+                            <select id="sal-var-ano" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                                <option value="2025">2025</option>
+                                <option value="2026" selected>2026</option>
+                                <option value="2027">2027</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Categoria</label>
+                            <select id="sal-var-cat" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white"></select>
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-slate-400">Preencha apenas os meses que deseja registrar (deixe em branco os meses que não quiser alterar):</p>
+                    <div id="grade-meses-salario" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                        <!-- Gerado via JS -->
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button type="submit" class="bg-emerald-500 hover:bg-emerald-400 text-cobalt-950 font-bold px-6 py-2.5 rounded-lg text-sm transition">
+                            <i class="fa-solid fa-save mr-1"></i> Registrar Salários Preenchidos
+                        </button>
+                    </div>
+                </form>
+
+                <!-- MODO B: Valor Fixo por X Meses -->
+                <form id="form-salario-fixo" onsubmit="salvarSalarioFixo(event)" class="hidden grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Descrição</label>
+                        <input type="text" id="sal-fixo-desc" required value="Salário" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Valor Mensal (R$)</label>
+                        <input type="number" step="0.01" id="sal-fixo-valor" required placeholder="0.00" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Mês Inicial</label>
+                        <input type="month" id="sal-fixo-inicio" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Quantidade de Meses (X)</label>
+                        <input type="number" min="1" max="36" id="sal-fixo-qtd" required value="6" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                    </div>
+                    <div>
+                        <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-400 text-cobalt-950 font-bold py-2.5 rounded-lg text-sm transition">
+                            Gerar Meses
+                        </button>
+                    </div>
+                </form>
+            </div>
+
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- Cadastro de Investimento -->
                 <div class="card-glass p-6 rounded-2xl">
@@ -237,13 +352,13 @@
                     </form>
                 </div>
 
-                <!-- Cadastro de Recebíveis Previstos -->
+                <!-- Cadastro de Recebíveis Previstos (Projeção no Gráfico) -->
                 <div class="card-glass p-6 rounded-2xl">
-                    <h3 class="text-lg font-semibold text-white mb-4">Previsão de Recebíveis (Até Fim do Ano)</h3>
+                    <h3 class="text-lg font-semibold text-white mb-4">Previsão de Recebíveis Futuros (Linha Tracejada)</h3>
                     <form onsubmit="salvarPrevisao(event)" class="space-y-4">
                         <div>
                             <label class="block text-xs text-slate-400 mb-1">Descrição da Receita Prevista</label>
-                            <input type="text" id="prev-desc" required placeholder="Ex: Salário Líquido, Aluguel..." class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                            <input type="text" id="prev-desc" required placeholder="Ex: Restituição, Bônus, Dividendos..." class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
                         </div>
                         <div>
                             <label class="block text-xs text-slate-400 mb-1">Valor Mensal Previsto (R$)</label>
@@ -259,7 +374,7 @@
                                 <input type="month" id="prev-fim" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
                             </div>
                         </div>
-                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg text-sm transition">
+                        <button type="submit" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2.5 rounded-lg text-sm transition">
                             Salvar Previsão
                         </button>
                     </form>
@@ -329,9 +444,55 @@
 
     </main>
 
+    <!-- MODAL COMPARATIVO DE CATEGORIAS ENTRE MESES -->
+    <div id="modal-comparativo" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-cobalt-900 border border-cyan-400/30 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 space-y-6">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+                <div>
+                    <h3 class="text-xl font-bold text-white"><i class="fa-solid fa-code-compare text-cyan-400 mr-2"></i>Comparativo de Gastos por Categoria</h3>
+                    <p class="text-xs text-slate-400">Compare a evolução das suas despesas entre dois meses diferentes</p>
+                </div>
+                <button onclick="fecharModalComparativo()" class="text-slate-400 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Seletores de Meses para Comparação -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-cobalt-950 p-4 rounded-xl border border-slate-800">
+                <div>
+                    <label class="block text-xs text-cyan-400 font-semibold mb-1">Mês Base (A)</label>
+                    <input type="month" id="comp-mes-a" onchange="gerarComparativo()" class="w-full bg-cobalt-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                </div>
+                <div>
+                    <label class="block text-xs text-purple-400 font-semibold mb-1">Mês Comparado (B)</label>
+                    <input type="month" id="comp-mes-b" onchange="gerarComparativo()" class="w-full bg-cobalt-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                </div>
+            </div>
+
+            <!-- Gráfico de Barras Comparativo -->
+            <div class="h-64 bg-cobalt-950/60 p-4 rounded-xl border border-slate-800">
+                <canvas id="chart-comparativo"></canvas>
+            </div>
+
+            <!-- Tabela Detalhada de Variação -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-800 text-xs text-slate-400 uppercase">
+                            <th class="py-2 px-3">Categoria</th>
+                            <th class="py-2 px-3 text-right" id="th-mes-a">Mês A</th>
+                            <th class="py-2 px-3 text-right" id="th-mes-b">Mês B</th>
+                            <th class="py-2 px-3 text-right">Diferença (R$)</th>
+                            <th class="py-2 px-3 text-right">Variação (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-comparativo" class="divide-y divide-slate-800/60"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <script>
         // =========================================================================
-        // 1. CONFIGURAÇÃO DO SUPABASE (SUBSTITUA PELAS SUAS CHAVES DO PROJETO)
+        // 1. CONFIGURAÇÃO DO SUPABASE (MANTENHA SUAS CHAVES DO PROJETO AQUI)
         // =========================================================================
         const SUPABASE_URL = 'https://SUA-URL-AQUI.supabase.co';
         const SUPABASE_ANON_KEY = 'SUA-CHAVE-ANON-AQUI';
@@ -344,19 +505,33 @@
             cartoes: [],
             transacoes: [],
             investimentos: [],
-            previsoes: []
+            previsoes: [],
+            periodoDashboard: 'mensal' // 'mensal' | 'bimestral' | 'anual'
         };
 
-        let charts = { linha: null, pizzaCat: null, pizzaMet: null };
+        let charts = { linha: null, pizzaCat: null, pizzaMet: null, comparativo: null };
+        const NOMES_MESES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
         // Inicialização
         window.addEventListener('DOMContentLoaded', async () => {
             const hoje = new Date();
-            document.getElementById('filtro-mes').value = String(hoje.getMonth() + 1).padStart(2, '0');
-            document.getElementById('filtro-ano').value = String(hoje.getFullYear());
+            const mesAtualStr = String(hoje.getMonth() + 1).padStart(2, '0');
+            const anoAtualStr = String(hoje.getFullYear());
+
+            document.getElementById('filtro-mes').value = mesAtualStr;
+            document.getElementById('filtro-ano').value = anoAtualStr;
+            document.getElementById('sal-var-ano').value = anoAtualStr;
+            document.getElementById('sal-fixo-inicio').value = `${anoAtualStr}-${mesAtualStr}`;
             document.getElementById('tx-data').valueAsDate = hoje;
             document.getElementById('inv-data').valueAsDate = hoje;
-            
+
+            // Configurar meses padrão do comparativo (Mês anterior vs Mês atual)
+            const mesAnt = hoje.getMonth() === 0 ? 12 : hoje.getMonth();
+            const anoAnt = hoje.getMonth() === 0 ? hoje.getFullYear() - 1 : hoje.getFullYear();
+            document.getElementById('comp-mes-a').value = `${anoAnt}-${String(mesAnt).padStart(2, '0')}`;
+            document.getElementById('comp-mes-b').value = `${anoAtualStr}-${mesAtualStr}`;
+
+            renderizarGradeSalarios();
             await carregarDadosBanco();
         });
 
@@ -399,9 +574,51 @@
             document.getElementById(`btn-${tabId}`).classList.add('active');
         }
 
+        // Mostrar/Ocultar Formulário de Lançamentos
+        function toggleFormLancamento(forceState) {
+            const box = document.getElementById('container-form-lancamento');
+            const btn = document.getElementById('btn-toggle-form-tx');
+            const deveAbrir = typeof forceState === 'boolean' ? forceState : box.classList.contains('hidden');
+
+            if (deveAbrir) {
+                box.classList.remove('hidden');
+                btn.classList.add('hidden');
+            } else {
+                box.classList.add('hidden');
+                btn.classList.remove('hidden');
+            }
+        }
+
+        function toggleCamposDespesa() {
+            const tipo = document.getElementById('tx-tipo').value;
+            document.getElementById('wrap-forma').style.display = tipo === 'despesa' ? 'block' : 'none';
+        }
+
+        // Alternar Período do Dashboard (Mensal / Bimestral / Anual)
+        function setPeriodoDashboard(periodo) {
+            state.periodoDashboard = periodo;
+            ['mensal', 'bimestral', 'anual'].forEach(p => {
+                const el = document.getElementById(`per-${p}`);
+                if (p === periodo) {
+                    el.classList.add('active');
+                    el.classList.remove('text-slate-300');
+                } else {
+                    el.classList.remove('active');
+                    el.classList.add('text-slate-300');
+                }
+            });
+            atualizarTudo();
+        }
+
         function popularSelects() {
-            const selCat = document.getElementById('tx-categoria');
-            selCat.innerHTML = state.categorias.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+            const optionsCat = state.categorias.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+            document.getElementById('tx-categoria').innerHTML = optionsCat;
+            
+            // Selecionar "Salário" por padrão no select de salários se existir
+            const selSalCat = document.getElementById('sal-var-cat');
+            selSalCat.innerHTML = optionsCat;
+            const catSalario = state.categorias.find(c => c.nome.toLowerCase().includes('salário') || c.nome.toLowerCase().includes('salario'));
+            if (catSalario) selSalCat.value = catSalario.id;
 
             const selForma = document.getElementById('tx-forma');
             let htmlForma = '<optgroup label="Cartões de Crédito">';
@@ -415,7 +632,7 @@
             htmlForma += '</optgroup>';
             selForma.innerHTML = htmlForma;
 
-            // Renderizar listas da aba Configurações
+            // Listas Configurações
             document.getElementById('lista-cartoes').innerHTML = state.cartoes.map(c => 
                 `<div class="flex justify-between items-center bg-cobalt-950 p-2 rounded border border-slate-800">
                     <span><strong>${c.apelido}</strong> (Fecha: ${c.dia_fechamento} | Vence: ${c.dia_vencimento})</span>
@@ -439,23 +656,128 @@
         }
 
         // =========================================================================
-        // 2. CÁLCULO DE MÊS DA FATURA DO CARTÃO
+        // 2. SALÁRIOS VARIÁVEIS E RECORRENTES POR X MESES
+        // =========================================================================
+        function setModoSalario(modo) {
+            const formVar = document.getElementById('form-salario-variavel');
+            const formFixo = document.getElementById('form-salario-fixo');
+            const btnVar = document.getElementById('btn-sal-variavel');
+            const btnFixo = document.getElementById('btn-sal-fixo');
+
+            if (modo === 'variavel') {
+                formVar.classList.remove('hidden');
+                formFixo.classList.add('hidden');
+                btnVar.classList.add('active');
+                btnFixo.classList.remove('active', 'text-slate-300');
+                btnFixo.classList.add('text-slate-300');
+            } else {
+                formFixo.classList.remove('hidden');
+                formVar.classList.add('hidden');
+                btnFixo.classList.add('active');
+                btnVar.classList.remove('active');
+                btnVar.classList.add('text-slate-300');
+            }
+        }
+
+        function renderizarGradeSalarios() {
+            const container = document.getElementById('grade-meses-salario');
+            container.innerHTML = NOMES_MESES.map((nome, idx) => {
+                const mesNum = String(idx + 1).padStart(2, '0');
+                return `
+                    <div class="bg-cobalt-950 p-2.5 rounded-xl border border-slate-800">
+                        <label class="block text-xs font-semibold text-cyan-400 mb-1">${nome}</label>
+                        <input type="number" step="0.01" data-mes="${mesNum}" placeholder="R$ 0,00" class="input-sal-mes w-full bg-cobalt-900 border border-slate-700 rounded p-1.5 text-xs text-white outline-none focus:border-emerald-400">
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function salvarSalarioVariavel(e) {
+            e.preventDefault();
+            const descricao = document.getElementById('sal-var-desc').value;
+            const ano = document.getElementById('sal-var-ano').value;
+            const categoria_id = document.getElementById('sal-var-cat').value || null;
+            const inputs = document.querySelectorAll('.input-sal-mes');
+
+            const registros = [];
+            inputs.forEach(inp => {
+                const val = parseFloat(inp.value);
+                if (!isNaN(val) && val > 0) {
+                    const mes = inp.getAttribute('data-mes');
+                    const comp = `${ano}-${mes}`;
+                    registros.push({
+                        tipo: 'receita',
+                        descricao: `${descricao} (${NOMES_MESES[parseInt(mes)-1]}/${ano})`,
+                        valor: val,
+                        data_compra: `${comp}-05`,
+                        mes_competencia: comp,
+                        categoria_id
+                    });
+                }
+            });
+
+            if (registros.length === 0) {
+                alert('Preencha o valor de pelo menos um mês antes de salvar.');
+                return;
+            }
+
+            const { error } = await db.from('transacoes').insert(registros);
+            if (!error) {
+                inputs.forEach(i => i.value = '');
+                alert(`${registros.length} recebimento(s) registrado(s) com sucesso!`);
+                await carregarDadosBanco();
+            } else {
+                alert('Erro ao registrar salários: ' + error.message);
+            }
+        }
+
+        async function salvarSalarioFixo(e) {
+            e.preventDefault();
+            const descricao = document.getElementById('sal-fixo-desc').value;
+            const valor = parseFloat(document.getElementById('sal-fixo-valor').value);
+            const inicio = document.getElementById('sal-fixo-inicio').value; // YYYY-MM
+            const qtd = parseInt(document.getElementById('sal-fixo-qtd').value);
+            const catSalario = state.categorias.find(c => c.nome.toLowerCase().includes('salário') || c.nome.toLowerCase().includes('salario'));
+
+            let [ano, mes] = inicio.split('-').map(Number);
+            const registros = [];
+
+            for (let i = 0; i < qtd; i++) {
+                const comp = `${ano}-${String(mes).padStart(2, '0')}`;
+                registros.push({
+                    tipo: 'receita',
+                    descricao: `${descricao} (${i + 1}/${qtd})`,
+                    valor,
+                    data_compra: `${comp}-05`,
+                    mes_competencia: comp,
+                    categoria_id: catSalario ? catSalario.id : null
+                });
+                mes++;
+                if (mes > 12) { mes = 1; ano++; }
+            }
+
+            const { error } = await db.from('transacoes').insert(registros);
+            if (!error) {
+                e.target.reset();
+                alert(`${qtd} meses de recebimento registrados com sucesso!`);
+                await carregarDadosBanco();
+            } else {
+                alert('Erro ao gerar recebimentos: ' + error.message);
+            }
+        }
+
+        // =========================================================================
+        // 3. CÁLCULO DE MÊS DA FATURA DO CARTÃO & TRANSAÇÕES
         // =========================================================================
         function calcularMesCompetencia(dataCompraStr, cartao) {
             const [anoStr, mesStr, diaStr] = dataCompraStr.split('-');
             let ano = parseInt(anoStr);
-            let mes = parseInt(mesStr); // 1 a 12
+            let mes = parseInt(mesStr);
             const dia = parseInt(diaStr);
 
             if (cartao) {
-                // Se comprou no dia do fechamento ou depois, vai para a próxima fatura
-                if (dia >= cartao.dia_fechamento) {
-                    mes += 1;
-                }
-                // Se o vencimento é em dia menor que o fechamento (ex: fecha 25, vence 05), o pagamento ocorre no mês seguinte ao fechamento
-                if (cartao.dia_vencimento < cartao.dia_fechamento) {
-                    mes += 1;
-                }
+                if (dia >= cartao.dia_fechamento) mes += 1;
+                if (cartao.dia_vencimento < cartao.dia_fechamento) mes += 1;
             }
 
             while (mes > 12) {
@@ -465,9 +787,6 @@
             return `${ano}-${String(mes).padStart(2, '0')}`;
         }
 
-        // =========================================================================
-        // 3. SALVAR REGISTROS NO SUPABASE
-        // =========================================================================
         async function salvarTransacao(e) {
             e.preventDefault();
             const tipo = document.getElementById('tx-tipo').value;
@@ -499,6 +818,7 @@
             if (!error) {
                 e.target.reset();
                 document.getElementById('tx-data').valueAsDate = new Date();
+                toggleFormLancamento(false);
                 await carregarDadosBanco();
             } else {
                 alert('Erro ao salvar lançamento: ' + error.message);
@@ -561,32 +881,66 @@
         }
 
         // =========================================================================
-        // 4. ATUALIZAÇÃO DE DASHBOARD, GRÁFICOS E PROJEÇÕES
+        // 4. ATUALIZAÇÃO DO DASHBOARD (MENSAL, BIMESTRAL, ANUAL)
         // =========================================================================
         function formatBRL(val) {
             return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         }
 
+        function obterTransacoesPeriodo(mesSel, anoSel) {
+            const mesNum = parseInt(mesSel);
+            if (state.periodoDashboard === 'mensal') {
+                const comp = `${anoSel}-${mesSel}`;
+                return {
+                    lista: state.transacoes.filter(t => t.mes_competencia === comp),
+                    rotulo: `${NOMES_MESES[mesNum - 1]}/${anoSel}`
+                };
+            }
+            if (state.periodoDashboard === 'bimestral') {
+                // Bimestre do mês selecionado: (1-2), (3-4), (5-6), (7-8), (9-10), (11-12)
+                const mesInicioBim = mesNum % 2 === 1 ? mesNum : mesNum - 1;
+                const mesFimBim = mesInicioBim + 1;
+                const comp1 = `${anoSel}-${String(mesInicioBim).padStart(2, '0')}`;
+                const comp2 = `${anoSel}-${String(mesFimBim).padStart(2, '0')}`;
+                return {
+                    lista: state.transacoes.filter(t => t.mes_competencia === comp1 || t.mes_competencia === comp2),
+                    rotulo: `${NOMES_MESES[mesInicioBim - 1]}–${NOMES_MESES[mesFimBim - 1]}/${anoSel}`
+                };
+            }
+            // Anual
+            return {
+                lista: state.transacoes.filter(t => t.mes_competencia.startsWith(`${anoSel}-`)),
+                rotulo: `Ano ${anoSel}`
+            };
+        }
+
         function atualizarTudo() {
             const mesSel = document.getElementById('filtro-mes').value;
             const anoSel = document.getElementById('filtro-ano').value;
-            const compAtual = `${anoSel}-${mesSel}`;
+            const compMensal = `${anoSel}-${mesSel}`;
             document.getElementById('label-ano-grafico').innerText = anoSel;
 
-            // Filtrar transações do mês/ano selecionado
-            const txMes = state.transacoes.filter(t => t.mes_competencia === compAtual);
-            
-            const receitasMes = txMes.filter(t => t.tipo === 'receita').reduce((acc, t) => acc + Number(t.valor), 0);
-            const despesasMes = txMes.filter(t => t.tipo === 'despesa').reduce((acc, t) => acc + Number(t.valor), 0);
-            const saldoMes = receitasMes - despesasMes;
+            // Dados filtrados conforme botão Mensal / Bimestral / Anual
+            const { lista: txPeriodo, rotulo } = obterTransacoesPeriodo(mesSel, anoSel);
+            document.getElementById('badge-periodo-ativo').innerText = `Exibindo: ${rotulo}`;
+            document.getElementById('lbl-kpi-receitas').innerText = `Recebimentos (${rotulo})`;
+            document.getElementById('lbl-kpi-despesas').innerText = `Gastos (${rotulo})`;
+            document.getElementById('titulo-pizza-cat').innerText = `Gastos por Categoria (${rotulo})`;
+            document.getElementById('titulo-pizza-met').innerText = `Gastos por Método / Cartão (${rotulo})`;
 
-            document.getElementById('kpi-receitas').innerText = formatBRL(receitasMes);
-            document.getElementById('kpi-despesas').innerText = formatBRL(despesasMes);
-            document.getElementById('kpi-saldo').innerText = formatBRL(saldoMes);
+            const receitasPer = txPeriodo.filter(t => t.tipo === 'receita').reduce((acc, t) => acc + Number(t.valor), 0);
+            const despesasPer = txPeriodo.filter(t => t.tipo === 'despesa').reduce((acc, t) => acc + Number(t.valor), 0);
+            const saldoPer = receitasPer - despesasPer;
 
-            renderizarTabelaTransacoes(txMes);
+            document.getElementById('kpi-receitas').innerText = formatBRL(receitasPer);
+            document.getElementById('kpi-despesas').innerText = formatBRL(despesasPer);
+            document.getElementById('kpi-saldo').innerText = formatBRL(saldoPer);
+
+            // Tabela de extrato da aba Lançamentos exibe sempre o mês selecionado
+            const txMesExato = state.transacoes.filter(t => t.mes_competencia === compMensal);
+            renderizarTabelaTransacoes(txMesExato);
             renderizarInvestimentosEPrevisoes(anoSel);
-            renderizarGraficos(anoSel, txMes);
+            renderizarGraficos(anoSel, txPeriodo);
         }
 
         function renderizarTabelaTransacoes(txMes) {
@@ -598,7 +952,7 @@
 
             tbody.innerHTML = txMes.map(t => {
                 const cat = state.categorias.find(c => c.id === t.categoria_id);
-                let formaNome = '-';
+                let formaNome = t.tipo === 'receita' ? 'Recebimento' : '-';
                 if (t.cartao_id) {
                     const card = state.cartoes.find(c => c.id === t.cartao_id);
                     formaNome = card ? `💳 ${card.apelido}` : 'Cartão';
@@ -632,13 +986,9 @@
 
             const htmlInv = state.investimentos.map(inv => {
                 const [anoAp, mesAp] = inv.data_aporte.split('-').map(Number);
-                // Meses de rendimento até Dezembro do ano selecionado
                 let mesesRendimento = 0;
-                if (anoAp < anoAtual) {
-                    mesesRendimento = 12;
-                } else if (anoAp === anoAtual) {
-                    mesesRendimento = Math.max(0, 12 - mesAp);
-                }
+                if (anoAp < anoAtual) mesesRendimento = 12;
+                else if (anoAp === anoAtual) mesesRendimento = Math.max(0, 12 - mesAp);
 
                 const taxa = Number(inv.taxa_mensal) / 100;
                 const montanteFinal = Number(inv.valor_inicial) * Math.pow(1 + taxa, mesesRendimento);
@@ -677,8 +1027,7 @@
             document.getElementById('lista-previsoes').innerHTML = htmlPrev || '<p class="text-slate-500">Nenhuma previsão cadastrada.</p>';
         }
 
-        function renderizarGraficos(anoSel, txMes) {
-            const mesesLabels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        function renderizarGraficos(anoSel, txPeriodo) {
             const dadosReceitas = Array(12).fill(0);
             const dadosDespesas = Array(12).fill(0);
             const dadosPrevistos = Array(12).fill(0);
@@ -691,7 +1040,6 @@
                 }
             });
 
-            // Somar previsões de recebíveis nos meses correspondentes
             for (let m = 1; m <= 12; m++) {
                 const comp = `${anoSel}-${String(m).padStart(2, '0')}`;
                 state.previsoes.forEach(p => {
@@ -706,9 +1054,9 @@
             charts.linha = new Chart(document.getElementById('chart-linha-anual'), {
                 type: 'line',
                 data: {
-                    labels: mesesLabels,
+                    labels: NOMES_MESES,
                     datasets: [
-                        { label: 'Recebimentos Realizados', data: dadosReceitas, borderColor: '#10b981', backgroundColor: '#10b98122', tension: 0.3, fill: true },
+                        { label: 'Recebimentos Registrados', data: dadosReceitas, borderColor: '#10b981', backgroundColor: '#10b98122', tension: 0.3, fill: true },
                         { label: 'Recebíveis Previstos', data: dadosPrevistos, borderColor: '#22d3ee', borderDash: [5, 5], tension: 0.3 },
                         { label: 'Gastos (Faturas/Despesas)', data: dadosDespesas, borderColor: '#f43f5e', backgroundColor: '#f43f5e22', tension: 0.3, fill: true }
                     ]
@@ -724,11 +1072,11 @@
                 }
             });
 
-            // 2. Gráfico Pizza por Categoria
-            const despesasMes = txMes.filter(t => t.tipo === 'despesa');
+            // 2. Gráfico Pizza por Categoria (Período selecionado)
+            const despesasPer = txPeriodo.filter(t => t.tipo === 'despesa');
             const mapCat = {};
             const coresCat = [];
-            despesasMes.forEach(d => {
+            despesasPer.forEach(d => {
                 const cat = state.categorias.find(c => c.id === d.categoria_id);
                 const nome = cat ? cat.nome : 'Sem Categoria';
                 if (!mapCat[nome]) {
@@ -748,9 +1096,9 @@
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#cbd5e1' } } } }
             });
 
-            // 3. Gráfico Pizza por Método / Cartão
+            // 3. Gráfico Pizza por Método / Cartão (Período selecionado)
             const mapMet = {};
-            despesasMes.forEach(d => {
+            despesasPer.forEach(d => {
                 let nome = 'Outros';
                 if (d.cartao_id) {
                     const c = state.cartoes.find(x => x.id === d.cartao_id);
@@ -775,6 +1123,98 @@
                 },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#cbd5e1' } } } }
             });
+        }
+
+        // =========================================================================
+        // 5. MODAL COMPARATIVO DE CATEGORIAS ENTRE MESES
+        // =========================================================================
+        function abrirModalComparativo() {
+            document.getElementById('modal-comparativo').classList.remove('hidden');
+            gerarComparativo();
+        }
+
+        function fecharModalComparativo() {
+            document.getElementById('modal-comparativo').classList.add('hidden');
+        }
+
+        function gerarComparativo() {
+            const mesA = document.getElementById('comp-mes-a').value;
+            const mesB = document.getElementById('comp-mes-b').value;
+            if (!mesA || !mesB) return;
+
+            document.getElementById('th-mes-a').innerText = mesA;
+            document.getElementById('th-mes-b').innerText = mesB;
+
+            const despA = state.transacoes.filter(t => t.tipo === 'despesa' && t.mes_competencia === mesA);
+            const despB = state.transacoes.filter(t => t.tipo === 'despesa' && t.mes_competencia === mesB);
+
+            const categoriasEnvolvidas = new Set();
+            const mapA = {};
+            const mapB = {};
+
+            despA.forEach(d => {
+                const cat = state.categorias.find(c => c.id === d.categoria_id);
+                const nome = cat ? cat.nome : 'Sem Categoria';
+                categoriasEnvolvidas.add(nome);
+                mapA[nome] = (mapA[nome] || 0) + Number(d.valor);
+            });
+
+            despB.forEach(d => {
+                const cat = state.categorias.find(c => c.id === d.categoria_id);
+                const nome = cat ? cat.nome : 'Sem Categoria';
+                categoriasEnvolvidas.add(nome);
+                mapB[nome] = (mapB[nome] || 0) + Number(d.valor);
+            });
+
+            const labels = Array.from(categoriasEnvolvidas);
+            const valsA = labels.map(l => mapA[l] || 0);
+            const valsB = labels.map(l => mapB[l] || 0);
+
+            if (charts.comparativo) charts.comparativo.destroy();
+            charts.comparativo = new Chart(document.getElementById('chart-comparativo'), {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [
+                        { label: mesA, data: valsA, backgroundColor: '#22d3ee' },
+                        { label: mesB, data: valsB, backgroundColor: '#a855f7' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#cbd5e1' } } },
+                    scales: {
+                        x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } },
+                        y: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } }
+                    }
+                }
+            });
+
+            const tbody = document.getElementById('tbody-comparativo');
+            if (labels.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="py-4 text-center text-slate-500">Nenhuma despesa encontrada nos meses selecionados.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = labels.map((catNome, idx) => {
+                const vA = valsA[idx];
+                const vB = valsB[idx];
+                const diff = vB - vA;
+                const perc = vA > 0 ? ((diff / vA) * 100).toFixed(1) + '%' : (vB > 0 ? '+100%' : '0%');
+                const corDiff = diff > 0 ? 'text-rose-400' : (diff < 0 ? 'text-emerald-400' : 'text-slate-400');
+                const sinal = diff > 0 ? '+' : '';
+
+                return `
+                    <tr>
+                        <td class="py-2.5 px-3 font-medium text-white">${catNome}</td>
+                        <td class="py-2.5 px-3 text-right text-slate-300">${formatBRL(vA)}</td>
+                        <td class="py-2.5 px-3 text-right text-slate-300">${formatBRL(vB)}</td>
+                        <td class="py-2.5 px-3 text-right font-semibold ${corDiff}">${sinal}${formatBRL(diff)}</td>
+                        <td class="py-2.5 px-3 text-right font-semibold ${corDiff}">${sinal}${perc}</td>
+                    </tr>
+                `;
+            }).join('');
         }
     </script>
 </body>
