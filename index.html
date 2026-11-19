@@ -71,7 +71,7 @@
     <!-- Main Content -->
     <main class="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full overflow-y-auto">
         
-        <!-- Cabeçalho Limpo e Direto -->
+        <!-- Cabeçalho -->
         <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <div>
                 <h1 id="page-title" class="text-xl font-bold text-white">Visão Geral</h1>
@@ -108,7 +108,7 @@
             </div>
         </header>
 
-        <!-- ABA 1: DASHBOARD SIMPLIFICADO -->
+        <!-- ABA 1: DASHBOARD -->
         <section id="tab-dashboard" class="space-y-5">
             
             <!-- Barra Minimalista de Controles -->
@@ -138,7 +138,7 @@
                 </div>
             </div>
 
-            <!-- Gaveta de Filtros (Oculta por padrão para não poluir) -->
+            <!-- Gaveta de Filtros -->
             <div id="gaveta-filtros-dash" class="hidden card-glass p-4 rounded-2xl grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                     <label class="block text-[11px] text-slate-400 mb-1">Categoria</label>
@@ -159,7 +159,7 @@
                 </div>
             </div>
 
-            <!-- GRADE DE CARDS LIMPA -->
+            <!-- GRADE DE CARDS -->
             <div id="dashboard-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
                 <!-- 1. Recebimentos -->
@@ -192,7 +192,6 @@
                         <span id="dash-limite-perc" class="text-[11px] font-bold text-slate-400"></span>
                     </div>
                     <h2 id="kpi-despesas" class="text-2xl font-bold text-rose-400 mt-1">R$ 0,00</h2>
-                    <!-- Mini barra de progresso do limite integrada -->
                     <div class="w-full h-1.5 bg-cobalt-950 rounded-full overflow-hidden mt-2.5">
                         <div id="dash-limite-barra" class="h-full rounded-full bg-cyan-400 transition-all duration-500" style="width: 0%"></div>
                     </div>
@@ -214,9 +213,9 @@
                     <p id="sub-kpi-saldo" class="text-[11px] text-slate-500 mt-2">Economia: 0%</p>
                 </div>
 
-                <!-- 4. Investimentos -->
-                <div data-card-id="kpi_investimento" data-card-title="Projeção Investida" class="dash-card card-glass p-5 rounded-2xl">
-                    <div class="card-edit-toolbar hidden mb-3 pb-2 border-b border-slate-800 flex justify-between items-center text-[11px]">
+                <!-- 4. Total Investido (Clicável para exibir o rendimento referente ao mês) -->
+                <div onclick="abrirModalRendimentoMes()" data-card-id="kpi_investimento" data-card-title="Total Investido" class="dash-card card-glass p-5 rounded-2xl cursor-pointer hover:border-purple-400/50 group">
+                    <div onclick="event.stopPropagation()" class="card-edit-toolbar hidden mb-3 pb-2 border-b border-slate-800 flex justify-between items-center text-[11px]">
                         <div class="flex items-center gap-1">
                             <button onclick="setCardSpan('kpi_investimento', 1)" class="span-btn px-2 py-0.5 rounded bg-slate-800">P</button>
                             <button onclick="setCardSpan('kpi_investimento', 2)" class="span-btn px-2 py-0.5 rounded bg-slate-800">M</button>
@@ -224,9 +223,14 @@
                         </div>
                         <button onclick="toggleCardVisibility('kpi_investimento', false)" class="text-rose-400">Ocultar</button>
                     </div>
-                    <p class="text-xs text-slate-400">Investido (Projeção Dez)</p>
+                    <div class="flex justify-between items-center">
+                        <p class="text-xs text-slate-400">Total Investido</p>
+                        <span class="text-[10px] text-purple-400 group-hover:underline flex items-center gap-1">
+                            <i class="fa-solid fa-arrow-trend-up"></i> Ver rendimento
+                        </span>
+                    </div>
                     <h2 id="kpi-investimento" class="text-2xl font-bold text-purple-400 mt-1">R$ 0,00</h2>
-                    <p id="sub-kpi-investimento" class="text-[11px] text-slate-500 mt-2">0 ativos</p>
+                    <p id="sub-kpi-investimento" class="text-[11px] text-slate-500 mt-2">Clique para ver rendimento do mês</p>
                 </div>
 
                 <!-- 5. Contas a Pagar: Cartões & Boletos Programados -->
@@ -262,7 +266,7 @@
                     </div>
                 </div>
 
-                <!-- 7. Gráfico Pizza Categorias (Oculto por padrão para manter o dashboard limpo) -->
+                <!-- 7. Gráfico Pizza Categorias -->
                 <div data-card-id="chart_cat" data-card-title="Gráfico por Categoria" class="dash-card card-glass p-5 rounded-2xl">
                     <div class="card-edit-toolbar hidden mb-3 pb-2 border-b border-slate-800 flex justify-between items-center text-[11px]">
                         <div class="flex items-center gap-1">
@@ -278,7 +282,7 @@
                     </div>
                 </div>
 
-                <!-- 8. Gráfico Pizza Métodos / Cartões (Oculto por padrão) -->
+                <!-- 8. Gráfico Pizza Métodos / Cartões -->
                 <div data-card-id="chart_met" data-card-title="Gráfico por Cartão / Método" class="dash-card card-glass p-5 rounded-2xl">
                     <div class="card-edit-toolbar hidden mb-3 pb-2 border-b border-slate-800 flex justify-between items-center text-[11px]">
                         <div class="flex items-center gap-1">
@@ -294,7 +298,7 @@
                     </div>
                 </div>
 
-                <!-- 9. Ranking Top Categorias (Oculto por padrão) -->
+                <!-- 9. Ranking Top Categorias -->
                 <div data-card-id="card_ranking" data-card-title="Ranking de Categorias" class="dash-card card-glass p-5 rounded-2xl">
                     <div class="card-edit-toolbar hidden mb-3 pb-2 border-b border-slate-800 flex justify-between items-center text-[11px]">
                         <div class="flex items-center gap-1">
@@ -314,7 +318,6 @@
         <!-- ABA 2: LANÇAMENTOS -->
         <section id="tab-lancamentos" class="hidden space-y-6">
             
-            <!-- CARDS SUPERIORES DA ABA LANÇAMENTOS -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="card-glass p-5 rounded-2xl">
                     <div class="flex justify-between items-start">
@@ -351,7 +354,6 @@
                 </div>
             </div>
 
-            <!-- Barra de Ação para Novo Lançamento -->
             <div class="flex flex-wrap justify-between items-center gap-3 card-glass p-4 rounded-2xl">
                 <div>
                     <h3 class="text-sm font-semibold text-white">Extrato de Lançamentos</h3>
@@ -367,7 +369,6 @@
                 </div>
             </div>
 
-            <!-- Formulário Oculto por Padrão -->
             <div id="container-form-lancamento" class="hidden card-glass p-6 rounded-2xl border border-cyan-400/40">
                 <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-800">
                     <h3 class="text-base font-semibold text-cyan-400">Novo Registro</h3>
@@ -438,7 +439,6 @@
                 </form>
             </div>
 
-            <!-- Tabela de Lançamentos do Mês -->
             <div class="card-glass p-6 rounded-2xl overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
@@ -457,83 +457,47 @@
             </div>
         </section>
 
-        <!-- ABA 3: SALÁRIOS, RECEBÍVEIS & INVESTIMENTOS -->
+        <!-- ABA 3: RECEBIMENTOS & INVESTIMENTOS -->
         <section id="tab-investimentos" class="hidden space-y-6">
             
-            <!-- Cadastro de Salário -->
-            <div class="card-glass p-6 rounded-2xl">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 pb-3 border-b border-slate-800">
+            <!-- GESTÃO DINÂMICA DE RECEBIMENTOS DO MÊS -->
+            <div class="card-glass p-6 rounded-2xl space-y-5">
+                <div class="flex flex-wrap justify-between items-center gap-3 pb-3 border-b border-slate-800">
                     <div>
-                        <h3 class="text-base font-semibold text-emerald-400">Cadastro de Salário / Recebimentos</h3>
-                        <p class="text-xs text-slate-400">Informe valores específicos por mês ou repita um valor fixo</p>
+                        <h3 class="text-base font-semibold text-emerald-400">Recebimentos Registrados (<span id="lbl-recebimentos-mes">Mês</span>)</h3>
+                        <p class="text-xs text-slate-400">Adicione, categorize, edite ou remova salários, extras e entradas do mês</p>
                     </div>
-                    <div class="inline-flex bg-cobalt-950 p-1 rounded-xl border border-slate-800">
-                        <button type="button" onclick="setModoSalario('variavel')" id="btn-sal-variavel" class="period-btn active px-3 py-1 rounded-lg text-xs transition">Valores Específicos / Mês</button>
-                        <button type="button" onclick="setModoSalario('fixo')" id="btn-sal-fixo" class="period-btn px-3 py-1 rounded-lg text-xs text-slate-300 transition">Repetir por X Meses</button>
+                    <div class="flex items-center gap-2">
+                        <button onclick="abrirModalRecebimento()" class="bg-emerald-500 hover:bg-emerald-400 text-cobalt-950 font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 transition">
+                            <i class="fa-solid fa-plus"></i> Novo Recebimento
+                        </button>
                     </div>
                 </div>
 
-                <!-- MODO A -->
-                <form id="form-salario-variavel" onsubmit="salvarSalarioVariavel(event)" class="space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label class="block text-xs text-slate-400 mb-1">Descrição</label>
-                            <input type="text" id="sal-var-desc" required value="Salário" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
-                        </div>
-                        <div>
-                            <label class="block text-xs text-slate-400 mb-1">Ano</label>
-                            <select id="sal-var-ano" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
-                                <option value="2025">2025</option>
-                                <option value="2026" selected>2026</option>
-                                <option value="2027">2027</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs text-slate-400 mb-1">Categoria</label>
-                            <select id="sal-var-cat" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white"></select>
-                        </div>
-                    </div>
-
-                    <div id="grade-meses-salario" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3"></div>
-
-                    <div class="flex justify-end">
-                        <button type="submit" class="bg-emerald-500 hover:bg-emerald-400 text-cobalt-950 font-bold px-5 py-2 rounded-lg text-xs transition">
-                            Registrar Salários Preenchidos
-                        </button>
-                    </div>
-                </form>
-
-                <!-- MODO B -->
-                <form id="form-salario-fixo" onsubmit="salvarSalarioFixo(event)" class="hidden grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-                    <div>
-                        <label class="block text-xs text-slate-400 mb-1">Descrição</label>
-                        <input type="text" id="sal-fixo-desc" required value="Salário" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
-                    </div>
-                    <div>
-                        <label class="block text-xs text-slate-400 mb-1">Valor Mensal (R$)</label>
-                        <input type="number" step="0.01" id="sal-fixo-valor" required placeholder="0.00" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
-                    </div>
-                    <div>
-                        <label class="block text-xs text-slate-400 mb-1">Mês Inicial</label>
-                        <input type="month" id="sal-fixo-inicio" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
-                    </div>
-                    <div>
-                        <label class="block text-xs text-slate-400 mb-1">Qtd. Meses (X)</label>
-                        <input type="number" min="1" max="36" id="sal-fixo-qtd" required value="6" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
-                    </div>
-                    <div>
-                        <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-400 text-cobalt-950 font-bold py-2.5 rounded-lg text-xs transition">Gerar Meses</button>
-                    </div>
-                </form>
+                <!-- Tabela Dinâmica de Recebimentos do Mês -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-800 text-xs text-slate-400 uppercase">
+                                <th class="py-2.5 px-2">Data</th>
+                                <th class="py-2.5 px-2">Descrição</th>
+                                <th class="py-2.5 px-2">Categoria</th>
+                                <th class="py-2.5 px-2 text-right">Valor</th>
+                                <th class="py-2.5 px-2 text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-recebimentos-mes" class="text-sm divide-y divide-slate-800/60"></tbody>
+                    </table>
+                </div>
             </div>
 
-            <!-- Listas com Botões para Popups de Investimentos e Previsão de Recebíveis -->
+            <!-- Listas de Investimentos e Previsão de Recebíveis -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="card-glass p-6 rounded-2xl">
                     <div class="flex flex-wrap justify-between items-center gap-3 mb-4 pb-3 border-b border-slate-800">
                         <div>
-                            <h3 class="text-base font-semibold text-white">Investimentos (Projeção até Dez)</h3>
-                            <p class="text-xs text-slate-400">Aportes e juros compostos</p>
+                            <h3 class="text-base font-semibold text-white">Carteira de Investimentos</h3>
+                            <p class="text-xs text-slate-400">Aportes e rendimentos mensais</p>
                         </div>
                         <button onclick="abrirModalInvestimento()" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 transition">
                             <i class="fa-solid fa-plus"></i> Adicionar Investimento
@@ -546,7 +510,7 @@
                     <div class="flex flex-wrap justify-between items-center gap-3 mb-4 pb-3 border-b border-slate-800">
                         <div>
                             <h3 class="text-base font-semibold text-white">Previsão de Recebíveis Futuros</h3>
-                            <p class="text-xs text-slate-400">Valores previstos para os próximos meses</p>
+                            <p class="text-xs text-slate-400">Entradas previstas ainda não efetivadas</p>
                         </div>
                         <button onclick="abrirModalPrevisao()" class="bg-cyan-500 hover:bg-cyan-400 text-cobalt-950 font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 transition">
                             <i class="fa-solid fa-plus"></i> Nova Previsão
@@ -603,6 +567,88 @@
         </section>
 
     </main>
+
+    <!-- MODAL RENDIMENTO DE INVESTIMENTOS DO MÊS (ABRE AO CLICAR NO CARD INVESTIDO) -->
+    <div id="modal-rendimento-mes" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-cobalt-900 border border-purple-500/40 rounded-2xl w-full max-w-lg p-6 space-y-5">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <div>
+                    <h3 class="text-base font-bold text-white">Rendimento de Investimentos</h3>
+                    <p id="modal-rend-subtitulo" class="text-xs text-slate-400">Competência selecionada</p>
+                </div>
+                <button onclick="fecharModalRendimentoMes()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-cobalt-950 p-4 rounded-xl border border-slate-800">
+                    <p class="text-xs text-slate-400">Capital Investido</p>
+                    <h4 id="modal-rend-capital" class="text-lg font-bold text-white mt-1">R$ 0,00</h4>
+                </div>
+                <div class="bg-cobalt-950 p-4 rounded-xl border border-purple-500/30">
+                    <p class="text-xs text-purple-300">Rendimento no Mês</p>
+                    <h4 id="modal-rend-valor" class="text-lg font-bold text-emerald-400 mt-1">+ R$ 0,00</h4>
+                </div>
+            </div>
+
+            <div id="modal-rend-lista" class="space-y-2.5 max-h-64 overflow-y-auto text-xs"></div>
+
+            <div class="flex justify-between items-center pt-3 border-t border-slate-800">
+                <button onclick="fecharModalRendimentoMes(); switchTab('investimentos');" class="text-xs text-purple-400 hover:underline">Gerenciar carteira →</button>
+                <button onclick="fecharModalRendimentoMes()" class="bg-slate-800 text-slate-200 px-4 py-2 rounded-lg text-xs">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL NOVO / EDITAR RECEBIMENTO DINÂMICO -->
+    <div id="modal-recebimento" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-cobalt-900 border border-emerald-500/40 rounded-2xl w-full max-w-md p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 id="titulo-modal-recebimento" class="text-base font-bold text-white">Novo Recebimento</h3>
+                <button onclick="fecharModalRecebimento()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="salvarRecebimentoDinamico(event)" class="space-y-3">
+                <input type="hidden" id="rec-id">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Descrição</label>
+                    <input type="text" id="rec-descricao" required placeholder="Ex: Salário, Freelance, Dividendos..." class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Valor (R$)</label>
+                        <input type="number" step="0.01" id="rec-valor" required placeholder="0.00" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Data do Recebimento</label>
+                        <input type="date" id="rec-data" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs text-slate-400">Categoria</label>
+                        <button type="button" onclick="fecharModalRecebimento(); switchTab('configuracoes');" class="text-[11px] text-cyan-400 hover:underline">+ Nova Categoria</button>
+                    </div>
+                    <select id="rec-categoria" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white"></select>
+                </div>
+
+                <!-- Opção de repetição mensal (apenas ao criar novo) -->
+                <div id="wrap-rec-repetir" class="bg-cobalt-950 p-3 rounded-xl border border-slate-800 space-y-2">
+                    <label class="inline-flex items-center gap-2 cursor-pointer text-xs text-slate-300 select-none">
+                        <input type="checkbox" id="rec-repetir-check" onchange="document.getElementById('wrap-rec-meses').classList.toggle('hidden', !this.checked)" class="accent-emerald-400 w-4 h-4">
+                        Repetir este recebimento nos próximos meses?
+                    </label>
+                    <div id="wrap-rec-meses" class="hidden pt-1">
+                        <label class="block text-[11px] text-slate-400 mb-1">Quantidade total de meses</label>
+                        <input type="number" min="2" max="36" value="6" id="rec-repetir-qtd" class="w-full bg-cobalt-900 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="fecharModalRecebimento()" class="bg-slate-800 text-slate-300 px-4 py-2 rounded-lg text-xs">Cancelar</button>
+                    <button type="submit" class="bg-emerald-500 hover:bg-emerald-400 text-cobalt-950 font-bold px-5 py-2 rounded-lg text-xs">Salvar Recebimento</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- MODAL EDITAR LANÇAMENTO -->
     <div id="modal-editar-tx" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
@@ -672,7 +718,7 @@
         </div>
     </div>
 
-    <!-- MODAL INVESTIMENTO (POPUP) -->
+    <!-- MODAL INVESTIMENTO -->
     <div id="modal-investimento" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-cobalt-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 space-y-4">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -706,7 +752,7 @@
         </div>
     </div>
 
-    <!-- MODAL PREVISÃO DE RECEBÍVEIS (POPUP) -->
+    <!-- MODAL PREVISÃO DE RECEBÍVEIS -->
     <div id="modal-previsao" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-cobalt-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 space-y-4">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -869,7 +915,6 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_DDzBAkJlt7nRH6TyBMp5_A_FJZBwOlC';
         const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Layout limpo e enxuto por padrão (gráficos secundários ficam disponíveis no botão "Mais Cards")
         const CLEAN_LAYOUT = {
             kpi_receitas: { span: 1, hidden: false },
             kpi_despesas: { span: 1, hidden: false },
@@ -908,8 +953,6 @@
 
             document.getElementById('filtro-mes').value = mesAtualStr;
             document.getElementById('filtro-ano').value = anoAtualStr;
-            document.getElementById('sal-var-ano').value = anoAtualStr;
-            document.getElementById('sal-fixo-inicio').value = `${anoAtualStr}-${mesAtualStr}`;
             document.getElementById('tx-data').valueAsDate = hoje;
             document.getElementById('inv-data').valueAsDate = hoje;
             document.getElementById('bol-inicio').value = `${anoAtualStr}-${mesAtualStr}`;
@@ -920,7 +963,6 @@
             document.getElementById('comp-mes-b').value = `${anoAtualStr}-${mesAtualStr}`;
 
             aplicarLayoutCards();
-            renderizarGradeSalarios();
             await carregarDadosBanco();
         });
 
@@ -991,6 +1033,186 @@
         }
 
         // =========================================================================
+        // CÁLCULO DE INVESTIMENTOS (TOTAL INVESTIDO + RENDIMENTO DO MÊS)
+        // =========================================================================
+        function calcularInvestimentosNoMes(compAlvo) {
+            let totalInvestido = 0;
+            let rendimentoMesTotal = 0;
+            const detalhes = [];
+
+            state.investimentos.forEach(inv => {
+                const compAporte = inv.data_aporte.slice(0, 7); // YYYY-MM
+                const diffMeses = diferencaMeses(compAporte, compAlvo);
+                const principal = Number(inv.valor_inicial);
+                const taxa = Number(inv.taxa_mensal) / 100;
+
+                if (diffMeses < 0) return; // Ainda não foi aportado nesse mês
+
+                totalInvestido += principal;
+
+                // Saldo no mês anterior e rendimento gerado especificamente no mês selecionado
+                const saldoAntesDoMes = principal * Math.pow(1 + taxa, diffMeses);
+                const rendimentoNesteMes = diffMeses === 0 ? 0 : saldoAntesDoMes * taxa;
+                const saldoFinalNoMes = saldoAntesDoMes + rendimentoNesteMes;
+
+                rendimentoMesTotal += rendimentoNesteMes;
+                detalhes.push({
+                    nome: inv.nome,
+                    principal,
+                    taxaPercent: Number(inv.taxa_mensal),
+                    dataAporte: inv.data_aporte,
+                    rendimentoMes: rendimentoNesteMes,
+                    saldoNoMes: saldoFinalNoMes
+                });
+            });
+
+            return { totalInvestido, rendimentoMesTotal, detalhes };
+        }
+
+        function abrirModalRendimentoMes() {
+            const mesSel = document.getElementById('filtro-mes').value;
+            const anoSel = document.getElementById('filtro-ano').value;
+            const comp = `${anoSel}-${mesSel}`;
+            const { totalInvestido, rendimentoMesTotal, detalhes } = calcularInvestimentosNoMes(comp);
+
+            document.getElementById('modal-rend-subtitulo').innerText = `Competência: ${NOMES_MESES[parseInt(mesSel) - 1]}/${anoSel}`;
+            document.getElementById('modal-rend-capital').innerText = formatBRL(totalInvestido);
+            document.getElementById('modal-rend-valor').innerText = `+ ${formatBRL(rendimentoMesTotal)}`;
+
+            const listaEl = document.getElementById('modal-rend-lista');
+            if (detalhes.length === 0) {
+                listaEl.innerHTML = '<p class="text-slate-400 text-center py-4">Nenhum investimento ativo neste mês.</p>';
+            } else {
+                listaEl.innerHTML = detalhes.map(d => `
+                    <div class="bg-cobalt-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center">
+                        <div>
+                            <p class="font-semibold text-white">${d.nome}</p>
+                            <p class="text-[11px] text-slate-400">Aporte: ${formatBRL(d.principal)} (${d.taxaPercent}% a.m.)</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-emerald-400 font-bold">+ ${formatBRL(d.rendimentoMes)} <span class="text-[10px] font-normal text-slate-400">no mês</span></p>
+                            <p class="text-[11px] text-purple-300">Acumulado: ${formatBRL(d.saldoNoMes)}</p>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            document.getElementById('modal-rendimento-mes').classList.remove('hidden');
+        }
+
+        function fecharModalRendimentoMes() {
+            document.getElementById('modal-rendimento-mes').classList.add('hidden');
+        }
+
+        // =========================================================================
+        // GESTÃO DINÂMICA DE RECEBIMENTOS (ADICIONAR, CATEGORIZAR, EDITAR, EXCLUIR)
+        // =========================================================================
+        function abrirModalRecebimento(id = null) {
+            popularSelects();
+            const mesSel = document.getElementById('filtro-mes').value;
+            const anoSel = document.getElementById('filtro-ano').value;
+
+            document.getElementById('rec-repetir-check').checked = false;
+            document.getElementById('wrap-rec-meses').classList.add('hidden');
+
+            if (id) {
+                const tx = state.transacoes.find(t => String(t.id) === String(id));
+                if (!tx) return;
+                document.getElementById('titulo-modal-recebimento').innerText = 'Editar Recebimento';
+                document.getElementById('rec-id').value = tx.id;
+                document.getElementById('rec-descricao').value = tx.descricao;
+                document.getElementById('rec-valor').value = tx.valor;
+                document.getElementById('rec-data').value = tx.data_compra;
+                document.getElementById('rec-categoria').value = tx.categoria_id || '';
+                document.getElementById('wrap-rec-repetir').classList.add('hidden');
+            } else {
+                document.getElementById('titulo-modal-recebimento').innerText = 'Novo Recebimento';
+                document.getElementById('rec-id').value = '';
+                document.getElementById('rec-descricao').value = '';
+                document.getElementById('rec-valor').value = '';
+                document.getElementById('rec-data').value = `${anoSel}-${mesSel}-05`;
+                document.getElementById('wrap-rec-repetir').classList.remove('hidden');
+            }
+
+            document.getElementById('modal-recebimento').classList.remove('hidden');
+        }
+
+        function fecharModalRecebimento() {
+            document.getElementById('modal-recebimento').classList.add('hidden');
+        }
+
+        async function salvarRecebimentoDinamico(e) {
+            e.preventDefault();
+            const id = document.getElementById('rec-id').value;
+            const descricao = document.getElementById('rec-descricao').value.trim();
+            const valor = parseFloat(document.getElementById('rec-valor').value);
+            const data_compra = document.getElementById('rec-data').value;
+            const categoria_id = document.getElementById('rec-categoria').value || null;
+            const mes_competencia = data_compra.slice(0, 7);
+
+            if (id) {
+                const { error } = await db.from('transacoes')
+                    .update({ descricao, valor, data_compra, mes_competencia, categoria_id })
+                    .eq('id', id);
+                if (error) { alert('Erro ao editar recebimento: ' + error.message); return; }
+            } else {
+                const repetir = document.getElementById('rec-repetir-check').checked;
+                const qtdMeses = repetir ? Math.max(2, parseInt(document.getElementById('rec-repetir-qtd').value) || 2) : 1;
+                const diaStr = data_compra.split('-')[2] || '05';
+                const registros = [];
+
+                for (let i = 0; i < qtdMeses; i++) {
+                    const comp = somarMesesCompetencia(mes_competencia, i);
+                    registros.push({
+                        tipo: 'receita',
+                        descricao: qtdMeses > 1 ? `${descricao} (${i + 1}/${qtdMeses})` : descricao,
+                        valor,
+                        data_compra: `${comp}-${diaStr}`,
+                        mes_competencia: comp,
+                        categoria_id
+                    });
+                }
+
+                const { error } = await db.from('transacoes').insert(registros);
+                if (error) { alert('Erro ao salvar recebimento: ' + error.message); return; }
+            }
+
+            fecharModalRecebimento();
+            await carregarDadosBanco();
+        }
+
+        function renderizarTabelaRecebimentosMes(compMensal, receitasMes) {
+            const [ano, mes] = compMensal.split('-');
+            document.getElementById('lbl-recebimentos-mes').innerText = `${NOMES_MESES[parseInt(mes) - 1]}/${ano}`;
+
+            const tbody = document.getElementById('lista-recebimentos-mes');
+            if (receitasMes.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="py-5 text-center text-slate-500">Nenhum recebimento registrado neste mês. Clique em "+ Novo Recebimento".</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = receitasMes.map(r => {
+                const cat = state.categorias.find(c => String(c.id) === String(r.categoria_id));
+                return `
+                    <tr class="hover:bg-slate-800/30">
+                        <td class="py-3 px-2 text-slate-300">${r.data_compra.split('-').reverse().join('/')}</td>
+                        <td class="py-3 px-2 font-medium text-white">${r.descricao}</td>
+                        <td class="py-3 px-2">
+                            <span class="px-2 py-0.5 rounded text-xs" style="background:${cat?.cor || '#10b981'}33; color:${cat?.cor || '#34d399'}">
+                                ${cat?.nome || 'Sem Categoria'}
+                            </span>
+                        </td>
+                        <td class="py-3 px-2 text-right font-semibold text-emerald-400">+ ${formatBRL(Number(r.valor))}</td>
+                        <td class="py-3 px-2 text-center space-x-2">
+                            <button onclick="abrirModalRecebimento('${r.id}')" title="Editar" class="text-cyan-400 hover:text-cyan-300"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="deletarItem('transacoes', '${r.id}')" title="Remover" class="text-slate-500 hover:text-rose-400"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // =========================================================================
         // BOLETOS PROGRAMADOS E CONTROLE DE PAGAMENTO DE CARTÕES
         // =========================================================================
         function abrirModalBoleto() {
@@ -1000,10 +1222,7 @@
             document.getElementById('bol-inicio').value = `${anoSel}-${mesSel}`;
             document.getElementById('modal-boleto').classList.remove('hidden');
         }
-
-        function fecharModalBoleto() {
-            document.getElementById('modal-boleto').classList.add('hidden');
-        }
+        function fecharModalBoleto() { document.getElementById('modal-boleto').classList.add('hidden'); }
 
         async function salvarBoletoProgramado(e) {
             e.preventDefault();
@@ -1016,14 +1235,7 @@
             const total_parcelas = parcelasRaw ? parseInt(parcelasRaw) : null;
 
             const novoBoleto = {
-                descricao,
-                valor,
-                dia_vencimento,
-                mes_inicio,
-                total_parcelas,
-                categoria_id,
-                quitado: false,
-                meses_pagos: []
+                descricao, valor, dia_vencimento, mes_inicio, total_parcelas, categoria_id, quitado: false, meses_pagos: []
             };
 
             const { data, error } = await db.from('boletos_programados').insert([novoBoleto]).select();
@@ -1060,7 +1272,6 @@
         async function togglePagamentoBoletoMes(boletoId, comp) {
             const bol = state.boletos.find(b => String(b.id) === String(boletoId));
             if (!bol) return;
-
             let pagos = Array.isArray(bol.meses_pagos) ? [...bol.meses_pagos] : [];
             if (pagos.includes(comp)) pagos = pagos.filter(m => m !== comp);
             else pagos.push(comp);
@@ -1068,11 +1279,8 @@
             bol.meses_pagos = pagos;
             if (bol.total_parcelas && pagos.length >= bol.total_parcelas) bol.quitado = true;
 
-            if (String(boletoId).startsWith('local_')) {
-                localStorage.setItem('fp_boletos_local', JSON.stringify(state.boletos));
-            } else {
-                await db.from('boletos_programados').update({ meses_pagos: pagos, quitado: bol.quitado }).eq('id', boletoId);
-            }
+            if (String(boletoId).startsWith('local_')) localStorage.setItem('fp_boletos_local', JSON.stringify(state.boletos));
+            else await db.from('boletos_programados').update({ meses_pagos: pagos, quitado: bol.quitado }).eq('id', boletoId);
             atualizarTudo();
         }
 
@@ -1080,13 +1288,9 @@
             if (!confirm('Marcar este boleto como QUITADO? Ele deixará de aparecer nos próximos meses.')) return;
             const bol = state.boletos.find(b => String(b.id) === String(boletoId));
             if (!bol) return;
-
             bol.quitado = true;
-            if (String(boletoId).startsWith('local_')) {
-                localStorage.setItem('fp_boletos_local', JSON.stringify(state.boletos));
-            } else {
-                await db.from('boletos_programados').update({ quitado: true }).eq('id', boletoId);
-            }
+            if (String(boletoId).startsWith('local_')) localStorage.setItem('fp_boletos_local', JSON.stringify(state.boletos));
+            else await db.from('boletos_programados').update({ quitado: true }).eq('id', boletoId);
             atualizarTudo();
         }
 
@@ -1095,7 +1299,6 @@
             const novoStatus = !state.faturasPagas[chave];
             state.faturasPagas[chave] = novoStatus;
             localStorage.setItem('fp_faturas_pagas', JSON.stringify(state.faturasPagas));
-
             try { await db.from('pagamentos_faturas').upsert([{ chave, pago: novoStatus }]); } catch (_) {}
             atualizarTudo();
         }
@@ -1106,7 +1309,6 @@
             document.getElementById('lbl-vencimentos-mes').innerText = `${NOMES_MESES[parseInt(mes)-1]}/${ano}`;
 
             let itensHtml = '';
-
             state.cartoes.forEach(c => {
                 const valorFatura = despesasMes
                     .filter(d => String(d.cartao_id) === String(c.id))
@@ -1181,10 +1383,7 @@
 
             document.getElementById('modal-editar-tx').classList.remove('hidden');
         }
-
-        function fecharModalEditarTx() {
-            document.getElementById('modal-editar-tx').classList.add('hidden');
-        }
+        function fecharModalEditarTx() { document.getElementById('modal-editar-tx').classList.add('hidden'); }
 
         async function salvarEdicaoTransacao(e) {
             e.preventDefault();
@@ -1197,8 +1396,7 @@
             const categoria_id = document.getElementById('edit-tx-categoria').value || null;
             const formaVal = document.getElementById('edit-tx-forma').value || '';
 
-            let cartao_id = null;
-            let metodo_id = null;
+            let cartao_id = null, metodo_id = null;
             if (tipo === 'despesa' && formaVal) {
                 if (formaVal.startsWith('cartao_')) cartao_id = formaVal.replace('cartao_', '');
                 else if (formaVal.startsWith('metodo_')) metodo_id = formaVal.replace('metodo_', '');
@@ -1278,10 +1476,7 @@
             }
             document.getElementById('modal-categorias-mes').classList.remove('hidden');
         }
-
-        function fecharModalCategoriasMes() {
-            document.getElementById('modal-categorias-mes').classList.add('hidden');
-        }
+        function fecharModalCategoriasMes() { document.getElementById('modal-categorias-mes').classList.add('hidden'); }
 
         // =========================================================================
         // POPUPS DE INVESTIMENTOS E PREVISÃO DE RECEBÍVEIS
@@ -1398,7 +1593,6 @@
             lista.innerHTML = html || '<p class="text-slate-400 text-xs text-center py-4">Todos os cards estão visíveis.</p>';
             document.getElementById('modal-ocultos').classList.remove('hidden');
         }
-
         function fecharModalOcultos() { document.getElementById('modal-ocultos').classList.add('hidden'); }
 
         // =========================================================================
@@ -1445,9 +1639,8 @@
             if (limiteTotal <= 0) {
                 barra.style.width = '0%';
                 percEl.innerText = '';
-                if (prefixo === 'dash') {
-                    document.getElementById('dash-limite-detalhe').innerText = 'Sem limite definido';
-                } else {
+                if (prefixo === 'dash') document.getElementById('dash-limite-detalhe').innerText = 'Sem limite definido';
+                else {
                     document.getElementById('tx-limite-texto').innerText = 'Sem limite definido';
                     document.getElementById('tx-limite-restante').innerText = 'Clique em "Definir" para criar uma meta';
                 }
@@ -1458,8 +1651,7 @@
             const percVisual = Math.min(100, Math.max(0, percReal));
             const restante = limiteTotal - gastoTotal;
 
-            let corBarra = 'bg-emerald-400';
-            let corTexto = 'text-emerald-400';
+            let corBarra = 'bg-emerald-400', corTexto = 'text-emerald-400';
             if (percReal >= 100) { corBarra = 'bg-rose-500'; corTexto = 'text-rose-400'; }
             else if (percReal >= 75) { corBarra = 'bg-amber-400'; corTexto = 'text-amber-400'; }
 
@@ -1485,10 +1677,7 @@
         // =========================================================================
         function calcularMesCompetencia(dataCompraStr, cartao) {
             const [anoStr, mesStr, diaStr] = dataCompraStr.split('-');
-            let ano = parseInt(anoStr);
-            let mes = parseInt(mesStr);
-            const dia = parseInt(diaStr);
-
+            let ano = parseInt(anoStr), mes = parseInt(mesStr), dia = parseInt(diaStr);
             if (cartao && dia > cartao.dia_fechamento) mes += 1;
             while (mes > 12) { mes -= 12; ano += 1; }
             return `${ano}-${String(mes).padStart(2, '0')}`;
@@ -1537,9 +1726,7 @@
             const formaVal = document.getElementById('tx-forma').value || '';
 
             let cartaoObj = null;
-            if (formaVal.startsWith('cartao_')) {
-                cartaoObj = state.cartoes.find(c => String(c.id) === formaVal.replace('cartao_', ''));
-            }
+            if (formaVal.startsWith('cartao_')) cartaoObj = state.cartoes.find(c => String(c.id) === formaVal.replace('cartao_', ''));
 
             const primeiraComp = dataCompra ? calcularMesCompetencia(dataCompra, cartaoObj) : '';
             if (!isParcelado) {
@@ -1586,15 +1773,11 @@
 
             document.getElementById('edit-tx-categoria').innerHTML = '<option value="">Sem Categoria</option>' + optionsCat;
             document.getElementById('bol-categoria').innerHTML = '<option value="">Sem Categoria</option>' + optionsCat;
+            document.getElementById('rec-categoria').innerHTML = '<option value="">Sem Categoria</option>' + optionsCat;
 
             const selDashCat = document.getElementById('dash-filtro-categoria');
             selDashCat.innerHTML = '<option value="todas">Todas as Categorias</option>' + state.categorias.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
             if (dashCatAtual) selDashCat.value = dashCatAtual;
-
-            const selSalCat = document.getElementById('sal-var-cat');
-            selSalCat.innerHTML = optionsCat;
-            const catSalario = state.categorias.find(c => c.nome.toLowerCase().includes('salário') || c.nome.toLowerCase().includes('salario'));
-            if (catSalario) selSalCat.value = catSalario.id;
 
             const selForma = document.getElementById('tx-forma');
             let htmlForma = '';
@@ -1640,69 +1823,8 @@
         }
 
         // =========================================================================
-        // SALÁRIOS, TRANSAÇÕES E CADASTROS
+        // TRANSAÇÕES E CADASTROS
         // =========================================================================
-        function setModoSalario(modo) {
-            document.getElementById('form-salario-variavel').classList.toggle('hidden', modo !== 'variavel');
-            document.getElementById('form-salario-fixo').classList.toggle('hidden', modo !== 'fixo');
-            document.getElementById('btn-sal-variavel').classList.toggle('active', modo === 'variavel');
-            document.getElementById('btn-sal-fixo').classList.toggle('active', modo === 'fixo');
-        }
-
-        function renderizarGradeSalarios() {
-            document.getElementById('grade-meses-salario').innerHTML = NOMES_MESES.map((nome, idx) => {
-                const mesNum = String(idx + 1).padStart(2, '0');
-                return `
-                    <div class="bg-cobalt-950 p-2.5 rounded-xl border border-slate-800">
-                        <label class="block text-xs font-semibold text-cyan-400 mb-1">${nome}</label>
-                        <input type="number" step="0.01" data-mes="${mesNum}" placeholder="R$ 0,00" class="input-sal-mes w-full bg-cobalt-900 border border-slate-700 rounded p-1.5 text-xs text-white outline-none">
-                    </div>
-                `;
-            }).join('');
-        }
-
-        async function salvarSalarioVariavel(e) {
-            e.preventDefault();
-            const descricao = document.getElementById('sal-var-desc').value;
-            const ano = document.getElementById('sal-var-ano').value;
-            const categoria_id = document.getElementById('sal-var-cat').value || null;
-            const inputs = document.querySelectorAll('.input-sal-mes');
-
-            const registros = [];
-            inputs.forEach(inp => {
-                const val = parseFloat(inp.value);
-                if (!isNaN(val) && val > 0) {
-                    const mes = inp.getAttribute('data-mes');
-                    const comp = `${ano}-${mes}`;
-                    registros.push({ tipo: 'receita', descricao: `${descricao} (${NOMES_MESES[parseInt(mes)-1]}/${ano})`, valor: val, data_compra: `${comp}-05`, mes_competencia: comp, categoria_id });
-                }
-            });
-
-            if (registros.length === 0) { alert('Preencha pelo menos um mês.'); return; }
-            const { error } = await db.from('transacoes').insert(registros);
-            if (!error) { inputs.forEach(i => i.value = ''); alert('Salários registrados!'); await carregarDadosBanco(); }
-        }
-
-        async function salvarSalarioFixo(e) {
-            e.preventDefault();
-            const descricao = document.getElementById('sal-fixo-desc').value;
-            const valor = parseFloat(document.getElementById('sal-fixo-valor').value);
-            const inicio = document.getElementById('sal-fixo-inicio').value;
-            const qtd = parseInt(document.getElementById('sal-fixo-qtd').value);
-            const catSalario = state.categorias.find(c => c.nome.toLowerCase().includes('salário') || c.nome.toLowerCase().includes('salario'));
-
-            let [ano, mes] = inicio.split('-').map(Number);
-            const registros = [];
-            for (let i = 0; i < qtd; i++) {
-                const comp = `${ano}-${String(mes).padStart(2, '0')}`;
-                registros.push({ tipo: 'receita', descricao: `${descricao} (${i + 1}/${qtd})`, valor, data_compra: `${comp}-05`, mes_competencia: comp, categoria_id: catSalario ? catSalario.id : null });
-                mes++; if (mes > 12) { mes = 1; ano++; }
-            }
-
-            const { error } = await db.from('transacoes').insert(registros);
-            if (!error) { e.target.reset(); alert('Recebimentos registrados!'); await carregarDadosBanco(); }
-        }
-
         async function salvarTransacao(e) {
             e.preventDefault();
             const tipo = document.getElementById('tx-tipo').value;
@@ -1805,14 +1927,13 @@
         }
 
         // =========================================================================
-        // ATUALIZAÇÃO DO DASHBOARD E LANÇAMENTOS
+        // ATUALIZAÇÃO GERAL
         // =========================================================================
         function formatBRL(val) { return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
 
         function obterTransacoesPeriodo(mesSel, anoSel) {
             const mesNum = parseInt(mesSel);
-            let comps = [];
-            let rotulo = '';
+            let comps = [], rotulo = '';
 
             if (state.periodoDashboard === 'mensal') {
                 comps = [`${anoSel}-${mesSel}`];
@@ -1883,15 +2004,22 @@
 
             atualizarBarraLimite('dash', despesasPer, limitePeriodo);
 
+            // Card Total Investido no Dashboard
+            const { totalInvestido, rendimentoMesTotal } = calcularInvestimentosNoMes(compMensal);
+            document.getElementById('kpi-investimento').innerText = formatBRL(totalInvestido);
+            document.getElementById('sub-kpi-investimento').innerText = `Rendimento mês: +${formatBRL(rendimentoMesTotal)} (clique)`;
+
             const txMesExato = state.transacoes.filter(t => t.mes_competencia === compMensal);
             const despesasMesExato = txMesExato.filter(t => t.tipo === 'despesa');
+            const receitasMesExato = txMesExato.filter(t => t.tipo === 'receita');
+
             renderizarPainelVencimentosDashboard(compMensal, despesasMesExato);
             renderizarRankingCategoriasDashboard(despesasList, boletosPeriodo, despesasPer);
 
             // Aba Lançamentos
             const boletosMesExato = obterBoletosDoMes(compMensal);
             const gastoMesExato = despesasMesExato.reduce((acc, t) => acc + Number(t.valor), 0) + boletosMesExato.reduce((acc, b) => acc + Number(b.valor), 0);
-            const recebidoMesExato = txMesExato.filter(t => t.tipo === 'receita').reduce((acc, t) => acc + Number(t.valor), 0);
+            const recebidoMesExato = receitasMesExato.reduce((acc, t) => acc + Number(t.valor), 0);
             let aReceberPrevistoMes = 0;
             state.previsoes.forEach(p => { if (compMensal >= p.mes_inicio && compMensal <= p.mes_fim) aReceberPrevistoMes += Number(p.valor); });
 
@@ -1902,7 +2030,8 @@
             atualizarBarraLimite('tx', gastoMesExato, obterLimiteDoMes(compMensal));
 
             renderizarTabelaTransacoes(txMesExato);
-            renderizarInvestimentosEPrevisoes(anoSel);
+            renderizarTabelaRecebimentosMes(compMensal, receitasMesExato);
+            renderizarInvestimentosEPrevisoes(compMensal);
             renderizarGraficos(anoSel, txPeriodo, boletosPeriodo);
         }
 
@@ -1981,32 +2110,29 @@
             }).join('');
         }
 
-        function renderizarInvestimentosEPrevisoes(anoSel) {
-            let totalProjetadoDez = 0;
-            const anoAtual = parseInt(anoSel);
-
+        function renderizarInvestimentosEPrevisoes(compMensal) {
             const htmlInv = state.investimentos.map(inv => {
-                const [anoAp, mesAp] = inv.data_aporte.split('-').map(Number);
-                let mesesRendimento = anoAp < anoAtual ? 12 : (anoAp === anoAtual ? Math.max(0, 12 - mesAp) : 0);
-                const montanteFinal = Number(inv.valor_inicial) * Math.pow(1 + Number(inv.taxa_mensal) / 100, mesesRendimento);
-                totalProjetadoDez += montanteFinal;
+                const compAporte = inv.data_aporte.slice(0, 7);
+                const diffMeses = Math.max(0, diferencaMeses(compAporte, compMensal));
+                const principal = Number(inv.valor_inicial);
+                const taxa = Number(inv.taxa_mensal) / 100;
+                const saldoAntesDoMes = principal * Math.pow(1 + taxa, diffMeses);
+                const rendMes = diffMeses === 0 ? 0 : saldoAntesDoMes * taxa;
 
                 return `
                     <div class="bg-cobalt-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center">
                         <div>
                             <p class="font-semibold text-white">${inv.nome}</p>
-                            <p class="text-xs text-slate-400">Inicial: ${formatBRL(Number(inv.valor_inicial))} | ${inv.taxa_mensal}% a.m.</p>
+                            <p class="text-xs text-slate-400">Aplicado: ${formatBRL(principal)} • ${inv.taxa_mensal}% a.m.</p>
                         </div>
                         <div class="text-right">
-                            <p class="text-purple-400 font-bold">${formatBRL(montanteFinal)}</p>
+                            <p class="text-emerald-400 font-bold">+${formatBRL(rendMes)} <span class="text-[10px] font-normal text-slate-400">/mês</span></p>
                             <button onclick="deletarItem('investimentos', '${inv.id}')" class="text-xs text-rose-400">Excluir</button>
                         </div>
                     </div>
                 `;
             }).join('');
 
-            document.getElementById('kpi-investimento').innerText = formatBRL(totalProjetadoDez);
-            document.getElementById('sub-kpi-investimento').innerText = `${state.investimentos.length} ativo(s)`;
             document.getElementById('lista-investimentos').innerHTML = htmlInv || '<p class="text-slate-500">Nenhum investimento cadastrado.</p>';
 
             const htmlPrev = state.previsoes.map(p => `
