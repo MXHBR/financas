@@ -76,9 +76,13 @@
         <header class="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-6">
             <div>
                 <h1 id="page-title" class="text-2xl font-bold text-white">Visão Geral</h1>
-                <p id="page-subtitle" class="text-sm text-slate-400">Acompanhamento financeiro, metas de gastos e projeções</p>
+                <p id="page-subtitle" class="text-sm text-slate-400">Acompanhamento financeiro, vencimentos e projeções</p>
             </div>
             <div class="flex flex-wrap items-center gap-3">
+                <button onclick="abrirModalBoleto()" class="bg-cobalt-900 hover:bg-cobalt-800 border border-amber-400/30 text-amber-300 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition">
+                    <i class="fa-solid fa-barcode"></i> Cadastrar Boleto Programado
+                </button>
+
                 <button onclick="abrirModalLimite()" class="bg-cobalt-900 hover:bg-cobalt-800 border border-cyan-400/30 text-cyan-400 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition">
                     <i class="fa-solid fa-sliders"></i> Definir Limite Mensal
                 </button>
@@ -139,7 +143,7 @@
                     </div>
                 </div>
 
-                <!-- Filtros Secundários do Dashboard (Categoria e Pagamento/Cartão) -->
+                <!-- Filtros Secundários do Dashboard -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-slate-800/80">
                     <div>
                         <label class="block text-[11px] uppercase tracking-wider text-slate-400 mb-1">Filtrar por Categoria</label>
@@ -161,7 +165,7 @@
                 </div>
             </div>
 
-            <!-- GRADE DE CARDS EDITÁVEIS (12 Colunas Responsivas) -->
+            <!-- GRADE DE CARDS EDITÁVEIS -->
             <div id="dashboard-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
                 <!-- CARD 1: Recebimentos -->
@@ -248,8 +252,33 @@
                     <p id="sub-kpi-investimento" class="text-xs text-slate-400 mt-2">0 ativos aplicados</p>
                 </div>
 
-                <!-- CARD 5: Barra de Progresso do Limite de Gastos -->
-                <div data-card-id="card_limite" data-card-title="Barra de Limite de Gastos" class="dash-card card-glass p-5 rounded-2xl relative">
+                <!-- CARD 5: Controle de Cartões & Boletos Programados (Vencimentos e Pagamentos) -->
+                <div data-card-id="card_faturas" data-card-title="Controle de Cartões & Boletos Programados" class="dash-card card-glass p-6 rounded-2xl relative">
+                    <div class="card-edit-toolbar hidden mb-3 pb-2 border-b border-slate-800 flex justify-between items-center text-[11px]">
+                        <div class="flex items-center gap-1">
+                            <span class="text-slate-400 mr-1">Tamanho:</span>
+                            <button onclick="setCardSpan('card_faturas', 1)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">P</button>
+                            <button onclick="setCardSpan('card_faturas', 2)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">M</button>
+                            <button onclick="setCardSpan('card_faturas', 4)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">G</button>
+                        </div>
+                        <button onclick="toggleCardVisibility('card_faturas', false)" class="text-rose-400 hover:text-rose-300"><i class="fa-solid fa-eye-slash"></i> Ocultar</button>
+                    </div>
+                    <div class="flex flex-wrap justify-between items-center gap-2 mb-4">
+                        <div>
+                            <h3 class="text-base font-semibold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-calendar-check text-cyan-400"></i> Cartões & Boletos Programados (<span id="lbl-vencimentos-mes">Mês</span>)
+                            </h3>
+                            <p class="text-xs text-slate-400">Acompanhe datas de vencimento e marque o que já foi pago</p>
+                        </div>
+                        <button onclick="abrirModalBoleto()" class="bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/40 text-amber-300 px-3 py-1.5 rounded-lg text-xs font-semibold transition">
+                            + Novo Boleto
+                        </button>
+                    </div>
+                    <div id="dash-lista-vencimentos" class="space-y-2.5 text-xs"></div>
+                </div>
+
+                <!-- CARD 6: Barra de Progresso do Limite de Gastos -->
+                <div data-card-id="card_limite" data-card-title="Barra de Limite de Gastos" class="dash-card card-glass p-5 rounded-2xl relative flex flex-col justify-between">
                     <div class="card-edit-toolbar hidden mb-3 pb-2 border-b border-slate-800 flex justify-between items-center text-[11px]">
                         <div class="flex items-center gap-1">
                             <span class="text-slate-400 mr-1">Tamanho:</span>
@@ -273,16 +302,16 @@
                             </button>
                         </div>
                     </div>
-                    <div class="w-full h-3.5 bg-cobalt-950 rounded-full overflow-hidden border border-slate-800 p-0.5">
+                    <div class="w-full h-3.5 bg-cobalt-950 rounded-full overflow-hidden border border-slate-800 p-0.5 my-2">
                         <div id="dash-limite-barra" class="h-full rounded-full bg-cyan-400 transition-all duration-500" style="width: 0%"></div>
                     </div>
-                    <div class="flex justify-between text-[11px] text-slate-400 mt-2">
+                    <div class="flex justify-between text-[11px] text-slate-400">
                         <span id="dash-limite-gasto">Gasto: R$ 0,00</span>
                         <span id="dash-limite-restante">Disponível: R$ 0,00</span>
                     </div>
                 </div>
 
-                <!-- CARD 6: Ticket Médio e Maior Despesa -->
+                <!-- CARD 7: Ticket Médio e Maior Despesa -->
                 <div data-card-id="card_estatisticas" data-card-title="Ticket Médio & Maior Gasto" class="dash-card card-glass p-5 rounded-2xl relative">
                     <div class="card-edit-toolbar hidden mb-3 pb-2 border-b border-slate-800 flex justify-between items-center text-[11px]">
                         <div class="flex items-center gap-1">
@@ -309,13 +338,13 @@
                             <p id="stat-total-credito" class="text-sm font-bold text-amber-400 mt-0.5">R$ 0,00</p>
                         </div>
                         <div class="bg-cobalt-950/80 p-3 rounded-xl border border-slate-800/80">
-                            <p class="text-[11px] text-slate-400">Gasto à Vista / Débito</p>
+                            <p class="text-[11px] text-slate-400">À Vista / Boletos</p>
                             <p id="stat-total-vista" class="text-sm font-bold text-emerald-400 mt-0.5">R$ 0,00</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- CARD 7: Gráfico de Linha Anual -->
+                <!-- CARD 8: Gráfico de Linha Anual -->
                 <div data-card-id="chart_linha" data-card-title="Gráfico de Evolução Anual" class="dash-card card-glass p-6 rounded-2xl relative">
                     <div class="card-edit-toolbar hidden mb-3 pb-2 border-b border-slate-800 flex justify-between items-center text-[11px]">
                         <div class="flex items-center gap-1">
@@ -332,7 +361,7 @@
                     </div>
                 </div>
 
-                <!-- CARD 8: Gráfico Pizza Categorias -->
+                <!-- CARD 9: Gráfico Pizza Categorias -->
                 <div data-card-id="chart_cat" data-card-title="Gráfico Gastos por Categoria" class="dash-card card-glass p-6 rounded-2xl relative">
                     <div class="card-edit-toolbar hidden mb-3 pb-2 border-b border-slate-800 flex justify-between items-center text-[11px]">
                         <div class="flex items-center gap-1">
@@ -349,7 +378,7 @@
                     </div>
                 </div>
 
-                <!-- CARD 9: Gráfico Pizza Métodos / Cartões -->
+                <!-- CARD 10: Gráfico Pizza Métodos / Cartões -->
                 <div data-card-id="chart_met" data-card-title="Gráfico Gastos por Cartão / Método" class="dash-card card-glass p-6 rounded-2xl relative">
                     <div class="card-edit-toolbar hidden mb-3 pb-2 border-b border-slate-800 flex justify-between items-center text-[11px]">
                         <div class="flex items-center gap-1">
@@ -364,21 +393,6 @@
                     <div class="h-64 flex justify-center">
                         <canvas id="chart-pizza-metodos"></canvas>
                     </div>
-                </div>
-
-                <!-- CARD 10: Resumo das Faturas por Cartão -->
-                <div data-card-id="card_faturas" data-card-title="Resumo das Faturas por Cartão" class="dash-card card-glass p-6 rounded-2xl relative">
-                    <div class="card-edit-toolbar hidden mb-3 pb-2 border-b border-slate-800 flex justify-between items-center text-[11px]">
-                        <div class="flex items-center gap-1">
-                            <span class="text-slate-400 mr-1">Tamanho:</span>
-                            <button onclick="setCardSpan('card_faturas', 1)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">P</button>
-                            <button onclick="setCardSpan('card_faturas', 2)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">M</button>
-                            <button onclick="setCardSpan('card_faturas', 4)" class="span-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300">G</button>
-                        </div>
-                        <button onclick="toggleCardVisibility('card_faturas', false)" class="text-rose-400 hover:text-rose-300"><i class="fa-solid fa-eye-slash"></i> Ocultar</button>
-                    </div>
-                    <h3 class="text-base font-semibold text-white mb-3"><i class="fa-solid fa-credit-card text-cyan-400 mr-2"></i>Faturas por Cartão no Período</h3>
-                    <div id="dash-lista-faturas" class="space-y-2.5 text-xs"></div>
                 </div>
 
                 <!-- CARD 11: Ranking Top Categorias -->
@@ -410,7 +424,9 @@
                             <p class="text-xs uppercase tracking-wider text-slate-400">Total Gasto no Mês</p>
                             <h2 id="tx-kpi-gasto" class="text-2xl font-bold text-rose-400 mt-1">R$ 0,00</h2>
                         </div>
-                        <span class="w-9 h-9 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center"><i class="fa-solid fa-cart-shopping"></i></span>
+                        <button onclick="abrirModalCategoriasMes()" class="bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/40 text-rose-300 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+                            <i class="fa-solid fa-chart-pie"></i> Por Categoria
+                        </button>
                     </div>
                     <p id="tx-kpi-gasto-sub" class="text-xs text-slate-400 mt-2">Competência selecionada</p>
                 </div>
@@ -443,14 +459,19 @@
             </div>
 
             <!-- Barra de Ação para Novo Lançamento -->
-            <div class="flex justify-between items-center card-glass p-4 rounded-2xl">
+            <div class="flex flex-wrap justify-between items-center gap-3 card-glass p-4 rounded-2xl">
                 <div>
                     <h3 class="text-base font-semibold text-white">Controle de Lançamentos</h3>
                     <p class="text-xs text-slate-400">Compras no cartão antes do fechamento entram no mês atual; após o fechamento entram no mês seguinte.</p>
                 </div>
-                <button onclick="toggleFormLancamento()" id="btn-toggle-form-tx" class="bg-cyan-500 hover:bg-cyan-400 text-cobalt-950 font-bold px-5 py-2.5 rounded-xl text-sm flex items-center gap-2 transition">
-                    <i class="fa-solid fa-plus"></i> Fazer Novo Registro
-                </button>
+                <div class="flex items-center gap-2">
+                    <button onclick="abrirModalBoleto()" class="bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/40 text-amber-300 font-semibold px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 transition">
+                        <i class="fa-solid fa-barcode"></i> Boleto Programado
+                    </button>
+                    <button onclick="toggleFormLancamento()" id="btn-toggle-form-tx" class="bg-cyan-500 hover:bg-cyan-400 text-cobalt-950 font-bold px-5 py-2.5 rounded-xl text-sm flex items-center gap-2 transition">
+                        <i class="fa-solid fa-plus"></i> Fazer Novo Registro
+                    </button>
+                </div>
             </div>
 
             <!-- Formulário Oculto por Padrão -->
@@ -541,7 +562,7 @@
                             <th class="py-3 px-2">Categoria</th>
                             <th class="py-3 px-2">Pagamento / Cartão</th>
                             <th class="py-3 px-2 text-right">Valor</th>
-                            <th class="py-3 px-2 text-center">Ação</th>
+                            <th class="py-3 px-2 text-center">Ações</th>
                         </tr>
                     </thead>
                     <tbody id="lista-transacoes" class="text-sm divide-y divide-slate-800/60"></tbody>
@@ -549,7 +570,7 @@
             </div>
         </section>
 
-        <!-- ABA 3: SALÁRIOS VARIÁVEIS, RECEBÍVEIS & INVESTIMENTOS -->
+        <!-- ABA 3: SALÁRIOS, RECEBÍVEIS & INVESTIMENTOS -->
         <section id="tab-investimentos" class="hidden space-y-6">
             
             <!-- Cadastro de Salário -->
@@ -622,72 +643,31 @@
                 </form>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Cadastro de Investimento -->
-                <div class="card-glass p-6 rounded-2xl">
-                    <h3 class="text-lg font-semibold text-white mb-4">Registrar Investimento (Juros Compostos)</h3>
-                    <form onsubmit="salvarInvestimento(event)" class="space-y-4">
-                        <div>
-                            <label class="block text-xs text-slate-400 mb-1">Ativo / Aplicação</label>
-                            <input type="text" id="inv-nome" required placeholder="Ex: Tesouro Selic, CDB 110%" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs text-slate-400 mb-1">Valor Aportado (R$)</label>
-                                <input type="number" step="0.01" id="inv-valor" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-slate-400 mb-1">Rendimento Mensal (%)</label>
-                                <input type="number" step="0.01" id="inv-taxa" required placeholder="Ex: 0.95" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-xs text-slate-400 mb-1">Data do Aporte</label>
-                            <input type="date" id="inv-data" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
-                        </div>
-                        <button type="submit" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 rounded-lg text-sm transition">
-                            Adicionar Investimento
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Cadastro de Recebíveis Previstos -->
-                <div class="card-glass p-6 rounded-2xl">
-                    <h3 class="text-lg font-semibold text-white mb-4">Previsão de Recebíveis Futuros (Linha Tracejada)</h3>
-                    <form onsubmit="salvarPrevisao(event)" class="space-y-4">
-                        <div>
-                            <label class="block text-xs text-slate-400 mb-1">Descrição da Receita Prevista</label>
-                            <input type="text" id="prev-desc" required placeholder="Ex: Restituição, Bônus, Dividendos..." class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
-                        </div>
-                        <div>
-                            <label class="block text-xs text-slate-400 mb-1">Valor Mensal Previsto (R$)</label>
-                            <input type="number" step="0.01" id="prev-valor" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs text-slate-400 mb-1">Mês Início</label>
-                                <input type="month" id="prev-inicio" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-slate-400 mb-1">Mês Fim</label>
-                                <input type="month" id="prev-fim" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
-                            </div>
-                        </div>
-                        <button type="submit" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2.5 rounded-lg text-sm transition">
-                            Salvar Previsão
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Tabelas de Projeção -->
+            <!-- Botões para Abrir Popups de Investimentos e Previsão de Recebíveis -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="card-glass p-6 rounded-2xl">
-                    <h3 class="text-base font-semibold text-white mb-3">Projeção de Investimentos (Até Dezembro)</h3>
+                    <div class="flex flex-wrap justify-between items-center gap-3 mb-4 pb-3 border-b border-slate-800">
+                        <div>
+                            <h3 class="text-base font-semibold text-white">Investimentos (Projeção até Dez)</h3>
+                            <p class="text-xs text-slate-400">Aportes e juros compostos</p>
+                        </div>
+                        <button onclick="abrirModalInvestimento()" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 transition">
+                            <i class="fa-solid fa-plus"></i> Adicionar Investimento
+                        </button>
+                    </div>
                     <div id="lista-investimentos" class="space-y-3 text-sm"></div>
                 </div>
+
                 <div class="card-glass p-6 rounded-2xl">
-                    <h3 class="text-base font-semibold text-white mb-3">Recebíveis Futuros Programados</h3>
+                    <div class="flex flex-wrap justify-between items-center gap-3 mb-4 pb-3 border-b border-slate-800">
+                        <div>
+                            <h3 class="text-base font-semibold text-white">Recebíveis Futuros Programados</h3>
+                            <p class="text-xs text-slate-400">Linha tracejada no gráfico anual</p>
+                        </div>
+                        <button onclick="abrirModalPrevisao()" class="bg-cyan-500 hover:bg-cyan-400 text-cobalt-950 font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 transition">
+                            <i class="fa-solid fa-plus"></i> Nova Previsão
+                        </button>
+                    </div>
                     <div id="lista-previsoes" class="space-y-3 text-sm"></div>
                 </div>
             </div>
@@ -742,6 +722,192 @@
         </section>
 
     </main>
+
+    <!-- MODAL EDITAR LANÇAMENTO -->
+    <div id="modal-editar-tx" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-cobalt-900 border border-cyan-400/30 rounded-2xl w-full max-w-lg p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-pen-to-square text-cyan-400 mr-2"></i>Editar Lançamento</h3>
+                <button onclick="fecharModalEditarTx()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="salvarEdicaoTransacao(event)" class="space-y-3">
+                <input type="hidden" id="edit-tx-id">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Tipo</label>
+                        <select id="edit-tx-tipo" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                            <option value="despesa">Despesa</option>
+                            <option value="receita">Receita</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Valor (R$)</label>
+                        <input type="number" step="0.01" id="edit-tx-valor" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Descrição</label>
+                    <input type="text" id="edit-tx-descricao" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Data Compra</label>
+                        <input type="date" id="edit-tx-data" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Competência / Fatura</label>
+                        <input type="month" id="edit-tx-competencia" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Categoria</label>
+                        <select id="edit-tx-categoria" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Cartão / Método</label>
+                        <select id="edit-tx-forma" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white"></select>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
+                    <button type="button" onclick="fecharModalEditarTx()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg text-xs">Cancelar</button>
+                    <button type="submit" class="bg-cyan-500 hover:bg-cyan-400 text-cobalt-950 font-bold px-5 py-2 rounded-lg text-xs">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL GASTOS POR CATEGORIA DO MÊS (ABA LANÇAMENTOS) -->
+    <div id="modal-categorias-mes" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-cobalt-900 border border-rose-400/30 rounded-2xl w-full max-w-2xl p-6 space-y-5 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <div>
+                    <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-chart-pie text-rose-400 mr-2"></i>Gastos por Categoria (<span id="modal-cat-mes-titulo">Mês</span>)</h3>
+                    <p class="text-xs text-slate-400">Distribuição detalhada das despesas da competência selecionada</p>
+                </div>
+                <button onclick="fecharModalCategoriasMes()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="h-60 flex justify-center">
+                <canvas id="chart-modal-cat-mes"></canvas>
+            </div>
+            <div id="lista-modal-cat-mes" class="space-y-2.5 text-xs"></div>
+        </div>
+    </div>
+
+    <!-- MODAL INVESTIMENTO (POPUP) -->
+    <div id="modal-investimento" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-cobalt-900 border border-purple-400/30 rounded-2xl w-full max-w-md p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-gem text-purple-400 mr-2"></i>Novo Investimento</h3>
+                <button onclick="fecharModalInvestimento()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="salvarInvestimento(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Ativo / Aplicação</label>
+                    <input type="text" id="inv-nome" required placeholder="Ex: Tesouro Selic, CDB 110%" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Valor Aportado (R$)</label>
+                        <input type="number" step="0.01" id="inv-valor" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Rendimento Mensal (%)</label>
+                        <input type="number" step="0.01" id="inv-taxa" required placeholder="Ex: 0.95" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Data do Aporte</label>
+                    <input type="date" id="inv-data" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="fecharModalInvestimento()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg text-xs">Cancelar</button>
+                    <button type="submit" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-5 py-2 rounded-lg text-xs">Salvar Investimento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL PREVISÃO DE RECEBÍVEIS (POPUP) -->
+    <div id="modal-previsao" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-cobalt-900 border border-cyan-400/30 rounded-2xl w-full max-w-md p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-calendar-plus text-cyan-400 mr-2"></i>Previsão de Recebíveis</h3>
+                <button onclick="fecharModalPrevisao()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="salvarPrevisao(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Descrição da Receita Prevista</label>
+                    <input type="text" id="prev-desc" required placeholder="Ex: Restituição, Bônus, Dividendos..." class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Valor Mensal Previsto (R$)</label>
+                    <input type="number" step="0.01" id="prev-valor" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Mês Início</label>
+                        <input type="month" id="prev-inicio" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Mês Fim</label>
+                        <input type="month" id="prev-fim" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="fecharModalPrevisao()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg text-xs">Cancelar</button>
+                    <button type="submit" class="bg-cyan-500 hover:bg-cyan-400 text-cobalt-950 font-bold px-5 py-2 rounded-lg text-xs">Salvar Previsão</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL CADASTRAR BOLETO PROGRAMADO -->
+    <div id="modal-boleto" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-cobalt-900 border border-amber-400/30 rounded-2xl w-full max-w-md p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <div>
+                    <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-barcode text-amber-400 mr-2"></i>Cadastrar Boleto Programado</h3>
+                    <p class="text-xs text-slate-400">Aparecerá todos os meses no Dashboard até ser quitado</p>
+                </div>
+                <button onclick="fecharModalBoleto()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="salvarBoletoProgramado(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Descrição do Boleto / Conta</label>
+                    <input type="text" id="bol-descricao" required placeholder="Ex: Internet Fibra, Aluguel, Faculdade..." class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Valor Mensal (R$)</label>
+                        <input type="number" step="0.01" id="bol-valor" required placeholder="0.00" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Dia de Vencimento</label>
+                        <input type="number" min="1" max="31" id="bol-vencimento" required placeholder="Ex: 10" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Mês Inicial</label>
+                        <input type="month" id="bol-inicio" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Categoria</label>
+                        <select id="bol-categoria" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white"></select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Duração (Opcional)</label>
+                    <input type="number" min="1" max="120" id="bol-parcelas" placeholder="Deixe vazio para repetir todo mês até quitar" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="fecharModalBoleto()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg text-xs">Cancelar</button>
+                    <button type="submit" class="bg-amber-400 hover:bg-amber-300 text-cobalt-950 font-bold px-5 py-2 rounded-lg text-xs">Salvar Boleto</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- MODAL DEFINIR LIMITE MENSAL DE GASTOS -->
     <div id="modal-limite" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
@@ -837,22 +1003,20 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_DDzBAkJlt7nRH6TyBMp5_A_FJZBwOlC';
         const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Layout Padrão dos Cards do Dashboard (colSpan: 1, 2 ou 4)
         const DEFAULT_LAYOUT = {
             kpi_receitas: { span: 1, hidden: false },
             kpi_despesas: { span: 1, hidden: false },
             kpi_saldo: { span: 1, hidden: false },
             kpi_investimento: { span: 1, hidden: false },
+            card_faturas: { span: 2, hidden: false },
             card_limite: { span: 2, hidden: false },
-            card_estatisticas: { span: 2, hidden: false },
+            card_estatisticas: { span: 4, hidden: false },
             chart_linha: { span: 4, hidden: false },
             chart_cat: { span: 2, hidden: false },
             chart_met: { span: 2, hidden: false },
-            card_faturas: { span: 2, hidden: false },
-            card_ranking: { span: 2, hidden: false }
+            card_ranking: { span: 4, hidden: false }
         };
 
-        // Estado Global
         let state = {
             categorias: [],
             metodos: [],
@@ -860,6 +1024,8 @@
             transacoes: [],
             investimentos: [],
             previsoes: [],
+            boletos: [],
+            faturasPagas: JSON.parse(localStorage.getItem('fp_faturas_pagas') || '{}'),
             limitesMensais: JSON.parse(localStorage.getItem('fp_limites_mensais') || '{}'),
             limitePadrao: parseFloat(localStorage.getItem('fp_limite_padrao') || '0'),
             layout: JSON.parse(localStorage.getItem('fp_dash_layout') || 'null') || JSON.parse(JSON.stringify(DEFAULT_LAYOUT)),
@@ -867,7 +1033,7 @@
             periodoDashboard: 'mensal'
         };
 
-        let charts = { linha: null, pizzaCat: null, pizzaMet: null, comparativo: null };
+        let charts = { linha: null, pizzaCat: null, pizzaMet: null, comparativo: null, modalCatMes: null };
         const NOMES_MESES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
         // Inicialização
@@ -882,6 +1048,7 @@
             document.getElementById('sal-fixo-inicio').value = `${anoAtualStr}-${mesAtualStr}`;
             document.getElementById('tx-data').valueAsDate = hoje;
             document.getElementById('inv-data').valueAsDate = hoje;
+            document.getElementById('bol-inicio').value = `${anoAtualStr}-${mesAtualStr}`;
 
             const mesAnt = hoje.getMonth() === 0 ? 12 : hoje.getMonth();
             const anoAnt = hoje.getMonth() === 0 ? hoje.getFullYear() - 1 : hoje.getFullYear();
@@ -916,17 +1083,28 @@
                 state.investimentos = inv.data || [];
                 state.previsoes = prev.data || [];
 
-                // Tenta carregar limites sincronizados no Supabase caso a tabela exista
+                // Carrega boletos programados e pagamentos de faturas do Supabase (se tabelas existirem)
+                const bolRes = await db.from('boletos_programados').select('*').order('dia_vencimento');
+                if (!bolRes.error && bolRes.data) {
+                    state.boletos = bolRes.data;
+                } else {
+                    state.boletos = JSON.parse(localStorage.getItem('fp_boletos_local') || '[]');
+                }
+
+                const fatRes = await db.from('pagamentos_faturas').select('*');
+                if (!fatRes.error && fatRes.data) {
+                    fatRes.data.forEach(f => { state.faturasPagas[f.chave] = f.pago; });
+                    localStorage.setItem('fp_faturas_pagas', JSON.stringify(state.faturasPagas));
+                }
+
                 const limRes = await db.from('limites_mensais').select('*');
                 if (!limRes.error && limRes.data) {
-                    limRes.data.forEach(item => {
-                        state.limitesMensais[item.mes_competencia] = Number(item.valor_limite);
-                    });
+                    limRes.data.forEach(item => { state.limitesMensais[item.mes_competencia] = Number(item.valor_limite); });
                     localStorage.setItem('fp_limites_mensais', JSON.stringify(state.limitesMensais));
                 }
 
                 document.getElementById('status-conexao').innerHTML = '<i class="fa-solid fa-circle text-emerald-400 mr-1"></i> Supabase Conectado';
-                document.getElementById('resumo-vinculos').innerText = `${state.cartoes.length} cartão(ões) | ${state.categorias.length} categorias`;
+                document.getElementById('resumo-vinculos').innerText = `${state.cartoes.length} cartão(ões) | ${state.boletos.filter(b => !b.quitado).length} boleto(s)`;
                 
                 popularSelects();
                 atualizarTudo();
@@ -948,7 +1126,379 @@
         }
 
         // =========================================================================
-        // 2. PERSONALIZAÇÃO DE TAMANHO E OCULTAÇÃO DE CARDS NO DASHBOARD
+        // 2. BOLETOS PROGRAMADOS E CONTROLE DE PAGAMENTO DE CARTÕES
+        // =========================================================================
+        function abrirModalBoleto() {
+            popularSelects();
+            const mesSel = document.getElementById('filtro-mes').value;
+            const anoSel = document.getElementById('filtro-ano').value;
+            document.getElementById('bol-inicio').value = `${anoSel}-${mesSel}`;
+            document.getElementById('modal-boleto').classList.remove('hidden');
+        }
+
+        function fecharModalBoleto() {
+            document.getElementById('modal-boleto').classList.add('hidden');
+        }
+
+        async function salvarBoletoProgramado(e) {
+            e.preventDefault();
+            const descricao = document.getElementById('bol-descricao').value.trim();
+            const valor = parseFloat(document.getElementById('bol-valor').value);
+            const dia_vencimento = parseInt(document.getElementById('bol-vencimento').value);
+            const mes_inicio = document.getElementById('bol-inicio').value;
+            const categoria_id = document.getElementById('bol-categoria').value || null;
+            const parcelasRaw = document.getElementById('bol-parcelas').value;
+            const total_parcelas = parcelasRaw ? parseInt(parcelasRaw) : null;
+
+            const novoBoleto = {
+                descricao,
+                valor,
+                dia_vencimento,
+                mes_inicio,
+                total_parcelas,
+                categoria_id,
+                quitado: false,
+                meses_pagos: []
+            };
+
+            const { data, error } = await db.from('boletos_programados').insert([novoBoleto]).select();
+            if (!error && data) {
+                e.target.reset();
+                fecharModalBoleto();
+                await carregarDadosBanco();
+            } else {
+                // Fallback local caso tabela SQL ainda não tenha sido criada
+                novoBoleto.id = 'local_' + Date.now();
+                state.boletos.push(novoBoleto);
+                localStorage.setItem('fp_boletos_local', JSON.stringify(state.boletos));
+                e.target.reset();
+                fecharModalBoleto();
+                atualizarTudo();
+            }
+        }
+
+        function diferencaMeses(compInicio, compAlvo) {
+            const [a1, m1] = compInicio.split('-').map(Number);
+            const [a2, m2] = compAlvo.split('-').map(Number);
+            return (a2 - a1) * 12 + (m2 - m1);
+        }
+
+        function obterBoletosDoMes(comp) {
+            return state.boletos.filter(b => {
+                if (b.quitado) return false;
+                const diff = diferencaMeses(b.mes_inicio, comp);
+                if (diff < 0) return false;
+                if (b.total_parcelas && diff >= b.total_parcelas) return false;
+                return true;
+            });
+        }
+
+        async function togglePagamentoBoletoMes(boletoId, comp) {
+            const bol = state.boletos.find(b => String(b.id) === String(boletoId));
+            if (!bol) return;
+
+            let pagos = Array.isArray(bol.meses_pagos) ? [...bol.meses_pagos] : [];
+            const jaPago = pagos.includes(comp);
+
+            if (jaPago) {
+                pagos = pagos.filter(m => m !== comp);
+            } else {
+                pagos.push(comp);
+            }
+
+            bol.meses_pagos = pagos;
+
+            // Se tiver total_parcelas definido e todas já foram pagas, marca como quitado
+            if (bol.total_parcelas && pagos.length >= bol.total_parcelas) {
+                bol.quitado = true;
+            }
+
+            if (String(boletoId).startsWith('local_')) {
+                localStorage.setItem('fp_boletos_local', JSON.stringify(state.boletos));
+            } else {
+                await db.from('boletos_programados')
+                    .update({ meses_pagos: pagos, quitado: bol.quitado })
+                    .eq('id', boletoId);
+            }
+
+            atualizarTudo();
+        }
+
+        async function quitarBoletoDefinitivo(boletoId) {
+            if (!confirm('Marcar este boleto programado como totalmente QUITADO? Ele deixará de aparecer nos próximos meses.')) return;
+            const bol = state.boletos.find(b => String(b.id) === String(boletoId));
+            if (!bol) return;
+
+            bol.quitado = true;
+            if (String(boletoId).startsWith('local_')) {
+                localStorage.setItem('fp_boletos_local', JSON.stringify(state.boletos));
+            } else {
+                await db.from('boletos_programados').update({ quitado: true }).eq('id', boletoId);
+            }
+            atualizarTudo();
+        }
+
+        async function togglePagamentoFaturaCartao(cartaoId, comp) {
+            const chave = `${cartaoId}_${comp}`;
+            const novoStatus = !state.faturasPagas[chave];
+            state.faturasPagas[chave] = novoStatus;
+            localStorage.setItem('fp_faturas_pagas', JSON.stringify(state.faturasPagas));
+
+            try {
+                await db.from('pagamentos_faturas').upsert([{ chave, pago: novoStatus }]);
+            } catch (_) {}
+
+            atualizarTudo();
+        }
+
+        function renderizarPainelVencimentosDashboard(compMensal, despesasMes) {
+            const container = document.getElementById('dash-lista-vencimentos');
+            const [ano, mes] = compMensal.split('-');
+            document.getElementById('lbl-vencimentos-mes').innerText = `${NOMES_MESES[parseInt(mes)-1]}/${ano}`;
+
+            let itensHtml = '';
+
+            // 1. Cartões de Crédito no Mês
+            state.cartoes.forEach(c => {
+                const valorFatura = despesasMes
+                    .filter(d => String(d.cartao_id) === String(c.id))
+                    .reduce((acc, d) => acc + Number(d.valor), 0);
+
+                const chave = `${c.id}_${compMensal}`;
+                const pago = !!state.faturasPagas[chave];
+                const diaVenc = String(c.dia_vencimento).padStart(2, '0');
+
+                itensHtml += `
+                    <div class="flex flex-wrap justify-between items-center gap-2 bg-cobalt-950/90 p-3 rounded-xl border ${pago ? 'border-emerald-500/30 opacity-80' : 'border-slate-800'}">
+                        <div class="flex items-center gap-3">
+                            <button onclick="togglePagamentoFaturaCartao('${c.id}', '${compMensal}')" title="Marcar como Pago/Pendente" class="w-6 h-6 rounded-lg border flex items-center justify-center transition ${pago ? 'bg-emerald-500 border-emerald-400 text-cobalt-950' : 'border-slate-600 text-transparent hover:border-cyan-400'}">
+                                <i class="fa-solid fa-check text-xs"></i>
+                            </button>
+                            <div>
+                                <p class="font-semibold text-white flex items-center gap-2">
+                                    💳 ${c.apelido}
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${pago ? 'bg-emerald-500/15 text-emerald-400' : 'bg-amber-500/15 text-amber-300'}">
+                                        ${pago ? 'PAGO' : 'PENDENTE'}
+                                    </span>
+                                </p>
+                                <p class="text-[11px] text-slate-400">Vencimento: <strong class="text-cyan-400">${diaVenc}/${mes}/${ano}</strong> (Fecha dia ${c.dia_fechamento})</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-bold text-sm ${pago ? 'text-emerald-400 line-through' : 'text-white'}">${formatBRL(valorFatura)}</p>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // 2. Boletos Programados Ativos no Mês
+            const boletosMes = obterBoletosDoMes(compMensal);
+            boletosMes.forEach(b => {
+                const pago = Array.isArray(b.meses_pagos) && b.meses_pagos.includes(compMensal);
+                const diaVenc = String(b.dia_vencimento).padStart(2, '0');
+                const diff = diferencaMeses(b.mes_inicio, compMensal);
+                const badgeParc = b.total_parcelas ? ` (${diff + 1}/${b.total_parcelas})` : ' (Recorrente)';
+
+                itensHtml += `
+                    <div class="flex flex-wrap justify-between items-center gap-2 bg-cobalt-950/90 p-3 rounded-xl border ${pago ? 'border-emerald-500/30 opacity-80' : 'border-amber-500/20'}">
+                        <div class="flex items-center gap-3">
+                            <button onclick="togglePagamentoBoletoMes('${b.id}', '${compMensal}')" title="Marcar parcela do mês como Paga" class="w-6 h-6 rounded-lg border flex items-center justify-center transition ${pago ? 'bg-emerald-500 border-emerald-400 text-cobalt-950' : 'border-slate-600 text-transparent hover:border-amber-400'}">
+                                <i class="fa-solid fa-check text-xs"></i>
+                            </button>
+                            <div>
+                                <p class="font-semibold text-white flex items-center gap-2">
+                                    🧾 ${b.descricao}<span class="text-slate-400 font-normal">${badgeParc}</span>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${pago ? 'bg-emerald-500/15 text-emerald-400' : 'bg-rose-500/15 text-rose-300'}">
+                                        ${pago ? 'PAGO' : 'A PAGAR'}
+                                    </span>
+                                </p>
+                                <p class="text-[11px] text-slate-400">Vencimento: <strong class="text-amber-300">${diaVenc}/${mes}/${ano}</strong></p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <p class="font-bold text-sm ${pago ? 'text-emerald-400 line-through' : 'text-amber-300'}">${formatBRL(Number(b.valor))}</p>
+                            <button onclick="quitarBoletoDefinitivo('${b.id}')" title="Quitar boleto definitivamente" class="text-[11px] bg-slate-800 hover:bg-emerald-600 hover:text-white text-slate-300 px-2 py-1 rounded transition">
+                                Quitar
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            if (!itensHtml) {
+                container.innerHTML = '<p class="text-slate-500 py-3">Nenhum cartão ou boleto programado para este mês.</p>';
+            } else {
+                container.innerHTML = itensHtml;
+            }
+        }
+
+        // =========================================================================
+        // 3. EDIÇÃO DE LANÇAMENTOS & POPUP DE CATEGORIAS DO MÊS
+        // =========================================================================
+        function abrirModalEditarTx(id) {
+            const tx = state.transacoes.find(t => String(t.id) === String(id));
+            if (!tx) return;
+
+            popularSelects();
+            document.getElementById('edit-tx-id').value = tx.id;
+            document.getElementById('edit-tx-tipo').value = tx.tipo;
+            document.getElementById('edit-tx-valor').value = tx.valor;
+            document.getElementById('edit-tx-descricao').value = tx.descricao;
+            document.getElementById('edit-tx-data').value = tx.data_compra;
+            document.getElementById('edit-tx-competencia').value = tx.mes_competencia;
+            document.getElementById('edit-tx-categoria').value = tx.categoria_id || '';
+
+            if (tx.cartao_id) {
+                document.getElementById('edit-tx-forma').value = `cartao_${tx.cartao_id}`;
+            } else if (tx.metodo_id) {
+                document.getElementById('edit-tx-forma').value = `metodo_${tx.metodo_id}`;
+            } else {
+                document.getElementById('edit-tx-forma').value = '';
+            }
+
+            document.getElementById('modal-editar-tx').classList.remove('hidden');
+        }
+
+        function fecharModalEditarTx() {
+            document.getElementById('modal-editar-tx').classList.add('hidden');
+        }
+
+        async function salvarEdicaoTransacao(e) {
+            e.preventDefault();
+            const id = document.getElementById('edit-tx-id').value;
+            const tipo = document.getElementById('edit-tx-tipo').value;
+            const valor = parseFloat(document.getElementById('edit-tx-valor').value);
+            const descricao = document.getElementById('edit-tx-descricao').value.trim();
+            const data_compra = document.getElementById('edit-tx-data').value;
+            const mes_competencia = document.getElementById('edit-tx-competencia').value;
+            const categoria_id = document.getElementById('edit-tx-categoria').value || null;
+            const formaVal = document.getElementById('edit-tx-forma').value || '';
+
+            let cartao_id = null;
+            let metodo_id = null;
+            if (tipo === 'despesa' && formaVal) {
+                if (formaVal.startsWith('cartao_')) cartao_id = formaVal.replace('cartao_', '');
+                else if (formaVal.startsWith('metodo_')) metodo_id = formaVal.replace('metodo_', '');
+            }
+
+            const { error } = await db.from('transacoes')
+                .update({ tipo, valor, descricao, data_compra, mes_competencia, categoria_id, cartao_id, metodo_id })
+                .eq('id', id);
+
+            if (error) {
+                alert('Erro ao atualizar lançamento: ' + error.message);
+                return;
+            }
+
+            fecharModalEditarTx();
+            await carregarDadosBanco();
+        }
+
+        function abrirModalCategoriasMes() {
+            const mesSel = document.getElementById('filtro-mes').value;
+            const anoSel = document.getElementById('filtro-ano').value;
+            const comp = `${anoSel}-${mesSel}`;
+
+            document.getElementById('modal-cat-mes-titulo').innerText = `${NOMES_MESES[parseInt(mesSel)-1]}/${anoSel}`;
+            const despesasMes = state.transacoes.filter(t => t.tipo === 'despesa' && t.mes_competencia === comp);
+            const boletosMes = obterBoletosDoMes(comp);
+
+            const mapa = {};
+            let totalGeral = 0;
+
+            despesasMes.forEach(d => {
+                const cat = state.categorias.find(c => String(c.id) === String(d.categoria_id));
+                const nome = cat ? cat.nome : 'Sem Categoria';
+                const cor = cat ? cat.cor : '#64748b';
+                if (!mapa[nome]) mapa[nome] = { nome, cor, valor: 0 };
+                mapa[nome].valor += Number(d.valor);
+                totalGeral += Number(d.valor);
+            });
+
+            boletosMes.forEach(b => {
+                const cat = state.categorias.find(c => String(c.id) === String(b.categoria_id));
+                const nome = cat ? cat.nome : 'Boletos Programados';
+                const cor = cat ? cat.cor : '#f59e0b';
+                if (!mapa[nome]) mapa[nome] = { nome, cor, valor: 0 };
+                mapa[nome].valor += Number(b.valor);
+                totalGeral += Number(b.valor);
+            });
+
+            const listaOrdenada = Object.values(mapa).sort((a, b) => b.valor - a.valor);
+
+            if (charts.modalCatMes) charts.modalCatMes.destroy();
+            charts.modalCatMes = new Chart(document.getElementById('chart-modal-cat-mes'), {
+                type: 'doughnut',
+                data: {
+                    labels: listaOrdenada.map(i => i.nome),
+                    datasets: [{
+                        data: listaOrdenada.map(i => i.valor),
+                        backgroundColor: listaOrdenada.map(i => i.cor),
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'right', labels: { color: '#cbd5e1' } } }
+                }
+            });
+
+            const container = document.getElementById('lista-modal-cat-mes');
+            if (listaOrdenada.length === 0) {
+                container.innerHTML = '<p class="text-slate-400 text-center py-4">Nenhum gasto registrado neste mês.</p>';
+            } else {
+                container.innerHTML = listaOrdenada.map(item => {
+                    const perc = totalGeral > 0 ? ((item.valor / totalGeral) * 100).toFixed(1) : '0.0';
+                    return `
+                        <div class="bg-cobalt-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                            <div class="flex justify-between items-center">
+                                <span class="font-semibold text-white flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full" style="background:${item.cor}"></span>${item.nome}
+                                </span>
+                                <span class="font-bold text-slate-200">${formatBRL(item.valor)} <span class="text-cyan-400">(${perc}%)</span></span>
+                            </div>
+                            <div class="w-full h-1.5 bg-cobalt-900 rounded-full overflow-hidden">
+                                <div class="h-full rounded-full" style="width:${perc}%; background:${item.cor}"></div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            document.getElementById('modal-categorias-mes').classList.remove('hidden');
+        }
+
+        function fecharModalCategoriasMes() {
+            document.getElementById('modal-categorias-mes').classList.add('hidden');
+        }
+
+        // =========================================================================
+        // 4. POPUPS DE INVESTIMENTOS E PREVISÃO DE RECEBÍVEIS
+        // =========================================================================
+        function abrirModalInvestimento() {
+            document.getElementById('inv-data').valueAsDate = new Date();
+            document.getElementById('modal-investimento').classList.remove('hidden');
+        }
+
+        function fecharModalInvestimento() {
+            document.getElementById('modal-investimento').classList.add('hidden');
+        }
+
+        function abrirModalPrevisao() {
+            const mesSel = document.getElementById('filtro-mes').value;
+            const anoSel = document.getElementById('filtro-ano').value;
+            document.getElementById('prev-inicio').value = `${anoSel}-${mesSel}`;
+            document.getElementById('prev-fim').value = `${anoSel}-12`;
+            document.getElementById('modal-previsao').classList.remove('hidden');
+        }
+
+        function fecharModalPrevisao() {
+            document.getElementById('modal-previsao').classList.add('hidden');
+        }
+
+        // =========================================================================
+        // 5. PERSONALIZAÇÃO DE TAMANHO E OCULTAÇÃO DE CARDS NO DASHBOARD
         // =========================================================================
         function toggleModoEdicaoDashboard() {
             state.editMode = !state.editMode;
@@ -1016,7 +1566,6 @@
                     card.classList.add('md:col-span-1', 'lg:col-span-1');
                 }
 
-                // Destaca botão de tamanho ativo na barra de edição
                 const btns = card.querySelectorAll('.span-btn');
                 btns.forEach((b, idx) => {
                     const mapa = [1, 2, 4];
@@ -1038,13 +1587,9 @@
             });
 
             const btnOcultos = document.getElementById('btn-cards-ocultos');
-            const badgeOcultos = document.getElementById('count-cards-ocultos');
-            badgeOcultos.innerText = ocultosCount;
-            if (ocultosCount > 0) {
-                btnOcultos.classList.remove('hidden');
-            } else {
-                btnOcultos.classList.add('hidden');
-            }
+            document.getElementById('count-cards-ocultos').innerText = ocultosCount;
+            if (ocultosCount > 0) btnOcultos.classList.remove('hidden');
+            else btnOcultos.classList.add('hidden');
         }
 
         function abrirModalOcultos() {
@@ -1076,7 +1621,7 @@
         }
 
         // =========================================================================
-        // 3. LIMITE DE GASTOS MENSAL E BARRA DE PROGRESSO
+        // 6. LIMITE DE GASTOS MENSAL E BARRA DE PROGRESSO
         // =========================================================================
         function abrirModalLimite() {
             const mesSel = document.getElementById('filtro-mes').value;
@@ -1114,7 +1659,6 @@
                 localStorage.setItem('fp_limite_padrao', String(valor));
             }
 
-            // Sincroniza silenciosamente com Supabase se a tabela existir
             try {
                 await db.from('limites_mensais').upsert([{ mes_competencia: comp, valor_limite: valor }]);
             } catch (_) {}
@@ -1185,7 +1729,7 @@
         }
 
         // =========================================================================
-        // 4. REGRA DE FECHAMENTO DO CARTÃO & FORMULÁRIO DE LANÇAMENTOS
+        // 7. REGRA DE FECHAMENTO DO CARTÃO & FORMULÁRIO DE LANÇAMENTOS
         // =========================================================================
         function calcularMesCompetencia(dataCompraStr, cartao) {
             const [anoStr, mesStr, diaStr] = dataCompraStr.split('-');
@@ -1193,11 +1737,8 @@
             let mes = parseInt(mesStr);
             const dia = parseInt(diaStr);
 
-            if (cartao) {
-                // Antes do fechamento -> mês da compra; após o fechamento -> mês seguinte
-                if (dia > cartao.dia_fechamento) {
-                    mes += 1;
-                }
+            if (cartao && dia > cartao.dia_fechamento) {
+                mes += 1;
             }
 
             while (mes > 12) {
@@ -1243,11 +1784,8 @@
         function toggleParcelamento() {
             const isParcelado = document.getElementById('tx-parcelado').checked;
             const campos = document.getElementById('campos-parcelas');
-            if (isParcelado) {
-                campos.classList.remove('hidden');
-            } else {
-                campos.classList.add('hidden');
-            }
+            if (isParcelado) campos.classList.remove('hidden');
+            else campos.classList.add('hidden');
             atualizarPreviewParcelas();
         }
 
@@ -1324,7 +1862,9 @@
                 document.getElementById('tx-categoria').value = catAtual;
             }
 
-            // Filtro de Categoria no Dashboard
+            document.getElementById('edit-tx-categoria').innerHTML = '<option value="">Sem Categoria</option>' + optionsCat;
+            document.getElementById('bol-categoria').innerHTML = '<option value="">Sem Categoria</option>' + optionsCat;
+
             const selDashCat = document.getElementById('dash-filtro-categoria');
             selDashCat.innerHTML = '<option value="todas">Todas as Categorias</option>' +
                 state.categorias.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
@@ -1359,7 +1899,8 @@
                 selForma.value = formaAtual;
             }
 
-            // Filtro de Cartão/Método no Dashboard
+            document.getElementById('edit-tx-forma').innerHTML = '<option value="">Nenhum / Recebimento</option>' + htmlForma;
+
             const selDashForma = document.getElementById('dash-filtro-forma');
             selDashForma.innerHTML = '<option value="todas">Todos os Cartões e Métodos</option>' +
                 '<option value="somente_credito">💳 Apenas Cartões de Crédito</option>' +
@@ -1396,7 +1937,7 @@
         }
 
         // =========================================================================
-        // 5. SALÁRIOS, TRANSAÇÕES E CADASTROS
+        // 8. SALÁRIOS, TRANSAÇÕES E CADASTROS
         // =========================================================================
         function setModoSalario(modo) {
             const formVar = document.getElementById('form-salario-variavel');
@@ -1651,6 +2192,7 @@
                 return;
             }
             e.target.reset();
+            fecharModalInvestimento();
             await carregarDadosBanco();
         }
 
@@ -1666,6 +2208,7 @@
                 return;
             }
             e.target.reset();
+            fecharModalPrevisao();
             await carregarDadosBanco();
         }
 
@@ -1680,7 +2223,7 @@
         }
 
         // =========================================================================
-        // 6. ATUALIZAÇÃO DO DASHBOARD, FILTROS E ABA LANÇAMENTOS
+        // 9. ATUALIZAÇÃO DO DASHBOARD, FILTROS E ABA LANÇAMENTOS
         // =========================================================================
         function formatBRL(val) {
             return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -1707,7 +2250,6 @@
                 rotulo = `Ano ${anoSel}`;
             }
 
-            // Aplica filtros extras do Dashboard
             const filtroCat = document.getElementById('dash-filtro-categoria').value;
             const filtroForma = document.getElementById('dash-filtro-forma').value;
 
@@ -1719,7 +2261,7 @@
                 }
 
                 if (filtroForma !== 'todas') {
-                    if (t.tipo === 'receita') return false; // Filtro de cartão/pagamento aplica-se às despesas
+                    if (t.tipo === 'receita') return false;
                     if (filtroForma === 'somente_credito' && !t.cartao_id) return false;
                     if (filtroForma === 'somente_vista' && !t.metodo_id) return false;
                     if (filtroForma.startsWith('cartao_') && String(t.cartao_id) !== filtroForma.replace('cartao_', '')) return false;
@@ -1729,9 +2271,11 @@
                 return true;
             });
 
-            // Soma limites e recebíveis previstos das competências do período
+            // Soma limites, recebíveis previstos e boletos programados do período
             let limitePeriodo = 0;
             let previstosPeriodo = 0;
+            let boletosPeriodo = [];
+
             comps.forEach(c => {
                 limitePeriodo += obterLimiteDoMes(c);
                 state.previsoes.forEach(p => {
@@ -1739,9 +2283,15 @@
                         previstosPeriodo += Number(p.valor);
                     }
                 });
+                const bols = obterBoletosDoMes(c).filter(b => {
+                    if (filtroCat !== 'todas' && String(b.categoria_id) !== String(filtroCat)) return false;
+                    if (filtroForma !== 'todas' && filtroForma !== 'somente_vista') return false;
+                    return true;
+                });
+                boletosPeriodo = boletosPeriodo.concat(bols);
             });
 
-            return { lista: listaFiltrada, rotulo, limitePeriodo, previstosPeriodo, comps };
+            return { lista: listaFiltrada, rotulo, limitePeriodo, previstosPeriodo, boletosPeriodo, comps };
         }
 
         function atualizarTudo() {
@@ -1750,7 +2300,7 @@
             const compMensal = `${anoSel}-${mesSel}`;
             document.getElementById('label-ano-grafico').innerText = anoSel;
 
-            const { lista: txPeriodo, rotulo, limitePeriodo, previstosPeriodo } = obterTransacoesPeriodo(mesSel, anoSel);
+            const { lista: txPeriodo, rotulo, limitePeriodo, previstosPeriodo, boletosPeriodo } = obterTransacoesPeriodo(mesSel, anoSel);
             document.getElementById('badge-periodo-ativo').innerText = `Exibindo: ${rotulo}`;
             document.getElementById('lbl-kpi-receitas').innerText = `Recebimentos (${rotulo})`;
             document.getElementById('lbl-kpi-despesas').innerText = `Gastos (${rotulo})`;
@@ -1759,26 +2309,26 @@
 
             const receitasPer = txPeriodo.filter(t => t.tipo === 'receita').reduce((acc, t) => acc + Number(t.valor), 0);
             const despesasList = txPeriodo.filter(t => t.tipo === 'despesa');
-            const despesasPer = despesasList.reduce((acc, t) => acc + Number(t.valor), 0);
+            const totalBoletosPer = boletosPeriodo.reduce((acc, b) => acc + Number(b.valor), 0);
+            const despesasPer = despesasList.reduce((acc, t) => acc + Number(t.valor), 0) + totalBoletosPer;
             const saldoPer = receitasPer - despesasPer;
             const taxaPoupanca = receitasPer > 0 ? ((saldoPer / receitasPer) * 100).toFixed(1) : '0.0';
 
             document.getElementById('kpi-receitas').innerText = formatBRL(receitasPer);
             document.getElementById('sub-kpi-receitas').innerText = `+ ${formatBRL(previstosPeriodo)} previstos`;
             document.getElementById('kpi-despesas').innerText = formatBRL(despesasPer);
-            document.getElementById('sub-kpi-despesas').innerText = `${despesasList.length} lançamento(s) de gasto`;
+            document.getElementById('sub-kpi-despesas').innerText = `${despesasList.length} gasto(s) + ${boletosPeriodo.length} boleto(s)`;
             document.getElementById('kpi-saldo').innerText = formatBRL(saldoPer);
             document.getElementById('kpi-saldo').className = `text-2xl font-bold mt-1 ${saldoPer >= 0 ? 'text-cyan-400' : 'text-rose-400'}`;
             document.getElementById('sub-kpi-saldo').innerText = `Taxa de economia: ${taxaPoupanca}%`;
 
-            // Barra de limite no Dashboard
             atualizarBarraLimite('dash', despesasPer, limitePeriodo, rotulo);
 
-            // Estatísticas de consumo no Dashboard
-            const ticketMedio = despesasList.length > 0 ? despesasPer / despesasList.length : 0;
+            const qtdItensConsumo = despesasList.length + boletosPeriodo.length;
+            const ticketMedio = qtdItensConsumo > 0 ? despesasPer / qtdItensConsumo : 0;
             let maiorGastoObj = null;
             let totalCredito = 0;
-            let totalVista = 0;
+            let totalVista = totalBoletosPer;
 
             despesasList.forEach(d => {
                 const v = Number(d.valor);
@@ -1793,17 +2343,18 @@
             document.getElementById('stat-total-credito').innerText = formatBRL(totalCredito);
             document.getElementById('stat-total-vista').innerText = formatBRL(totalVista);
 
-            // Faturas por cartão no período
-            renderizarResumoFaturasDashboard(despesasList);
+            // Painel de Vencimentos (Cartões + Boletos Programados) do Mês
+            const txMesExato = state.transacoes.filter(t => t.mes_competencia === compMensal);
+            const despesasMesExato = txMesExato.filter(t => t.tipo === 'despesa');
+            renderizarPainelVencimentosDashboard(compMensal, despesasMesExato);
 
             // Ranking Top Categorias
-            renderizarRankingCategoriasDashboard(despesasList, despesasPer);
+            renderizarRankingCategoriasDashboard(despesasList, boletosPeriodo, despesasPer);
 
-            // =====================================================================
-            // ATUALIZAÇÃO DOS CARDS SUPERIORES E TABELA DA ABA LANÇAMENTOS (MÊS EXATO)
-            // =====================================================================
-            const txMesExato = state.transacoes.filter(t => t.mes_competencia === compMensal);
-            const gastoMesExato = txMesExato.filter(t => t.tipo === 'despesa').reduce((acc, t) => acc + Number(t.valor), 0);
+            // Cards Superiores da Aba Lançamentos (Mês Exato)
+            const boletosMesExato = obterBoletosDoMes(compMensal);
+            const gastoMesExato = despesasMesExato.reduce((acc, t) => acc + Number(t.valor), 0) +
+                boletosMesExato.reduce((acc, b) => acc + Number(b.valor), 0);
             const recebidoMesExato = txMesExato.filter(t => t.tipo === 'receita').reduce((acc, t) => acc + Number(t.valor), 0);
             let aReceberPrevistoMes = 0;
             state.previsoes.forEach(p => {
@@ -1813,45 +2364,19 @@
             });
 
             document.getElementById('tx-kpi-gasto').innerText = formatBRL(gastoMesExato);
-            document.getElementById('tx-kpi-gasto-sub').innerText = `Competência ${NOMES_MESES[parseInt(mesSel)-1]}/${anoSel}`;
+            document.getElementById('tx-kpi-gasto-sub').innerText = `Competência ${NOMES_MESES[parseInt(mesSel)-1]}/${anoSel} (inclui boletos)`;
             document.getElementById('tx-kpi-recebido').innerText = formatBRL(recebidoMesExato + aReceberPrevistoMes);
             document.getElementById('tx-kpi-recebido-sub').innerText = `Registrado: ${formatBRL(recebidoMesExato)} | Previsto: ${formatBRL(aReceberPrevistoMes)}`;
             atualizarBarraLimite('tx', gastoMesExato, obterLimiteDoMes(compMensal), compMensal);
 
             renderizarTabelaTransacoes(txMesExato);
             renderizarInvestimentosEPrevisoes(anoSel);
-            renderizarGraficos(anoSel, txPeriodo);
+            renderizarGraficos(anoSel, txPeriodo, boletosPeriodo);
         }
 
-        function renderizarResumoFaturasDashboard(despesasList) {
-            const container = document.getElementById('dash-lista-faturas');
-            if (state.cartoes.length === 0) {
-                container.innerHTML = '<p class="text-slate-500">Nenhum cartão cadastrado.</p>';
-                return;
-            }
-
-            const html = state.cartoes.map(c => {
-                const totalCartao = despesasList
-                    .filter(d => String(d.cartao_id) === String(c.id))
-                    .reduce((acc, d) => acc + Number(d.valor), 0);
-
-                return `
-                    <div class="flex justify-between items-center bg-cobalt-950/90 p-3 rounded-xl border border-slate-800">
-                        <div>
-                            <p class="font-semibold text-white">💳 ${c.apelido}</p>
-                            <p class="text-[11px] text-slate-400">Fecha dia ${c.dia_fechamento} • Vence dia ${c.dia_vencimento}</p>
-                        </div>
-                        <span class="font-bold text-sm ${totalCartao > 0 ? 'text-amber-400' : 'text-slate-500'}">${formatBRL(totalCartao)}</span>
-                    </div>
-                `;
-            }).join('');
-
-            container.innerHTML = html;
-        }
-
-        function renderizarRankingCategoriasDashboard(despesasList, totalGeral) {
+        function renderizarRankingCategoriasDashboard(despesasList, boletosPeriodo, totalGeral) {
             const container = document.getElementById('dash-ranking-categorias');
-            if (despesasList.length === 0) {
+            if (despesasList.length === 0 && boletosPeriodo.length === 0) {
                 container.innerHTML = '<p class="text-slate-500">Nenhum gasto registrado neste filtro.</p>';
                 return;
             }
@@ -1863,6 +2388,14 @@
                 const cor = cat ? cat.cor : '#64748b';
                 if (!mapa[nome]) mapa[nome] = { nome, cor, valor: 0 };
                 mapa[nome].valor += Number(d.valor);
+            });
+
+            boletosPeriodo.forEach(b => {
+                const cat = state.categorias.find(c => String(c.id) === String(b.categoria_id));
+                const nome = cat ? cat.nome : 'Boletos Programados';
+                const cor = cat ? cat.cor : '#f59e0b';
+                if (!mapa[nome]) mapa[nome] = { nome, cor, valor: 0 };
+                mapa[nome].valor += Number(b.valor);
             });
 
             const ordenado = Object.values(mapa).sort((a, b) => b.valor - a.valor).slice(0, 5);
@@ -1913,8 +2446,9 @@
                         <td class="py-3 px-2"><span class="px-2 py-0.5 rounded text-xs" style="background:${cat?.cor || '#334155'}33; color:${cat?.cor || '#cbd5e1'}">${cat?.nome || 'Geral'}</span></td>
                         <td class="py-3 px-2 text-slate-300">${formaNome}</td>
                         <td class="py-3 px-2 text-right font-semibold ${corValor}">${sinal} ${formatBRL(Number(t.valor))}</td>
-                        <td class="py-3 px-2 text-center">
-                            <button onclick="deletarItem('transacoes', '${t.id}')" class="text-slate-500 hover:text-rose-400"><i class="fa-solid fa-trash"></i></button>
+                        <td class="py-3 px-2 text-center space-x-2">
+                            <button onclick="abrirModalEditarTx('${t.id}')" title="Editar" class="text-cyan-400 hover:text-cyan-300"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="deletarItem('transacoes', '${t.id}')" title="Excluir" class="text-slate-500 hover:text-rose-400"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     </tr>
                 `;
@@ -1951,7 +2485,7 @@
 
             document.getElementById('kpi-investimento').innerText = formatBRL(totalProjetadoDez);
             document.getElementById('sub-kpi-investimento').innerText = `${state.investimentos.length} ativo(s) aplicado(s)`;
-            document.getElementById('lista-investimentos').innerHTML = htmlInv || '<p class="text-slate-500">Nenhum investimento cadastrado.</p>';
+            document.getElementById('lista-investimentos').innerHTML = htmlInv || '<p class="text-slate-500">Nenhum investimento cadastrado. Clique no botão acima para adicionar.</p>';
 
             const htmlPrev = state.previsoes.map(p => `
                 <div class="bg-cobalt-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center">
@@ -1966,10 +2500,10 @@
                 </div>
             `).join('');
 
-            document.getElementById('lista-previsoes').innerHTML = htmlPrev || '<p class="text-slate-500">Nenhuma previsão cadastrada.</p>';
+            document.getElementById('lista-previsoes').innerHTML = htmlPrev || '<p class="text-slate-500">Nenhuma previsão cadastrada. Clique no botão acima para adicionar.</p>';
         }
 
-        function renderizarGraficos(anoSel, txPeriodo) {
+        function renderizarGraficos(anoSel, txPeriodo, boletosPeriodo) {
             const dadosReceitas = Array(12).fill(0);
             const dadosDespesas = Array(12).fill(0);
             const dadosPrevistos = Array(12).fill(0);
@@ -1989,6 +2523,9 @@
                         dadosPrevistos[m - 1] += Number(p.valor);
                     }
                 });
+                obterBoletosDoMes(comp).forEach(b => {
+                    dadosDespesas[m - 1] += Number(b.valor);
+                });
             }
 
             if (charts.linha) charts.linha.destroy();
@@ -1999,7 +2536,7 @@
                     datasets: [
                         { label: 'Recebimentos Registrados', data: dadosReceitas, borderColor: '#10b981', backgroundColor: '#10b98122', tension: 0.3, fill: true },
                         { label: 'Recebíveis Previstos', data: dadosPrevistos, borderColor: '#22d3ee', borderDash: [5, 5], tension: 0.3 },
-                        { label: 'Gastos (Faturas/Despesas)', data: dadosDespesas, borderColor: '#f43f5e', backgroundColor: '#f43f5e22', tension: 0.3, fill: true }
+                        { label: 'Gastos (Faturas, Despesas & Boletos)', data: dadosDespesas, borderColor: '#f43f5e', backgroundColor: '#f43f5e22', tension: 0.3, fill: true }
                     ]
                 },
                 options: {
@@ -2025,6 +2562,15 @@
                 }
                 mapCat[nome] += Number(d.valor);
             });
+            boletosPeriodo.forEach(b => {
+                const cat = state.categorias.find(c => String(c.id) === String(b.categoria_id));
+                const nome = cat ? cat.nome : 'Boletos Programados';
+                if (!mapCat[nome]) {
+                    mapCat[nome] = 0;
+                    coresCat.push(cat ? cat.cor : '#f59e0b');
+                }
+                mapCat[nome] += Number(b.valor);
+            });
 
             if (charts.pizzaCat) charts.pizzaCat.destroy();
             charts.pizzaCat = new Chart(document.getElementById('chart-pizza-categorias'), {
@@ -2048,6 +2594,9 @@
                 }
                 mapMet[nome] = (mapMet[nome] || 0) + Number(d.valor);
             });
+            if (boletosPeriodo.length > 0) {
+                mapMet['Boletos Programados'] = boletosPeriodo.reduce((acc, b) => acc + Number(b.valor), 0);
+            }
 
             if (charts.pizzaMet) charts.pizzaMet.destroy();
             charts.pizzaMet = new Chart(document.getElementById('chart-pizza-metodos'), {
@@ -2065,7 +2614,7 @@
         }
 
         // =========================================================================
-        // 7. MODAL COMPARATIVO DE CATEGORIAS ENTRE MESES
+        // 10. MODAL COMPARATIVO DE CATEGORIAS ENTRE MESES
         // =========================================================================
         function abrirModalComparativo() {
             document.getElementById('modal-comparativo').classList.remove('hidden');
