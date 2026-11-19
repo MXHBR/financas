@@ -213,7 +213,7 @@
                     <p id="sub-kpi-saldo" class="text-[11px] text-slate-500 mt-2">Economia: 0%</p>
                 </div>
 
-                <!-- 4. Total Investido (Clicável para exibir o rendimento referente ao mês) -->
+                <!-- 4. Total Investido (Clicável para exibir rendimento do mês) -->
                 <div onclick="abrirModalRendimentoMes()" data-card-id="kpi_investimento" data-card-title="Total Investido" class="dash-card card-glass p-5 rounded-2xl cursor-pointer hover:border-purple-400/50 group">
                     <div onclick="event.stopPropagation()" class="card-edit-toolbar hidden mb-3 pb-2 border-b border-slate-800 flex justify-between items-center text-[11px]">
                         <div class="flex items-center gap-1">
@@ -397,7 +397,10 @@
                         <input type="date" id="tx-data" onchange="atualizarPreviewParcelas()" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
                     </div>
                     <div>
-                        <label class="block text-xs text-slate-400 mb-1">Categoria</label>
+                        <div class="flex justify-between items-center mb-1">
+                            <label id="lbl-tx-categoria" class="block text-xs text-slate-400">Categoria de Gasto</label>
+                            <button type="button" onclick="switchTab('configuracoes')" class="text-[11px] text-cyan-400 hover:underline">+ Nova</button>
+                        </div>
                         <select id="tx-categoria" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white"></select>
                     </div>
                     <div id="wrap-forma">
@@ -465,9 +468,12 @@
                 <div class="flex flex-wrap justify-between items-center gap-3 pb-3 border-b border-slate-800">
                     <div>
                         <h3 class="text-base font-semibold text-emerald-400">Recebimentos Registrados (<span id="lbl-recebimentos-mes">Mês</span>)</h3>
-                        <p class="text-xs text-slate-400">Adicione, categorize, edite ou remova salários, extras e entradas do mês</p>
+                        <p class="text-xs text-slate-400">Adicione, categorize (com categorias exclusivas de recebimento), edite ou remova</p>
                     </div>
                     <div class="flex items-center gap-2">
+                        <button onclick="switchTab('configuracoes')" class="bg-cobalt-950 hover:bg-slate-800 border border-slate-700 text-slate-300 px-3 py-2 rounded-xl text-xs transition">
+                            + Categorias de Receita
+                        </button>
                         <button onclick="abrirModalRecebimento()" class="bg-emerald-500 hover:bg-emerald-400 text-cobalt-950 font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 transition">
                             <i class="fa-solid fa-plus"></i> Novo Recebimento
                         </button>
@@ -481,7 +487,7 @@
                             <tr class="border-b border-slate-800 text-xs text-slate-400 uppercase">
                                 <th class="py-2.5 px-2">Data</th>
                                 <th class="py-2.5 px-2">Descrição</th>
-                                <th class="py-2.5 px-2">Categoria</th>
+                                <th class="py-2.5 px-2">Categoria de Recebimento</th>
                                 <th class="py-2.5 px-2 text-right">Valor</th>
                                 <th class="py-2.5 px-2 text-center">Ações</th>
                             </tr>
@@ -521,9 +527,10 @@
             </div>
         </section>
 
-        <!-- ABA 4: CARTÕES & CATEGORIAS -->
+        <!-- ABA 4: CARTÕES & CATEGORIAS SEPARADAS -->
         <section id="tab-configuracoes" class="hidden space-y-6">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Cartões -->
                 <div class="card-glass p-6 rounded-2xl">
                     <h3 class="text-base font-semibold text-white mb-4">Cartões de Crédito</h3>
                     <form onsubmit="salvarCartao(event)" class="space-y-3">
@@ -543,32 +550,53 @@
                     <div id="lista-cartoes" class="mt-4 space-y-2 text-xs text-slate-300"></div>
                 </div>
 
+                <!-- Métodos -->
                 <div class="card-glass p-6 rounded-2xl">
                     <h3 class="text-base font-semibold text-white mb-4">Métodos de Pagamento</h3>
                     <form onsubmit="salvarMetodo(event)" class="space-y-3">
-                        <input type="text" id="met-nome" required placeholder="Ex: Pix, Dinheiro..." class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                        <input type="text" id="met-nome" required placeholder="Ex: Pix, Dinheiro, Débito..." class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
                         <button type="submit" class="w-full bg-cyan-500 hover:bg-cyan-400 text-cobalt-950 font-bold py-2 rounded-lg text-xs transition">Adicionar Método</button>
                     </form>
                     <div id="lista-metodos" class="mt-4 space-y-2 text-xs text-slate-300"></div>
                 </div>
 
-                <div class="card-glass p-6 rounded-2xl">
-                    <h3 class="text-base font-semibold text-white mb-4">Categorias</h3>
-                    <form onsubmit="salvarCategoria(event)" class="space-y-3">
+                <!-- Categorias de Gastos (Despesas) -->
+                <div class="card-glass p-6 rounded-2xl border-t-2 border-rose-500/40">
+                    <div class="mb-4">
+                        <h3 class="text-base font-semibold text-rose-400">Categorias de Gastos</h3>
+                        <p class="text-xs text-slate-400">Exibidas apenas ao lançar despesas e boletos</p>
+                    </div>
+                    <form onsubmit="salvarCategoria(event, 'despesa')" class="space-y-3">
                         <div class="flex gap-2">
-                            <input type="text" id="cat-nome" required placeholder="Nome da Categoria" class="flex-1 bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
-                            <input type="color" id="cat-cor" value="#22d3ee" class="h-10 w-12 bg-cobalt-950 border border-slate-700 rounded-lg cursor-pointer">
+                            <input type="text" id="cat-desp-nome" required placeholder="Ex: Alimentação, Lazer, Transporte..." class="flex-1 bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                            <input type="color" id="cat-desp-cor" value="#f43f5e" class="h-10 w-12 bg-cobalt-950 border border-slate-700 rounded-lg cursor-pointer">
                         </div>
-                        <button type="submit" class="w-full bg-cyan-500 hover:bg-cyan-400 text-cobalt-950 font-bold py-2 rounded-lg text-xs transition">Adicionar Categoria</button>
+                        <button type="submit" class="w-full bg-rose-500 hover:bg-rose-400 text-white font-bold py-2 rounded-lg text-xs transition">Adicionar Categoria de Gasto</button>
                     </form>
-                    <div id="lista-categorias" class="mt-4 space-y-2 text-xs text-slate-300"></div>
+                    <div id="lista-categorias-despesa" class="mt-4 space-y-2 text-xs text-slate-300"></div>
+                </div>
+
+                <!-- Categorias de Recebimentos (Receitas) -->
+                <div class="card-glass p-6 rounded-2xl border-t-2 border-emerald-500/40">
+                    <div class="mb-4">
+                        <h3 class="text-base font-semibold text-emerald-400">Categorias de Recebimentos</h3>
+                        <p class="text-xs text-slate-400">Exibidas exclusivamente ao registrar receitas</p>
+                    </div>
+                    <form onsubmit="salvarCategoria(event, 'receita')" class="space-y-3">
+                        <div class="flex gap-2">
+                            <input type="text" id="cat-rec-nome" required placeholder="Ex: Salário, Freelance, Dividendos..." class="flex-1 bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                            <input type="color" id="cat-rec-cor" value="#10b981" class="h-10 w-12 bg-cobalt-950 border border-slate-700 rounded-lg cursor-pointer">
+                        </div>
+                        <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-400 text-cobalt-950 font-bold py-2 rounded-lg text-xs transition">Adicionar Categoria de Recebimento</button>
+                    </form>
+                    <div id="lista-categorias-receita" class="mt-4 space-y-2 text-xs text-slate-300"></div>
                 </div>
             </div>
         </section>
 
     </main>
 
-    <!-- MODAL RENDIMENTO DE INVESTIMENTOS DO MÊS (ABRE AO CLICAR NO CARD INVESTIDO) -->
+    <!-- MODAL RENDIMENTO DE INVESTIMENTOS DO MÊS -->
     <div id="modal-rendimento-mes" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-cobalt-900 border border-purple-500/40 rounded-2xl w-full max-w-lg p-6 space-y-5">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -624,13 +652,12 @@
                 </div>
                 <div>
                     <div class="flex justify-between items-center mb-1">
-                        <label class="block text-xs text-slate-400">Categoria</label>
+                        <label class="block text-xs text-emerald-400">Categoria de Recebimento</label>
                         <button type="button" onclick="fecharModalRecebimento(); switchTab('configuracoes');" class="text-[11px] text-cyan-400 hover:underline">+ Nova Categoria</button>
                     </div>
                     <select id="rec-categoria" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white"></select>
                 </div>
 
-                <!-- Opção de repetição mensal (apenas ao criar novo) -->
                 <div id="wrap-rec-repetir" class="bg-cobalt-950 p-3 rounded-xl border border-slate-800 space-y-2">
                     <label class="inline-flex items-center gap-2 cursor-pointer text-xs text-slate-300 select-none">
                         <input type="checkbox" id="rec-repetir-check" onchange="document.getElementById('wrap-rec-meses').classList.toggle('hidden', !this.checked)" class="accent-emerald-400 w-4 h-4">
@@ -662,7 +689,7 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs text-slate-400 mb-1">Tipo</label>
-                        <select id="edit-tx-tipo" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                        <select id="edit-tx-tipo" onchange="atualizarSelectCategoriasEdicao()" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
                             <option value="despesa">Despesa</option>
                             <option value="receita">Receita</option>
                         </select>
@@ -691,7 +718,7 @@
                         <label class="block text-xs text-slate-400 mb-1">Categoria</label>
                         <select id="edit-tx-categoria" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white"></select>
                     </div>
-                    <div>
+                    <div id="wrap-edit-forma">
                         <label class="block text-xs text-slate-400 mb-1">Cartão / Método</label>
                         <select id="edit-tx-forma" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white"></select>
                     </div>
@@ -704,7 +731,7 @@
         </div>
     </div>
 
-    <!-- MODAL GASTOS POR CATEGORIA DO MÊS (ABA LANÇAMENTOS) -->
+    <!-- MODAL GASTOS POR CATEGORIA DO MÊS -->
     <div id="modal-categorias-mes" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-cobalt-900 border border-slate-700 rounded-2xl w-full max-w-xl p-6 space-y-5 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -814,7 +841,7 @@
                         <input type="month" id="bol-inicio" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
                     </div>
                     <div>
-                        <label class="block text-xs text-slate-400 mb-1">Categoria</label>
+                        <label class="block text-xs text-slate-400 mb-1">Categoria de Gasto</label>
                         <select id="bol-categoria" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white"></select>
                     </div>
                 </div>
@@ -929,6 +956,8 @@
 
         let state = {
             categorias: [],
+            categoriasReceitaLocais: JSON.parse(localStorage.getItem('fp_categorias_receita') || '[]'),
+            tiposCategoriasMap: JSON.parse(localStorage.getItem('fp_tipos_categorias') || '{}'),
             metodos: [],
             cartoes: [],
             transacoes: [],
@@ -945,6 +974,26 @@
 
         let charts = { linha: null, pizzaCat: null, pizzaMet: null, comparativo: null, modalCatMes: null };
         const NOMES_MESES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+        // Helpers para separar categorias de Despesa e Receita
+        function obterCategoriasPorTipo(tipoAlvo) {
+            const doBanco = state.categorias.filter(c => {
+                const tipoCat = c.tipo || state.tiposCategoriasMap[String(c.id)] || 'despesa';
+                return tipoCat === tipoAlvo;
+            });
+
+            if (tipoAlvo === 'receita') {
+                return [...doBanco, ...state.categoriasReceitaLocais];
+            }
+            return doBanco;
+        }
+
+        function encontrarCategoriaPorId(id) {
+            if (!id) return null;
+            return state.categorias.find(c => String(c.id) === String(id))
+                || state.categoriasReceitaLocais.find(c => String(c.id) === String(id))
+                || null;
+        }
 
         window.addEventListener('DOMContentLoaded', async () => {
             const hoje = new Date();
@@ -1041,16 +1090,14 @@
             const detalhes = [];
 
             state.investimentos.forEach(inv => {
-                const compAporte = inv.data_aporte.slice(0, 7); // YYYY-MM
+                const compAporte = inv.data_aporte.slice(0, 7);
                 const diffMeses = diferencaMeses(compAporte, compAlvo);
                 const principal = Number(inv.valor_inicial);
                 const taxa = Number(inv.taxa_mensal) / 100;
 
-                if (diffMeses < 0) return; // Ainda não foi aportado nesse mês
+                if (diffMeses < 0) return;
 
                 totalInvestido += principal;
-
-                // Saldo no mês anterior e rendimento gerado especificamente no mês selecionado
                 const saldoAntesDoMes = principal * Math.pow(1 + taxa, diffMeses);
                 const rendimentoNesteMes = diffMeses === 0 ? 0 : saldoAntesDoMes * taxa;
                 const saldoFinalNoMes = saldoAntesDoMes + rendimentoNesteMes;
@@ -1099,13 +1146,10 @@
 
             document.getElementById('modal-rendimento-mes').classList.remove('hidden');
         }
-
-        function fecharModalRendimentoMes() {
-            document.getElementById('modal-rendimento-mes').classList.add('hidden');
-        }
+        function fecharModalRendimentoMes() { document.getElementById('modal-rendimento-mes').classList.add('hidden'); }
 
         // =========================================================================
-        // GESTÃO DINÂMICA DE RECEBIMENTOS (ADICIONAR, CATEGORIZAR, EDITAR, EXCLUIR)
+        // GESTÃO DINÂMICA DE RECEBIMENTOS (COM CATEGORIAS EXCLUSIVAS DE RECEBIMENTO)
         // =========================================================================
         function abrirModalRecebimento(id = null) {
             popularSelects();
@@ -1136,10 +1180,7 @@
 
             document.getElementById('modal-recebimento').classList.remove('hidden');
         }
-
-        function fecharModalRecebimento() {
-            document.getElementById('modal-recebimento').classList.add('hidden');
-        }
+        function fecharModalRecebimento() { document.getElementById('modal-recebimento').classList.add('hidden'); }
 
         async function salvarRecebimentoDinamico(e) {
             e.preventDefault();
@@ -1147,7 +1188,8 @@
             const descricao = document.getElementById('rec-descricao').value.trim();
             const valor = parseFloat(document.getElementById('rec-valor').value);
             const data_compra = document.getElementById('rec-data').value;
-            const categoria_id = document.getElementById('rec-categoria').value || null;
+            const catVal = document.getElementById('rec-categoria').value || null;
+            const categoria_id = (catVal && !String(catVal).startsWith('local_cat_')) ? catVal : null;
             const mes_competencia = data_compra.slice(0, 7);
 
             if (id) {
@@ -1155,6 +1197,9 @@
                     .update({ descricao, valor, data_compra, mes_competencia, categoria_id })
                     .eq('id', id);
                 if (error) { alert('Erro ao editar recebimento: ' + error.message); return; }
+                if (catVal && String(catVal).startsWith('local_cat_')) {
+                    localStorage.setItem(`fp_tx_cat_local_${id}`, catVal);
+                }
             } else {
                 const repetir = document.getElementById('rec-repetir-check').checked;
                 const qtdMeses = repetir ? Math.max(2, parseInt(document.getElementById('rec-repetir-qtd').value) || 2) : 1;
@@ -1173,12 +1218,24 @@
                     });
                 }
 
-                const { error } = await db.from('transacoes').insert(registros);
+                const { data, error } = await db.from('transacoes').insert(registros).select();
                 if (error) { alert('Erro ao salvar recebimento: ' + error.message); return; }
+                if (data && catVal && String(catVal).startsWith('local_cat_')) {
+                    data.forEach(item => localStorage.setItem(`fp_tx_cat_local_${item.id}`, catVal));
+                }
             }
 
             fecharModalRecebimento();
             await carregarDadosBanco();
+        }
+
+        function obterCategoriaDeTransacao(t) {
+            const localCatId = localStorage.getItem(`fp_tx_cat_local_${t.id}`);
+            if (localCatId) {
+                const catLoc = encontrarCategoriaPorId(localCatId);
+                if (catLoc) return catLoc;
+            }
+            return encontrarCategoriaPorId(t.categoria_id);
         }
 
         function renderizarTabelaRecebimentosMes(compMensal, receitasMes) {
@@ -1192,7 +1249,7 @@
             }
 
             tbody.innerHTML = receitasMes.map(r => {
-                const cat = state.categorias.find(c => String(c.id) === String(r.categoria_id));
+                const cat = obterCategoriaDeTransacao(r);
                 return `
                     <tr class="hover:bg-slate-800/30">
                         <td class="py-3 px-2 text-slate-300">${r.data_compra.split('-').reverse().join('/')}</td>
@@ -1364,6 +1421,18 @@
         // =========================================================================
         // EDIÇÃO DE LANÇAMENTOS & POPUP DE CATEGORIAS DO MÊS
         // =========================================================================
+        function atualizarSelectCategoriasEdicao() {
+            const tipo = document.getElementById('edit-tx-tipo').value;
+            const cats = obterCategoriasPorTipo(tipo);
+            const sel = document.getElementById('edit-tx-categoria');
+            const atual = sel.value;
+
+            sel.innerHTML = '<option value="">Sem Categoria</option>' + cats.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+            if (atual && cats.some(c => String(c.id) === String(atual))) sel.value = atual;
+
+            document.getElementById('wrap-edit-forma').style.display = tipo === 'despesa' ? 'block' : 'none';
+        }
+
         function abrirModalEditarTx(id) {
             const tx = state.transacoes.find(t => String(t.id) === String(id));
             if (!tx) return;
@@ -1371,11 +1440,14 @@
             popularSelects();
             document.getElementById('edit-tx-id').value = tx.id;
             document.getElementById('edit-tx-tipo').value = tx.tipo;
+            atualizarSelectCategoriasEdicao();
+
             document.getElementById('edit-tx-valor').value = tx.valor;
             document.getElementById('edit-tx-descricao').value = tx.descricao;
             document.getElementById('edit-tx-data').value = tx.data_compra;
             document.getElementById('edit-tx-competencia').value = tx.mes_competencia;
-            document.getElementById('edit-tx-categoria').value = tx.categoria_id || '';
+            const localCat = localStorage.getItem(`fp_tx_cat_local_${tx.id}`);
+            document.getElementById('edit-tx-categoria').value = localCat || tx.categoria_id || '';
 
             if (tx.cartao_id) document.getElementById('edit-tx-forma').value = `cartao_${tx.cartao_id}`;
             else if (tx.metodo_id) document.getElementById('edit-tx-forma').value = `metodo_${tx.metodo_id}`;
@@ -1393,7 +1465,8 @@
             const descricao = document.getElementById('edit-tx-descricao').value.trim();
             const data_compra = document.getElementById('edit-tx-data').value;
             const mes_competencia = document.getElementById('edit-tx-competencia').value;
-            const categoria_id = document.getElementById('edit-tx-categoria').value || null;
+            const catVal = document.getElementById('edit-tx-categoria').value || null;
+            const categoria_id = (catVal && !String(catVal).startsWith('local_cat_')) ? catVal : null;
             const formaVal = document.getElementById('edit-tx-forma').value || '';
 
             let cartao_id = null, metodo_id = null;
@@ -1407,6 +1480,9 @@
                 .eq('id', id);
 
             if (error) { alert('Erro ao atualizar: ' + error.message); return; }
+            if (catVal && String(catVal).startsWith('local_cat_')) localStorage.setItem(`fp_tx_cat_local_${id}`, catVal);
+            else localStorage.removeItem(`fp_tx_cat_local_${id}`);
+
             fecharModalEditarTx();
             await carregarDadosBanco();
         }
@@ -1424,7 +1500,7 @@
             let totalGeral = 0;
 
             despesasMes.forEach(d => {
-                const cat = state.categorias.find(c => String(c.id) === String(d.categoria_id));
+                const cat = obterCategoriaDeTransacao(d);
                 const nome = cat ? cat.nome : 'Sem Categoria';
                 const cor = cat ? cat.cor : '#64748b';
                 if (!mapa[nome]) mapa[nome] = { nome, cor, valor: 0 };
@@ -1433,7 +1509,7 @@
             });
 
             boletosMes.forEach(b => {
-                const cat = state.categorias.find(c => String(c.id) === String(b.categoria_id));
+                const cat = encontrarCategoriaPorId(b.categoria_id);
                 const nome = cat ? cat.nome : 'Boletos Programados';
                 const cor = cat ? cat.cor : '#f59e0b';
                 if (!mapa[nome]) mapa[nome] = { nome, cor, valor: 0 };
@@ -1697,6 +1773,7 @@
 
             if (deveAbrir) {
                 popularSelects();
+                toggleCamposDespesa();
                 box.classList.remove('hidden');
                 btn.classList.add('hidden');
                 atualizarPreviewParcelas();
@@ -1707,9 +1784,18 @@
         }
 
         function toggleCamposDespesa() {
-            const isDespesa = document.getElementById('tx-tipo').value === 'despesa';
+            const tipo = document.getElementById('tx-tipo').value;
+            const isDespesa = tipo === 'despesa';
             document.getElementById('wrap-forma').style.display = isDespesa ? 'block' : 'none';
             document.getElementById('wrap-parcelamento').style.display = isDespesa ? 'block' : 'none';
+            document.getElementById('lbl-tx-categoria').innerText = isDespesa ? 'Categoria de Gasto' : 'Categoria de Recebimento';
+
+            // Filtra o select de categoria conforme Despesa ou Receita
+            const cats = obterCategoriasPorTipo(tipo);
+            const sel = document.getElementById('tx-categoria');
+            sel.innerHTML = cats.length > 0
+                ? cats.map(c => `<option value="${c.id}">${c.nome}</option>`).join('')
+                : `<option value="">Cadastre uma categoria de ${isDespesa ? 'gasto' : 'recebimento'}</option>`;
         }
 
         function toggleParcelamento() {
@@ -1759,24 +1845,35 @@
         }
 
         function popularSelects() {
-            const catAtual = document.getElementById('tx-categoria').value;
             const formaAtual = document.getElementById('tx-forma').value;
             const dashCatAtual = document.getElementById('dash-filtro-categoria').value;
             const dashFormaAtual = document.getElementById('dash-filtro-forma').value;
 
-            const optionsCat = state.categorias.length > 0
-                ? state.categorias.map(c => `<option value="${c.id}">${c.nome}</option>`).join('')
-                : '<option value="">Nenhuma categoria</option>';
-            
-            document.getElementById('tx-categoria').innerHTML = optionsCat;
-            if (catAtual && state.categorias.some(c => String(c.id) === String(catAtual))) document.getElementById('tx-categoria').value = catAtual;
+            const catsDespesa = obterCategoriasPorTipo('despesa');
+            const catsReceita = obterCategoriasPorTipo('receita');
 
-            document.getElementById('edit-tx-categoria').innerHTML = '<option value="">Sem Categoria</option>' + optionsCat;
-            document.getElementById('bol-categoria').innerHTML = '<option value="">Sem Categoria</option>' + optionsCat;
-            document.getElementById('rec-categoria').innerHTML = '<option value="">Sem Categoria</option>' + optionsCat;
+            // Atualiza select de categorias da aba Lançamentos conforme o tipo selecionado
+            toggleCamposDespesa();
 
+            // Select de categorias de boletos (apenas gastos)
+            document.getElementById('bol-categoria').innerHTML = '<option value="">Sem Categoria</option>' +
+                catsDespesa.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+
+            // Select de categorias de recebimentos (exclusivo de recebimentos)
+            document.getElementById('rec-categoria').innerHTML = catsReceita.length > 0
+                ? '<option value="">Sem Categoria</option>' + catsReceita.map(c => `<option value="${c.id}">${c.nome}</option>`).join('')
+                : '<option value="">Nenhuma categoria de recebimento</option>';
+
+            // Filtro do Dashboard (agrupado por Gastos e Recebimentos)
             const selDashCat = document.getElementById('dash-filtro-categoria');
-            selDashCat.innerHTML = '<option value="todas">Todas as Categorias</option>' + state.categorias.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+            let htmlDashCat = '<option value="todas">Todas as Categorias</option>';
+            if (catsDespesa.length > 0) {
+                htmlDashCat += '<optgroup label="Categorias de Gastos">' + catsDespesa.map(c => `<option value="${c.id}">${c.nome}</option>`).join('') + '</optgroup>';
+            }
+            if (catsReceita.length > 0) {
+                htmlDashCat += '<optgroup label="Categorias de Recebimentos">' + catsReceita.map(c => `<option value="${c.id}">${c.nome}</option>`).join('') + '</optgroup>';
+            }
+            selDashCat.innerHTML = htmlDashCat;
             if (dashCatAtual) selDashCat.value = dashCatAtual;
 
             const selForma = document.getElementById('tx-forma');
@@ -1800,6 +1897,7 @@
             selDashForma.innerHTML = '<option value="todas">Todos os Cartões e Métodos</option>' + htmlForma;
             if (dashFormaAtual) selDashForma.value = dashFormaAtual;
 
+            // Listas na aba Configurações
             document.getElementById('lista-cartoes').innerHTML = state.cartoes.map(c => 
                 `<div class="flex justify-between items-center bg-cobalt-950 p-2.5 rounded-lg border border-slate-800">
                     <span>💳 <strong>${c.apelido}</strong> <span class="text-slate-400">(Fecha: ${c.dia_fechamento} | Vence: ${c.dia_vencimento})</span></span>
@@ -1814,24 +1912,82 @@
                 </div>`
             ).join('') || '<p class="text-slate-500">Nenhum método cadastrado.</p>';
 
-            document.getElementById('lista-categorias').innerHTML = state.categorias.map(c => 
+            document.getElementById('lista-categorias-despesa').innerHTML = catsDespesa.map(c => 
                 `<div class="flex justify-between items-center bg-cobalt-950 p-2.5 rounded-lg border border-slate-800">
                     <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:${c.cor}"></span>${c.nome}</span>
-                    <button onclick="deletarItem('categorias', '${c.id}')" class="text-rose-400 px-2"><i class="fa-solid fa-trash"></i></button>
+                    <button onclick="deletarCategoria('${c.id}')" class="text-rose-400 px-2"><i class="fa-solid fa-trash"></i></button>
                 </div>`
-            ).join('') || '<p class="text-slate-500">Nenhuma categoria cadastrada.</p>';
+            ).join('') || '<p class="text-slate-500">Nenhuma categoria de gasto cadastrada.</p>';
+
+            document.getElementById('lista-categorias-receita').innerHTML = catsReceita.map(c => 
+                `<div class="flex justify-between items-center bg-cobalt-950 p-2.5 rounded-lg border border-slate-800">
+                    <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:${c.cor}"></span>${c.nome}</span>
+                    <button onclick="deletarCategoria('${c.id}')" class="text-rose-400 px-2"><i class="fa-solid fa-trash"></i></button>
+                </div>`
+            ).join('') || '<p class="text-slate-500">Nenhuma categoria de recebimento cadastrada.</p>';
         }
 
         // =========================================================================
-        // TRANSAÇÕES E CADASTROS
+        // TRANSAÇÕES E CADASTROS (CATEGORIAS SEPARADAS)
         // =========================================================================
+        async function salvarCategoria(e, tipoCategoria) {
+            e.preventDefault();
+            const isReceita = tipoCategoria === 'receita';
+            const nomeInput = document.getElementById(isReceita ? 'cat-rec-nome' : 'cat-desp-nome');
+            const corInput = document.getElementById(isReceita ? 'cat-rec-cor' : 'cat-desp-cor');
+
+            const nome = nomeInput.value.trim();
+            const cor = corInput.value;
+            if (!nome) return;
+
+            // Tenta salvar com coluna 'tipo' no Supabase
+            const resComTipo = await db.from('categorias').insert([{ nome, cor, tipo: tipoCategoria }]).select();
+
+            if (!resComTipo.error && resComTipo.data && resComTipo.data[0]) {
+                state.tiposCategoriasMap[String(resComTipo.data[0].id)] = tipoCategoria;
+                localStorage.setItem('fp_tipos_categorias', JSON.stringify(state.tiposCategoriasMap));
+                nomeInput.value = '';
+                await carregarDadosBanco();
+                return;
+            }
+
+            // Fallback se a tabela 'categorias' no banco não possuir a coluna 'tipo'
+            const resSemTipo = await db.from('categorias').insert([{ nome, cor }]).select();
+            if (!resSemTipo.error && resSemTipo.data && resSemTipo.data[0]) {
+                state.tiposCategoriasMap[String(resSemTipo.data[0].id)] = tipoCategoria;
+                localStorage.setItem('fp_tipos_categorias', JSON.stringify(state.tiposCategoriasMap));
+                nomeInput.value = '';
+                await carregarDadosBanco();
+            } else if (isReceita) {
+                state.categoriasReceitaLocais.push({ id: 'local_cat_' + Date.now(), nome, cor, tipo: 'receita' });
+                localStorage.setItem('fp_categorias_receita', JSON.stringify(state.categoriasReceitaLocais));
+                nomeInput.value = '';
+                popularSelects();
+            }
+        }
+
+        async function deletarCategoria(id) {
+            if (!confirm('Deseja excluir esta categoria?')) return;
+            if (String(id).startsWith('local_cat_')) {
+                state.categoriasReceitaLocais = state.categoriasReceitaLocais.filter(c => String(c.id) !== String(id));
+                localStorage.setItem('fp_categorias_receita', JSON.stringify(state.categoriasReceitaLocais));
+                popularSelects();
+                atualizarTudo();
+                return;
+            }
+            delete state.tiposCategoriasMap[String(id)];
+            localStorage.setItem('fp_tipos_categorias', JSON.stringify(state.tiposCategoriasMap));
+            await deletarItem('categorias', id);
+        }
+
         async function salvarTransacao(e) {
             e.preventDefault();
             const tipo = document.getElementById('tx-tipo').value;
             const descricao = document.getElementById('tx-descricao').value;
             const valorInformado = parseFloat(document.getElementById('tx-valor').value);
             const data_compra = document.getElementById('tx-data').value;
-            const categoria_id = document.getElementById('tx-categoria').value || null;
+            const catVal = document.getElementById('tx-categoria').value || null;
+            const categoria_id = (catVal && !String(catVal).startsWith('local_cat_')) ? catVal : null;
             const formaVal = document.getElementById('tx-forma').value || '';
 
             let cartao_id = null, metodo_id = null, cartaoObj = null;
@@ -1863,8 +2019,11 @@
                 }
             }
 
-            const { error } = await db.from('transacoes').insert(registrosParaInserir);
+            const { data, error } = await db.from('transacoes').insert(registrosParaInserir).select();
             if (!error) {
+                if (data && catVal && String(catVal).startsWith('local_cat_')) {
+                    data.forEach(item => localStorage.setItem(`fp_tx_cat_local_${item.id}`, catVal));
+                }
                 e.target.reset();
                 document.getElementById('tx-data').valueAsDate = new Date();
                 document.getElementById('campos-parcelas').classList.add('hidden');
@@ -1889,14 +2048,6 @@
             e.preventDefault();
             const nome = document.getElementById('met-nome').value.trim();
             const { error } = await db.from('metodos_pagamento').insert([{ nome }]);
-            if (!error) { e.target.reset(); await carregarDadosBanco(); }
-        }
-
-        async function salvarCategoria(e) {
-            e.preventDefault();
-            const nome = document.getElementById('cat-nome').value.trim();
-            const cor = document.getElementById('cat-cor').value;
-            const { error } = await db.from('categorias').insert([{ nome, cor }]);
             if (!error) { e.target.reset(); await carregarDadosBanco(); }
         }
 
@@ -1953,7 +2104,10 @@
 
             const listaFiltrada = state.transacoes.filter(t => {
                 if (!comps.includes(t.mes_competencia)) return false;
-                if (filtroCat !== 'todas' && String(t.categoria_id) !== String(filtroCat)) return false;
+                if (filtroCat !== 'todas') {
+                    const catObj = obterCategoriaDeTransacao(t);
+                    if (!catObj || String(catObj.id) !== String(filtroCat)) return false;
+                }
                 if (filtroForma !== 'todas') {
                     if (t.tipo === 'receita') return false;
                     if (filtroForma.startsWith('cartao_') && String(t.cartao_id) !== filtroForma.replace('cartao_', '')) return false;
@@ -2004,7 +2158,6 @@
 
             atualizarBarraLimite('dash', despesasPer, limitePeriodo);
 
-            // Card Total Investido no Dashboard
             const { totalInvestido, rendimentoMesTotal } = calcularInvestimentosNoMes(compMensal);
             document.getElementById('kpi-investimento').innerText = formatBRL(totalInvestido);
             document.getElementById('sub-kpi-investimento').innerText = `Rendimento mês: +${formatBRL(rendimentoMesTotal)} (clique)`;
@@ -2016,7 +2169,6 @@
             renderizarPainelVencimentosDashboard(compMensal, despesasMesExato);
             renderizarRankingCategoriasDashboard(despesasList, boletosPeriodo, despesasPer);
 
-            // Aba Lançamentos
             const boletosMesExato = obterBoletosDoMes(compMensal);
             const gastoMesExato = despesasMesExato.reduce((acc, t) => acc + Number(t.valor), 0) + boletosMesExato.reduce((acc, b) => acc + Number(b.valor), 0);
             const recebidoMesExato = receitasMesExato.reduce((acc, t) => acc + Number(t.valor), 0);
@@ -2043,14 +2195,14 @@
             }
             const mapa = {};
             despesasList.forEach(d => {
-                const cat = state.categorias.find(c => String(c.id) === String(d.categoria_id));
+                const cat = obterCategoriaDeTransacao(d);
                 const nome = cat ? cat.nome : 'Sem Categoria';
                 const cor = cat ? cat.cor : '#64748b';
                 if (!mapa[nome]) mapa[nome] = { nome, cor, valor: 0 };
                 mapa[nome].valor += Number(d.valor);
             });
             boletosPeriodo.forEach(b => {
-                const cat = state.categorias.find(c => String(c.id) === String(b.categoria_id));
+                const cat = encontrarCategoriaPorId(b.categoria_id);
                 const nome = cat ? cat.nome : 'Boletos Programados';
                 const cor = cat ? cat.cor : '#f59e0b';
                 if (!mapa[nome]) mapa[nome] = { nome, cor, valor: 0 };
@@ -2081,7 +2233,7 @@
                 return;
             }
             tbody.innerHTML = txMes.map(t => {
-                const cat = state.categorias.find(c => String(c.id) === String(t.categoria_id));
+                const cat = obterCategoriaDeTransacao(t);
                 let formaNome = t.tipo === 'receita' ? 'Recebimento' : '-';
                 if (t.cartao_id) {
                     const card = state.cartoes.find(c => String(c.id) === String(t.cartao_id));
@@ -2195,13 +2347,13 @@
             const despesasPer = txPeriodo.filter(t => t.tipo === 'despesa');
             const mapCat = {}, coresCat = [];
             despesasPer.forEach(d => {
-                const cat = state.categorias.find(c => String(c.id) === String(d.categoria_id));
+                const cat = obterCategoriaDeTransacao(d);
                 const nome = cat ? cat.nome : 'Sem Categoria';
                 if (!mapCat[nome]) { mapCat[nome] = 0; coresCat.push(cat ? cat.cor : '#64748b'); }
                 mapCat[nome] += Number(d.valor);
             });
             boletosPeriodo.forEach(b => {
-                const cat = state.categorias.find(c => String(c.id) === String(b.categoria_id));
+                const cat = encontrarCategoriaPorId(b.categoria_id);
                 const nome = cat ? cat.nome : 'Boletos';
                 if (!mapCat[nome]) { mapCat[nome] = 0; coresCat.push(cat ? cat.cor : '#f59e0b'); }
                 mapCat[nome] += Number(b.valor);
@@ -2255,12 +2407,12 @@
 
             const categoriasEnvolvidas = new Set(), mapA = {}, mapB = {};
             despA.forEach(d => {
-                const cat = state.categorias.find(c => String(c.id) === String(d.categoria_id));
+                const cat = obterCategoriaDeTransacao(d);
                 const nome = cat ? cat.nome : 'Sem Categoria';
                 categoriasEnvolvidas.add(nome); mapA[nome] = (mapA[nome] || 0) + Number(d.valor);
             });
             despB.forEach(d => {
-                const cat = state.categorias.find(c => String(c.id) === String(d.categoria_id));
+                const cat = obterCategoriaDeTransacao(d);
                 const nome = cat ? cat.nome : 'Sem Categoria';
                 categoriasEnvolvidas.add(nome); mapB[nome] = (mapB[nome] || 0) + Number(d.valor);
             });
