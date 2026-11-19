@@ -63,7 +63,9 @@
             </nav>
         </div>
         <div class="mt-8 pt-4 border-t border-slate-800 text-xs text-slate-500 px-2 space-y-1">
-            <p id="status-conexao"><i class="fa-solid fa-circle text-amber-500 mr-1"></i> Conectando...</p>
+            <button onclick="switchTab('configuracoes')" id="status-conexao" class="text-left hover:underline">
+                <i class="fa-solid fa-circle text-amber-500 mr-1"></i> Conectando...
+            </button>
             <p id="resumo-vinculos" class="text-[11px] text-slate-500"></p>
         </div>
     </aside>
@@ -219,7 +221,7 @@
                         <select id="tx-forma" onchange="atualizarPreviewParcelas()" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white"></select>
                     </div>
 
-                    <!-- Seção de Compra Parcelada (Visível apenas para Despesas) -->
+                    <!-- Seção de Compra Parcelada -->
                     <div id="wrap-parcelamento" class="md:col-span-3 bg-cobalt-950/90 p-4 rounded-xl border border-slate-800 space-y-3">
                         <div class="flex flex-wrap items-center justify-between gap-4">
                             <label class="inline-flex items-center gap-2.5 cursor-pointer select-none">
@@ -419,8 +421,34 @@
             </div>
         </section>
 
-        <!-- ABA 4: CARTÕES & CATEGORIAS -->
+        <!-- ABA 4: CARTÕES, CATEGORIAS & CONEXÃO -->
         <section id="tab-configuracoes" class="hidden space-y-6">
+            
+            <!-- Configuração de Conexão Supabase (Salva no navegador automaticamente) -->
+            <div class="card-glass p-6 rounded-2xl border border-cyan-400/30">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
+                    <div>
+                        <h3 class="text-base font-semibold text-cyan-400"><i class="fa-solid fa-database mr-2"></i>Conexão com Supabase</h3>
+                        <p class="text-xs text-slate-400">Cole sua Project URL e a chave anon public abaixo. Elas ficam salvas neste navegador mesmo se você atualizar o código no GitHub.</p>
+                    </div>
+                </div>
+                <form onsubmit="salvarConfiguracaoSupabase(event)" class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                    <div class="md:col-span-5">
+                        <label class="block text-xs text-slate-400 mb-1">Project URL</label>
+                        <input type="url" id="cfg-sb-url" required placeholder="https://xxxxxxxxxxxx.supabase.co" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-xs text-white font-mono">
+                    </div>
+                    <div class="md:col-span-5">
+                        <label class="block text-xs text-slate-400 mb-1">Anon Public Key</label>
+                        <input type="text" id="cfg-sb-key" required placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-xs text-white font-mono">
+                    </div>
+                    <div class="md:col-span-2">
+                        <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-400 text-cobalt-950 font-bold py-2.5 rounded-lg text-xs transition">
+                            Conectar & Salvar
+                        </button>
+                    </div>
+                </form>
+            </div>
+
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- Cadastrar Cartão -->
                 <div class="card-glass p-6 rounded-2xl">
@@ -514,11 +542,44 @@
 
     <script>
         // =========================================================================
-        // 1. CONFIGURAÇÃO DO SUPABASE (MANTENHA SUAS CHAVES DO PROJETO AQUI)
+        // 1. CONFIGURAÇÃO DO SUPABASE (LÊ DO NAVEGADOR OU DAS CONSTANTES ABAIXO)
         // =========================================================================
-        const SUPABASE_URL = 'https://SUA-URL-AQUI.supabase.co';
-        const SUPABASE_ANON_KEY = 'SUA-CHAVE-ANON-AQUI';
-        const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const DEFAULT_SUPABASE_URL = 'https://SUA-URL-AQUI.supabase.co';
+        const DEFAULT_SUPABASE_KEY = 'SUA-CHAVE-ANON-AQUI';
+        let db = null;
+
+        function inicializarClienteSupabase() {
+            const urlSalva = localStorage.getItem('financas_sb_url') || DEFAULT_SUPABASE_URL;
+            const keySalva = localStorage.getItem('financas_sb_key') || DEFAULT_SUPABASE_KEY;
+
+            document.getElementById('cfg-sb-url').value = urlSalva.includes('SUA-URL-AQUI') ? '' : urlSalva;
+            document.getElementById('cfg-sb-key').value = keySalva.includes('SUA-CHAVE-ANON-AQUI') ? '' : keySalva;
+
+            if (!urlSalva || urlSalva.includes('SUA-URL-AQUI') || !keySalva || keySalva.includes('SUA-CHAVE-ANON-AQUI')) {
+                document.getElementById('status-conexao').innerHTML = '<i class="fa-solid fa-circle text-amber-400 mr-1"></i> Configurar Chaves (Clique)';
+                return false;
+            }
+
+            try {
+                db = supabase.createClient(urlSalva.trim(), keySalva.trim());
+                return true;
+            } catch (e) {
+                console.error(e);
+                return false;
+            }
+        }
+
+        async function salvarConfiguracaoSupabase(e) {
+            e.preventDefault();
+            const url = document.getElementById('cfg-sb-url').value.trim();
+            const key = document.getElementById('cfg-sb-key').value.trim();
+            localStorage.setItem('financas_sb_url', url);
+            localStorage.setItem('financas_sb_key', key);
+
+            if (inicializarClienteSupabase()) {
+                await carregarDadosBanco();
+            }
+        }
 
         // Estado Global
         let state = {
@@ -553,10 +614,16 @@
             document.getElementById('comp-mes-b').value = `${anoAtualStr}-${mesAtualStr}`;
 
             renderizarGradeSalarios();
-            await carregarDadosBanco();
+
+            if (inicializarClienteSupabase()) {
+                await carregarDadosBanco();
+            } else {
+                switchTab('configuracoes');
+            }
         });
 
         async function carregarDadosBanco() {
+            if (!db) return;
             try {
                 const [cat, met, card, tx, inv, prev] = await Promise.all([
                     db.from('categorias').select('*').order('nome'),
@@ -586,11 +653,10 @@
                 atualizarTudo();
             } catch (err) {
                 console.error('Erro ao carregar dados:', err);
-                document.getElementById('status-conexao').innerHTML = '<i class="fa-solid fa-circle text-rose-500 mr-1"></i> Erro de Conexão';
+                document.getElementById('status-conexao').innerHTML = '<i class="fa-solid fa-circle text-rose-500 mr-1"></i> Erro de Conexão (Clique)';
             }
         }
 
-        // Navegação entre abas (sempre sincroniza os selects ao trocar de aba)
         function switchTab(tabId) {
             ['dashboard', 'lancamentos', 'investimentos', 'configuracoes'].forEach(t => {
                 document.getElementById(`tab-${t}`).classList.add('hidden');
@@ -601,7 +667,6 @@
             popularSelects();
         }
 
-        // Mostrar/Ocultar Formulário de Lançamentos
         function toggleFormLancamento(forceState) {
             const box = document.getElementById('container-form-lancamento');
             const btn = document.getElementById('btn-toggle-form-tx');
@@ -689,7 +754,6 @@
         }
 
         function popularSelects() {
-            // Preservar valores selecionados antes de reconstruir
             const catAtual = document.getElementById('tx-categoria').value;
             const formaAtual = document.getElementById('tx-forma').value;
 
@@ -707,7 +771,6 @@
             const catSalario = state.categorias.find(c => c.nome.toLowerCase().includes('salário') || c.nome.toLowerCase().includes('salario'));
             if (catSalario) selSalCat.value = catSalario.id;
 
-            // Construção robusta do Select de Cartões + Métodos
             const selForma = document.getElementById('tx-forma');
             let htmlForma = '';
 
@@ -737,7 +800,6 @@
                 if (existe) selForma.value = formaAtual;
             }
 
-            // Listas Configurações
             document.getElementById('lista-cartoes').innerHTML = state.cartoes.length > 0
                 ? state.cartoes.map(c => 
                     `<div class="flex justify-between items-center bg-cobalt-950 p-2.5 rounded-lg border border-slate-800">
@@ -805,6 +867,7 @@
 
         async function salvarSalarioVariavel(e) {
             e.preventDefault();
+            if (!db) return alert('Configure a conexão com o Supabase primeiro.');
             const descricao = document.getElementById('sal-var-desc').value;
             const ano = document.getElementById('sal-var-ano').value;
             const categoria_id = document.getElementById('sal-var-cat').value || null;
@@ -844,6 +907,7 @@
 
         async function salvarSalarioFixo(e) {
             e.preventDefault();
+            if (!db) return alert('Configure a conexão com o Supabase primeiro.');
             const descricao = document.getElementById('sal-fixo-desc').value;
             const valor = parseFloat(document.getElementById('sal-fixo-valor').value);
             const inicio = document.getElementById('sal-fixo-inicio').value;
@@ -910,6 +974,7 @@
 
         async function salvarTransacao(e) {
             e.preventDefault();
+            if (!db) return alert('Configure a conexão com o Supabase primeiro.');
             const tipo = document.getElementById('tx-tipo').value;
             const descricao = document.getElementById('tx-descricao').value;
             const valorInformado = parseFloat(document.getElementById('tx-valor').value);
@@ -995,6 +1060,7 @@
 
         async function salvarCartao(e) {
             e.preventDefault();
+            if (!db) return alert('Configure a URL e a Chave do Supabase na caixa acima primeiro.');
             const apelido = document.getElementById('card-apelido').value.trim();
             const dia_fechamento = parseInt(document.getElementById('card-fechamento').value);
             const dia_vencimento = parseInt(document.getElementById('card-vencimento').value);
@@ -1018,6 +1084,7 @@
 
         async function salvarMetodo(e) {
             e.preventDefault();
+            if (!db) return alert('Configure a URL e a Chave do Supabase na caixa acima primeiro.');
             const nome = document.getElementById('met-nome').value.trim();
             const { error } = await db.from('metodos_pagamento').insert([{ nome }]);
             if (error) {
@@ -1030,6 +1097,7 @@
 
         async function salvarCategoria(e) {
             e.preventDefault();
+            if (!db) return alert('Configure a URL e a Chave do Supabase na caixa acima primeiro.');
             const nome = document.getElementById('cat-nome').value.trim();
             const cor = document.getElementById('cat-cor').value;
             const { error } = await db.from('categorias').insert([{ nome, cor }]);
@@ -1043,6 +1111,7 @@
 
         async function salvarInvestimento(e) {
             e.preventDefault();
+            if (!db) return alert('Configure a conexão com o Supabase primeiro.');
             const nome = document.getElementById('inv-nome').value;
             const valor_inicial = parseFloat(document.getElementById('inv-valor').value);
             const taxa_mensal = parseFloat(document.getElementById('inv-taxa').value);
@@ -1058,6 +1127,7 @@
 
         async function salvarPrevisao(e) {
             e.preventDefault();
+            if (!db) return alert('Configure a conexão com o Supabase primeiro.');
             const descricao = document.getElementById('prev-desc').value;
             const valor = parseFloat(document.getElementById('prev-valor').value);
             const mes_inicio = document.getElementById('prev-inicio').value;
@@ -1072,7 +1142,7 @@
         }
 
         async function deletarItem(tabela, id) {
-            if (!confirm('Deseja excluir este registro?')) return;
+            if (!db || !confirm('Deseja excluir este registro?')) return;
             const { error } = await db.from(tabela).delete().eq('id', id);
             if (error) {
                 alert('Erro ao excluir: ' + error.message);
