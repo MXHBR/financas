@@ -62,8 +62,9 @@
                 </button>
             </nav>
         </div>
-        <div class="mt-8 pt-4 border-t border-slate-800 text-xs text-slate-500 px-2">
+        <div class="mt-8 pt-4 border-t border-slate-800 text-xs text-slate-500 px-2 space-y-1">
             <p id="status-conexao"><i class="fa-solid fa-circle text-amber-500 mr-1"></i> Conectando...</p>
+            <p id="resumo-vinculos" class="text-[11px] text-slate-500"></p>
         </div>
     </aside>
 
@@ -77,7 +78,6 @@
                 <p id="page-subtitle" class="text-sm text-slate-400">Acompanhamento financeiro e projeções</p>
             </div>
             <div class="flex flex-wrap items-center gap-3">
-                <!-- Seletor Mês / Ano -->
                 <div class="flex items-center gap-2 bg-cobalt-900 p-2 rounded-xl border border-slate-800">
                     <select id="filtro-mes" onchange="atualizarTudo()" class="bg-transparent text-sm font-medium text-white px-2 py-1 outline-none">
                         <option value="01" class="bg-cobalt-900">Janeiro</option>
@@ -106,7 +106,6 @@
         <!-- ABA 1: DASHBOARD -->
         <section id="tab-dashboard" class="space-y-6">
             
-            <!-- Barra de Controles do Dashboard: Período (Mensal/Bimestral/Anual) + Botão Comparativo -->
             <div class="flex flex-wrap justify-between items-center gap-4 card-glass p-4 rounded-2xl">
                 <div class="flex items-center gap-2">
                     <span class="text-xs uppercase tracking-wider text-slate-400 mr-2">Exibição:</span>
@@ -170,11 +169,10 @@
 
         <!-- ABA 2: LANÇAMENTOS -->
         <section id="tab-lancamentos" class="hidden space-y-6">
-            <!-- Barra de Ação para Abrir/Fechar Formulário -->
             <div class="flex justify-between items-center card-glass p-4 rounded-2xl">
                 <div>
                     <h3 class="text-base font-semibold text-white">Controle de Lançamentos</h3>
-                    <p class="text-xs text-slate-400">Clique no botão ao lado para registrar uma nova despesa ou receita avulsa</p>
+                    <p class="text-xs text-slate-400">Registre gastos à vista, compras parceladas no cartão ou receitas avulsas</p>
                 </div>
                 <button onclick="toggleFormLancamento()" id="btn-toggle-form-tx" class="bg-cyan-500 hover:bg-cyan-400 text-cobalt-950 font-bold px-5 py-2.5 rounded-xl text-sm flex items-center gap-2 transition">
                     <i class="fa-solid fa-plus"></i> Fazer Novo Registro
@@ -199,24 +197,53 @@
                     </div>
                     <div>
                         <label class="block text-xs text-slate-400 mb-1">Descrição</label>
-                        <input type="text" id="tx-descricao" required placeholder="Ex: Supermercado, Freela..." class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                        <input type="text" id="tx-descricao" required placeholder="Ex: Notebook, Supermercado..." class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
                     </div>
                     <div>
-                        <label class="block text-xs text-slate-400 mb-1">Valor (R$)</label>
-                        <input type="number" step="0.01" id="tx-valor" required placeholder="0.00" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                        <label class="block text-xs text-slate-400 mb-1" id="lbl-tx-valor">Valor (R$)</label>
+                        <input type="number" step="0.01" id="tx-valor" oninput="atualizarPreviewParcelas()" required placeholder="0.00" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
                     </div>
                     <div>
-                        <label class="block text-xs text-slate-400 mb-1">Data da Operação</label>
-                        <input type="date" id="tx-data" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+                        <label class="block text-xs text-slate-400 mb-1">Data da Compra / Operação</label>
+                        <input type="date" id="tx-data" onchange="atualizarPreviewParcelas()" required class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
                     </div>
                     <div id="wrap-categoria">
                         <label class="block text-xs text-slate-400 mb-1">Categoria</label>
                         <select id="tx-categoria" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white"></select>
                     </div>
                     <div id="wrap-forma">
-                        <label class="block text-xs text-slate-400 mb-1">Forma de Pagamento</label>
-                        <select id="tx-forma" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white"></select>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="block text-xs text-slate-400">Cartão ou Método de Pagamento</label>
+                            <button type="button" onclick="switchTab('configuracoes')" class="text-[11px] text-cyan-400 hover:underline">+ Cadastrar</button>
+                        </div>
+                        <select id="tx-forma" onchange="atualizarPreviewParcelas()" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white"></select>
                     </div>
+
+                    <!-- Seção de Compra Parcelada (Visível apenas para Despesas) -->
+                    <div id="wrap-parcelamento" class="md:col-span-3 bg-cobalt-950/90 p-4 rounded-xl border border-slate-800 space-y-3">
+                        <div class="flex flex-wrap items-center justify-between gap-4">
+                            <label class="inline-flex items-center gap-2.5 cursor-pointer select-none">
+                                <input type="checkbox" id="tx-parcelado" onchange="toggleParcelamento()" class="w-4 h-4 accent-cyan-400 rounded cursor-pointer">
+                                <span class="text-sm font-medium text-white">Compra Parcelada?</span>
+                            </label>
+                            <span id="preview-parcelamento" class="text-xs text-cyan-400 font-medium"></span>
+                        </div>
+
+                        <div id="campos-parcelas" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-800/80">
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Número de Parcelas</label>
+                                <input type="number" id="tx-num-parcelas" min="2" max="48" value="2" oninput="atualizarPreviewParcelas()" class="w-full bg-cobalt-900 border border-slate-700 rounded-lg p-2 text-sm text-white">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">O valor informado acima é:</label>
+                                <select id="tx-tipo-valor-parcela" onchange="atualizarPreviewParcelas()" class="w-full bg-cobalt-900 border border-slate-700 rounded-lg p-2 text-sm text-white">
+                                    <option value="total">Valor Total da Compra (dividir pelas parcelas)</option>
+                                    <option value="parcela">Valor de Cada Parcela (multiplicar pelas parcelas)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="md:col-span-3 flex justify-end gap-3 mt-2">
                         <button type="button" onclick="toggleFormLancamento(false)" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2.5 rounded-lg text-sm transition">
                             Cancelar
@@ -234,11 +261,11 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="border-b border-slate-800 text-xs text-slate-400 uppercase">
-                            <th class="py-3 px-2">Data</th>
-                            <th class="py-3 px-2">Competência</th>
+                            <th class="py-3 px-2">Data Compra</th>
+                            <th class="py-3 px-2">Fatura/Comp.</th>
                             <th class="py-3 px-2">Descrição</th>
                             <th class="py-3 px-2">Categoria</th>
-                            <th class="py-3 px-2">Pagamento</th>
+                            <th class="py-3 px-2">Pagamento / Cartão</th>
                             <th class="py-3 px-2 text-right">Valor</th>
                             <th class="py-3 px-2 text-center">Ação</th>
                         </tr>
@@ -251,7 +278,7 @@
         <!-- ABA 3: SALÁRIOS VARIÁVEIS, RECEBÍVEIS & INVESTIMENTOS -->
         <section id="tab-investimentos" class="hidden space-y-6">
             
-            <!-- Cadastro de Salário (Fixo por X meses OU Variável mês a mês) -->
+            <!-- Cadastro de Salário -->
             <div class="card-glass p-6 rounded-2xl border border-emerald-500/20">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 pb-3 border-b border-slate-800">
                     <div>
@@ -264,7 +291,7 @@
                     </div>
                 </div>
 
-                <!-- MODO A: Valores Específicos por Mês (Salário Variável) -->
+                <!-- MODO A: Valores Específicos por Mês -->
                 <form id="form-salario-variavel" onsubmit="salvarSalarioVariavel(event)" class="space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
@@ -285,10 +312,8 @@
                         </div>
                     </div>
 
-                    <p class="text-xs text-slate-400">Preencha apenas os meses que deseja registrar (deixe em branco os meses que não quiser alterar):</p>
-                    <div id="grade-meses-salario" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                        <!-- Gerado via JS -->
-                    </div>
+                    <p class="text-xs text-slate-400">Preencha apenas os meses que deseja registrar:</p>
+                    <div id="grade-meses-salario" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3"></div>
 
                     <div class="flex justify-end">
                         <button type="submit" class="bg-emerald-500 hover:bg-emerald-400 text-cobalt-950 font-bold px-6 py-2.5 rounded-lg text-sm transition">
@@ -352,7 +377,7 @@
                     </form>
                 </div>
 
-                <!-- Cadastro de Recebíveis Previstos (Projeção no Gráfico) -->
+                <!-- Cadastro de Recebíveis Previstos -->
                 <div class="card-glass p-6 rounded-2xl">
                     <h3 class="text-lg font-semibold text-white mb-4">Previsão de Recebíveis Futuros (Linha Tracejada)</h3>
                     <form onsubmit="salvarPrevisao(event)" class="space-y-4">
@@ -412,7 +437,7 @@
                                 <input type="number" min="1" max="31" id="card-vencimento" required placeholder="Ex: 05" class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
                             </div>
                         </div>
-                        <button type="submit" class="w-full bg-cyan-500 text-cobalt-950 font-bold py-2 rounded-lg text-sm">Salvar Cartão</button>
+                        <button type="submit" class="w-full bg-cyan-500 hover:bg-cyan-400 text-cobalt-950 font-bold py-2 rounded-lg text-sm transition">Salvar Cartão</button>
                     </form>
                     <div id="lista-cartoes" class="mt-4 space-y-2 text-xs text-slate-300"></div>
                 </div>
@@ -422,7 +447,7 @@
                     <h3 class="text-base font-semibold text-white mb-4">Métodos de Pagamento</h3>
                     <form onsubmit="salvarMetodo(event)" class="space-y-3">
                         <input type="text" id="met-nome" required placeholder="Ex: Pix, Dinheiro, Vale..." class="w-full bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
-                        <button type="submit" class="w-full bg-cyan-500 text-cobalt-950 font-bold py-2 rounded-lg text-sm">Adicionar Método</button>
+                        <button type="submit" class="w-full bg-cyan-500 hover:bg-cyan-400 text-cobalt-950 font-bold py-2 rounded-lg text-sm transition">Adicionar Método</button>
                     </form>
                     <div id="lista-metodos" class="mt-4 space-y-2 text-xs text-slate-300"></div>
                 </div>
@@ -435,7 +460,7 @@
                             <input type="text" id="cat-nome" required placeholder="Nome da Categoria" class="flex-1 bg-cobalt-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
                             <input type="color" id="cat-cor" value="#22d3ee" class="h-10 w-12 bg-cobalt-950 border border-slate-700 rounded-lg cursor-pointer">
                         </div>
-                        <button type="submit" class="w-full bg-cyan-500 text-cobalt-950 font-bold py-2 rounded-lg text-sm">Adicionar Categoria</button>
+                        <button type="submit" class="w-full bg-cyan-500 hover:bg-cyan-400 text-cobalt-950 font-bold py-2 rounded-lg text-sm transition">Adicionar Categoria</button>
                     </form>
                     <div id="lista-categorias" class="mt-4 space-y-2 text-xs text-slate-300"></div>
                 </div>
@@ -455,7 +480,6 @@
                 <button onclick="fecharModalComparativo()" class="text-slate-400 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
-            <!-- Seletores de Meses para Comparação -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-cobalt-950 p-4 rounded-xl border border-slate-800">
                 <div>
                     <label class="block text-xs text-cyan-400 font-semibold mb-1">Mês Base (A)</label>
@@ -467,12 +491,10 @@
                 </div>
             </div>
 
-            <!-- Gráfico de Barras Comparativo -->
             <div class="h-64 bg-cobalt-950/60 p-4 rounded-xl border border-slate-800">
                 <canvas id="chart-comparativo"></canvas>
             </div>
 
-            <!-- Tabela Detalhada de Variação -->
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-sm">
                     <thead>
@@ -506,7 +528,7 @@
             transacoes: [],
             investimentos: [],
             previsoes: [],
-            periodoDashboard: 'mensal' // 'mensal' | 'bimestral' | 'anual'
+            periodoDashboard: 'mensal'
         };
 
         let charts = { linha: null, pizzaCat: null, pizzaMet: null, comparativo: null };
@@ -525,7 +547,6 @@
             document.getElementById('tx-data').valueAsDate = hoje;
             document.getElementById('inv-data').valueAsDate = hoje;
 
-            // Configurar meses padrão do comparativo (Mês anterior vs Mês atual)
             const mesAnt = hoje.getMonth() === 0 ? 12 : hoje.getMonth();
             const anoAnt = hoje.getMonth() === 0 ? hoje.getFullYear() - 1 : hoje.getFullYear();
             document.getElementById('comp-mes-a').value = `${anoAnt}-${String(mesAnt).padStart(2, '0')}`;
@@ -547,6 +568,9 @@
                 ]);
 
                 if (cat.error) throw cat.error;
+                if (met.error) throw met.error;
+                if (card.error) throw card.error;
+                if (tx.error) throw tx.error;
 
                 state.categorias = cat.data || [];
                 state.metodos = met.data || [];
@@ -556,15 +580,17 @@
                 state.previsoes = prev.data || [];
 
                 document.getElementById('status-conexao').innerHTML = '<i class="fa-solid fa-circle text-emerald-400 mr-1"></i> Supabase Conectado';
+                document.getElementById('resumo-vinculos').innerText = `${state.cartoes.length} cartão(ões) | ${state.categorias.length} categorias`;
+                
                 popularSelects();
                 atualizarTudo();
             } catch (err) {
-                console.error(err);
-                document.getElementById('status-conexao').innerHTML = '<i class="fa-solid fa-circle text-rose-500 mr-1"></i> Erro de Conexão (Verifique Chaves)';
+                console.error('Erro ao carregar dados:', err);
+                document.getElementById('status-conexao').innerHTML = '<i class="fa-solid fa-circle text-rose-500 mr-1"></i> Erro de Conexão';
             }
         }
 
-        // Navegação entre abas
+        // Navegação entre abas (sempre sincroniza os selects ao trocar de aba)
         function switchTab(tabId) {
             ['dashboard', 'lancamentos', 'investimentos', 'configuracoes'].forEach(t => {
                 document.getElementById(`tab-${t}`).classList.add('hidden');
@@ -572,6 +598,7 @@
             });
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
             document.getElementById(`btn-${tabId}`).classList.add('active');
+            popularSelects();
         }
 
         // Mostrar/Ocultar Formulário de Lançamentos
@@ -581,8 +608,10 @@
             const deveAbrir = typeof forceState === 'boolean' ? forceState : box.classList.contains('hidden');
 
             if (deveAbrir) {
+                popularSelects();
                 box.classList.remove('hidden');
                 btn.classList.add('hidden');
+                atualizarPreviewParcelas();
             } else {
                 box.classList.add('hidden');
                 btn.classList.remove('hidden');
@@ -591,10 +620,59 @@
 
         function toggleCamposDespesa() {
             const tipo = document.getElementById('tx-tipo').value;
-            document.getElementById('wrap-forma').style.display = tipo === 'despesa' ? 'block' : 'none';
+            const isDespesa = tipo === 'despesa';
+            document.getElementById('wrap-forma').style.display = isDespesa ? 'block' : 'none';
+            document.getElementById('wrap-parcelamento').style.display = isDespesa ? 'block' : 'none';
         }
 
-        // Alternar Período do Dashboard (Mensal / Bimestral / Anual)
+        function toggleParcelamento() {
+            const isParcelado = document.getElementById('tx-parcelado').checked;
+            const campos = document.getElementById('campos-parcelas');
+            if (isParcelado) {
+                campos.classList.remove('hidden');
+            } else {
+                campos.classList.add('hidden');
+            }
+            atualizarPreviewParcelas();
+        }
+
+        function atualizarPreviewParcelas() {
+            const previewEl = document.getElementById('preview-parcelamento');
+            const isParcelado = document.getElementById('tx-parcelado').checked;
+            const valorInput = parseFloat(document.getElementById('tx-valor').value) || 0;
+            const dataCompra = document.getElementById('tx-data').value;
+            const formaVal = document.getElementById('tx-forma').value || '';
+
+            let cartaoObj = null;
+            if (formaVal.startsWith('cartao_')) {
+                const cId = formaVal.replace('cartao_', '');
+                cartaoObj = state.cartoes.find(c => String(c.id) === String(cId));
+            }
+
+            const primeiraComp = dataCompra ? calcularMesCompetencia(dataCompra, cartaoObj) : '';
+
+            if (!isParcelado) {
+                previewEl.innerText = primeiraComp ? `Será lançado na competência/fatura: ${primeiraComp}` : '';
+                return;
+            }
+
+            const numParcelas = Math.max(2, parseInt(document.getElementById('tx-num-parcelas').value) || 2);
+            const modoValor = document.getElementById('tx-tipo-valor-parcela').value;
+
+            let valorParcela = 0;
+            let valorTotal = 0;
+            if (modoValor === 'total') {
+                valorTotal = valorInput;
+                valorParcela = valorInput / numParcelas;
+            } else {
+                valorParcela = valorInput;
+                valorTotal = valorInput * numParcelas;
+            }
+
+            const ultimaComp = primeiraComp ? somarMesesCompetencia(primeiraComp, numParcelas - 1) : '';
+            previewEl.innerText = `${numParcelas}x de ${formatBRL(valorParcela)} (Total: ${formatBRL(valorTotal)}) • Faturas de ${primeiraComp} até ${ultimaComp}`;
+        }
+
         function setPeriodoDashboard(periodo) {
             state.periodoDashboard = periodo;
             ['mensal', 'bimestral', 'anual'].forEach(p => {
@@ -611,48 +689,81 @@
         }
 
         function popularSelects() {
-            const optionsCat = state.categorias.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
-            document.getElementById('tx-categoria').innerHTML = optionsCat;
+            // Preservar valores selecionados antes de reconstruir
+            const catAtual = document.getElementById('tx-categoria').value;
+            const formaAtual = document.getElementById('tx-forma').value;
+
+            const optionsCat = state.categorias.length > 0
+                ? state.categorias.map(c => `<option value="${c.id}">${c.nome}</option>`).join('')
+                : '<option value="">Nenhuma categoria cadastrada</option>';
             
-            // Selecionar "Salário" por padrão no select de salários se existir
+            document.getElementById('tx-categoria').innerHTML = optionsCat;
+            if (catAtual && state.categorias.some(c => String(c.id) === String(catAtual))) {
+                document.getElementById('tx-categoria').value = catAtual;
+            }
+
             const selSalCat = document.getElementById('sal-var-cat');
             selSalCat.innerHTML = optionsCat;
             const catSalario = state.categorias.find(c => c.nome.toLowerCase().includes('salário') || c.nome.toLowerCase().includes('salario'));
             if (catSalario) selSalCat.value = catSalario.id;
 
+            // Construção robusta do Select de Cartões + Métodos
             const selForma = document.getElementById('tx-forma');
-            let htmlForma = '<optgroup label="Cartões de Crédito">';
-            state.cartoes.forEach(c => {
-                htmlForma += `<option value="cartao_${c.id}">💳 ${c.apelido} (Fecha dia ${c.dia_fechamento})</option>`;
-            });
-            htmlForma += '</optgroup><optgroup label="Outros Métodos">';
-            state.metodos.forEach(m => {
-                htmlForma += `<option value="metodo_${m.id}">💵 ${m.nome}</option>`;
-            });
-            htmlForma += '</optgroup>';
+            let htmlForma = '';
+
+            if (state.cartoes.length > 0) {
+                htmlForma += '<optgroup label="Cartões de Crédito">';
+                state.cartoes.forEach(c => {
+                    htmlForma += `<option value="cartao_${c.id}">💳 ${c.apelido} (Fecha dia ${c.dia_fechamento} | Vence ${c.dia_vencimento})</option>`;
+                });
+                htmlForma += '</optgroup>';
+            }
+
+            if (state.metodos.length > 0) {
+                htmlForma += '<optgroup label="Métodos de Pagamento">';
+                state.metodos.forEach(m => {
+                    htmlForma += `<option value="metodo_${m.id}">💵 ${m.nome}</option>`;
+                });
+                htmlForma += '</optgroup>';
+            }
+
+            if (!htmlForma) {
+                htmlForma = '<option value="">Cadastre um cartão ou método primeiro</option>';
+            }
+
             selForma.innerHTML = htmlForma;
+            if (formaAtual) {
+                const existe = Array.from(selForma.options).some(opt => opt.value === formaAtual);
+                if (existe) selForma.value = formaAtual;
+            }
 
             // Listas Configurações
-            document.getElementById('lista-cartoes').innerHTML = state.cartoes.map(c => 
-                `<div class="flex justify-between items-center bg-cobalt-950 p-2 rounded border border-slate-800">
-                    <span><strong>${c.apelido}</strong> (Fecha: ${c.dia_fechamento} | Vence: ${c.dia_vencimento})</span>
-                    <button onclick="deletarItem('cartoes', '${c.id}')" class="text-rose-400 hover:text-rose-300"><i class="fa-solid fa-trash"></i></button>
-                </div>`
-            ).join('');
+            document.getElementById('lista-cartoes').innerHTML = state.cartoes.length > 0
+                ? state.cartoes.map(c => 
+                    `<div class="flex justify-between items-center bg-cobalt-950 p-2.5 rounded-lg border border-slate-800">
+                        <span>💳 <strong>${c.apelido}</strong> <span class="text-slate-400">(Fecha: ${c.dia_fechamento} | Vence: ${c.dia_vencimento})</span></span>
+                        <button onclick="deletarItem('cartoes', '${c.id}')" class="text-rose-400 hover:text-rose-300 px-2"><i class="fa-solid fa-trash"></i></button>
+                    </div>`
+                ).join('')
+                : '<p class="text-slate-500">Nenhum cartão cadastrado.</p>';
 
-            document.getElementById('lista-metodos').innerHTML = state.metodos.map(m => 
-                `<div class="flex justify-between items-center bg-cobalt-950 p-2 rounded border border-slate-800">
-                    <span>${m.nome}</span>
-                    <button onclick="deletarItem('metodos_pagamento', '${m.id}')" class="text-rose-400 hover:text-rose-300"><i class="fa-solid fa-trash"></i></button>
-                </div>`
-            ).join('');
+            document.getElementById('lista-metodos').innerHTML = state.metodos.length > 0
+                ? state.metodos.map(m => 
+                    `<div class="flex justify-between items-center bg-cobalt-950 p-2.5 rounded-lg border border-slate-800">
+                        <span>💵 ${m.nome}</span>
+                        <button onclick="deletarItem('metodos_pagamento', '${m.id}')" class="text-rose-400 hover:text-rose-300 px-2"><i class="fa-solid fa-trash"></i></button>
+                    </div>`
+                ).join('')
+                : '<p class="text-slate-500">Nenhum método cadastrado.</p>';
 
-            document.getElementById('lista-categorias').innerHTML = state.categorias.map(c => 
-                `<div class="flex justify-between items-center bg-cobalt-950 p-2 rounded border border-slate-800">
-                    <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:${c.cor}"></span>${c.nome}</span>
-                    <button onclick="deletarItem('categorias', '${c.id}')" class="text-rose-400 hover:text-rose-300"><i class="fa-solid fa-trash"></i></button>
-                </div>`
-            ).join('');
+            document.getElementById('lista-categorias').innerHTML = state.categorias.length > 0
+                ? state.categorias.map(c => 
+                    `<div class="flex justify-between items-center bg-cobalt-950 p-2.5 rounded-lg border border-slate-800">
+                        <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:${c.cor}"></span>${c.nome}</span>
+                        <button onclick="deletarItem('categorias', '${c.id}')" class="text-rose-400 hover:text-rose-300 px-2"><i class="fa-solid fa-trash"></i></button>
+                    </div>`
+                ).join('')
+                : '<p class="text-slate-500">Nenhuma categoria cadastrada.</p>';
         }
 
         // =========================================================================
@@ -668,7 +779,7 @@
                 formVar.classList.remove('hidden');
                 formFixo.classList.add('hidden');
                 btnVar.classList.add('active');
-                btnFixo.classList.remove('active', 'text-slate-300');
+                btnFixo.classList.remove('active');
                 btnFixo.classList.add('text-slate-300');
             } else {
                 formFixo.classList.remove('hidden');
@@ -735,7 +846,7 @@
             e.preventDefault();
             const descricao = document.getElementById('sal-fixo-desc').value;
             const valor = parseFloat(document.getElementById('sal-fixo-valor').value);
-            const inicio = document.getElementById('sal-fixo-inicio').value; // YYYY-MM
+            const inicio = document.getElementById('sal-fixo-inicio').value;
             const qtd = parseInt(document.getElementById('sal-fixo-qtd').value);
             const catSalario = state.categorias.find(c => c.nome.toLowerCase().includes('salário') || c.nome.toLowerCase().includes('salario'));
 
@@ -767,7 +878,7 @@
         }
 
         // =========================================================================
-        // 3. CÁLCULO DE MÊS DA FATURA DO CARTÃO & TRANSAÇÕES
+        // 3. CÁLCULO DE FATURAS E LANÇAMENTOS PARCELADOS
         // =========================================================================
         function calcularMesCompetencia(dataCompraStr, cartao) {
             const [anoStr, mesStr, diaStr] = dataCompraStr.split('-');
@@ -787,14 +898,24 @@
             return `${ano}-${String(mes).padStart(2, '0')}`;
         }
 
+        function somarMesesCompetencia(compInicial, mesesAdicionar) {
+            let [ano, mes] = compInicial.split('-').map(Number);
+            mes += mesesAdicionar;
+            while (mes > 12) {
+                mes -= 12;
+                ano += 1;
+            }
+            return `${ano}-${String(mes).padStart(2, '0')}`;
+        }
+
         async function salvarTransacao(e) {
             e.preventDefault();
             const tipo = document.getElementById('tx-tipo').value;
             const descricao = document.getElementById('tx-descricao').value;
-            const valor = parseFloat(document.getElementById('tx-valor').value);
+            const valorInformado = parseFloat(document.getElementById('tx-valor').value);
             const data_compra = document.getElementById('tx-data').value;
             const categoria_id = document.getElementById('tx-categoria').value || null;
-            const formaVal = document.getElementById('tx-forma').value;
+            const formaVal = document.getElementById('tx-forma').value || '';
 
             let cartao_id = null;
             let metodo_id = null;
@@ -803,21 +924,68 @@
             if (tipo === 'despesa' && formaVal) {
                 if (formaVal.startsWith('cartao_')) {
                     cartao_id = formaVal.replace('cartao_', '');
-                    cartaoObj = state.cartoes.find(c => c.id === cartao_id);
+                    cartaoObj = state.cartoes.find(c => String(c.id) === String(cartao_id));
                 } else if (formaVal.startsWith('metodo_')) {
                     metodo_id = formaVal.replace('metodo_', '');
                 }
             }
 
-            const mes_competencia = calcularMesCompetencia(data_compra, cartaoObj);
+            const primeiraCompetencia = calcularMesCompetencia(data_compra, cartaoObj);
+            const isParcelado = tipo === 'despesa' && document.getElementById('tx-parcelado').checked;
 
-            const { error } = await db.from('transacoes').insert([{
-                tipo, descricao, valor, data_compra, mes_competencia, categoria_id, metodo_id, cartao_id
-            }]);
+            let registrosParaInserir = [];
+
+            if (!isParcelado) {
+                registrosParaInserir.push({
+                    tipo,
+                    descricao,
+                    valor: valorInformado,
+                    data_compra,
+                    mes_competencia: primeiraCompetencia,
+                    categoria_id,
+                    metodo_id,
+                    cartao_id
+                });
+            } else {
+                const numParcelas = Math.max(2, parseInt(document.getElementById('tx-num-parcelas').value) || 2);
+                const modoValor = document.getElementById('tx-tipo-valor-parcela').value;
+
+                let valorBaseParcela = 0;
+                let diferencaCentavos = 0;
+
+                if (modoValor === 'total') {
+                    valorBaseParcela = Math.floor((valorInformado / numParcelas) * 100) / 100;
+                    diferencaCentavos = Math.round((valorInformado - (valorBaseParcela * numParcelas)) * 100) / 100;
+                } else {
+                    valorBaseParcela = valorInformado;
+                }
+
+                for (let i = 0; i < numParcelas; i++) {
+                    const compParcela = somarMesesCompetencia(primeiraCompetencia, i);
+                    const valorDestaParcela = (i === numParcelas - 1)
+                        ? Number((valorBaseParcela + diferencaCentavos).toFixed(2))
+                        : Number(valorBaseParcela.toFixed(2));
+
+                    registrosParaInserir.push({
+                        tipo: 'despesa',
+                        descricao: `${descricao} (${i + 1}/${numParcelas})`,
+                        valor: valorDestaParcela,
+                        data_compra,
+                        mes_competencia: compParcela,
+                        categoria_id,
+                        metodo_id,
+                        cartao_id
+                    });
+                }
+            }
+
+            const { error } = await db.from('transacoes').insert(registrosParaInserir);
 
             if (!error) {
                 e.target.reset();
                 document.getElementById('tx-data').valueAsDate = new Date();
+                document.getElementById('campos-parcelas').classList.add('hidden');
+                toggleCamposDespesa();
                 toggleFormLancamento(false);
                 await carregarDadosBanco();
             } else {
@@ -827,27 +995,48 @@
 
         async function salvarCartao(e) {
             e.preventDefault();
-            const apelido = document.getElementById('card-apelido').value;
+            const apelido = document.getElementById('card-apelido').value.trim();
             const dia_fechamento = parseInt(document.getElementById('card-fechamento').value);
             const dia_vencimento = parseInt(document.getElementById('card-vencimento').value);
-            await db.from('cartoes').insert([{ apelido, dia_fechamento, dia_vencimento }]);
+
+            const { data, error } = await db.from('cartoes')
+                .insert([{ apelido, dia_fechamento, dia_vencimento }])
+                .select();
+
+            if (error) {
+                alert('Erro ao salvar cartão: ' + error.message);
+                return;
+            }
+
             e.target.reset();
             await carregarDadosBanco();
+            if (data && data[0]) {
+                document.getElementById('tx-forma').value = `cartao_${data[0].id}`;
+            }
+            alert(`Cartão "${apelido}" cadastrado e vinculado com sucesso!`);
         }
 
         async function salvarMetodo(e) {
             e.preventDefault();
-            const nome = document.getElementById('met-nome').value;
-            await db.from('metodos_pagamento').insert([{ nome }]);
+            const nome = document.getElementById('met-nome').value.trim();
+            const { error } = await db.from('metodos_pagamento').insert([{ nome }]);
+            if (error) {
+                alert('Erro ao salvar método: ' + error.message);
+                return;
+            }
             e.target.reset();
             await carregarDadosBanco();
         }
 
         async function salvarCategoria(e) {
             e.preventDefault();
-            const nome = document.getElementById('cat-nome').value;
+            const nome = document.getElementById('cat-nome').value.trim();
             const cor = document.getElementById('cat-cor').value;
-            await db.from('categorias').insert([{ nome, cor }]);
+            const { error } = await db.from('categorias').insert([{ nome, cor }]);
+            if (error) {
+                alert('Erro ao salvar categoria: ' + error.message);
+                return;
+            }
             e.target.reset();
             await carregarDadosBanco();
         }
@@ -858,7 +1047,11 @@
             const valor_inicial = parseFloat(document.getElementById('inv-valor').value);
             const taxa_mensal = parseFloat(document.getElementById('inv-taxa').value);
             const data_aporte = document.getElementById('inv-data').value;
-            await db.from('investimentos').insert([{ nome, valor_inicial, taxa_mensal, data_aporte }]);
+            const { error } = await db.from('investimentos').insert([{ nome, valor_inicial, taxa_mensal, data_aporte }]);
+            if (error) {
+                alert('Erro ao salvar investimento: ' + error.message);
+                return;
+            }
             e.target.reset();
             await carregarDadosBanco();
         }
@@ -869,14 +1062,22 @@
             const valor = parseFloat(document.getElementById('prev-valor').value);
             const mes_inicio = document.getElementById('prev-inicio').value;
             const mes_fim = document.getElementById('prev-fim').value;
-            await db.from('previsao_recebiveis').insert([{ descricao, valor, mes_inicio, mes_fim }]);
+            const { error } = await db.from('previsao_recebiveis').insert([{ descricao, valor, mes_inicio, mes_fim }]);
+            if (error) {
+                alert('Erro ao salvar previsão: ' + error.message);
+                return;
+            }
             e.target.reset();
             await carregarDadosBanco();
         }
 
         async function deletarItem(tabela, id) {
             if (!confirm('Deseja excluir este registro?')) return;
-            await db.from(tabela).delete().eq('id', id);
+            const { error } = await db.from(tabela).delete().eq('id', id);
+            if (error) {
+                alert('Erro ao excluir: ' + error.message);
+                return;
+            }
             await carregarDadosBanco();
         }
 
@@ -897,7 +1098,6 @@
                 };
             }
             if (state.periodoDashboard === 'bimestral') {
-                // Bimestre do mês selecionado: (1-2), (3-4), (5-6), (7-8), (9-10), (11-12)
                 const mesInicioBim = mesNum % 2 === 1 ? mesNum : mesNum - 1;
                 const mesFimBim = mesInicioBim + 1;
                 const comp1 = `${anoSel}-${String(mesInicioBim).padStart(2, '0')}`;
@@ -907,7 +1107,6 @@
                     rotulo: `${NOMES_MESES[mesInicioBim - 1]}–${NOMES_MESES[mesFimBim - 1]}/${anoSel}`
                 };
             }
-            // Anual
             return {
                 lista: state.transacoes.filter(t => t.mes_competencia.startsWith(`${anoSel}-`)),
                 rotulo: `Ano ${anoSel}`
@@ -920,7 +1119,6 @@
             const compMensal = `${anoSel}-${mesSel}`;
             document.getElementById('label-ano-grafico').innerText = anoSel;
 
-            // Dados filtrados conforme botão Mensal / Bimestral / Anual
             const { lista: txPeriodo, rotulo } = obterTransacoesPeriodo(mesSel, anoSel);
             document.getElementById('badge-periodo-ativo').innerText = `Exibindo: ${rotulo}`;
             document.getElementById('lbl-kpi-receitas').innerText = `Recebimentos (${rotulo})`;
@@ -936,7 +1134,6 @@
             document.getElementById('kpi-despesas').innerText = formatBRL(despesasPer);
             document.getElementById('kpi-saldo').innerText = formatBRL(saldoPer);
 
-            // Tabela de extrato da aba Lançamentos exibe sempre o mês selecionado
             const txMesExato = state.transacoes.filter(t => t.mes_competencia === compMensal);
             renderizarTabelaTransacoes(txMesExato);
             renderizarInvestimentosEPrevisoes(anoSel);
@@ -951,14 +1148,14 @@
             }
 
             tbody.innerHTML = txMes.map(t => {
-                const cat = state.categorias.find(c => c.id === t.categoria_id);
+                const cat = state.categorias.find(c => String(c.id) === String(t.categoria_id));
                 let formaNome = t.tipo === 'receita' ? 'Recebimento' : '-';
                 if (t.cartao_id) {
-                    const card = state.cartoes.find(c => c.id === t.cartao_id);
+                    const card = state.cartoes.find(c => String(c.id) === String(t.cartao_id));
                     formaNome = card ? `💳 ${card.apelido}` : 'Cartão';
                 } else if (t.metodo_id) {
-                    const met = state.metodos.find(m => m.id === t.metodo_id);
-                    formaNome = met ? met.nome : 'Método';
+                    const met = state.metodos.find(m => String(m.id) === String(t.metodo_id));
+                    formaNome = met ? `💵 ${met.nome}` : 'Método';
                 }
 
                 const corValor = t.tipo === 'receita' ? 'text-emerald-400' : 'text-rose-400';
@@ -1049,7 +1246,6 @@
                 });
             }
 
-            // 1. Gráfico de Linha Anual
             if (charts.linha) charts.linha.destroy();
             charts.linha = new Chart(document.getElementById('chart-linha-anual'), {
                 type: 'line',
@@ -1072,12 +1268,11 @@
                 }
             });
 
-            // 2. Gráfico Pizza por Categoria (Período selecionado)
             const despesasPer = txPeriodo.filter(t => t.tipo === 'despesa');
             const mapCat = {};
             const coresCat = [];
             despesasPer.forEach(d => {
-                const cat = state.categorias.find(c => c.id === d.categoria_id);
+                const cat = state.categorias.find(c => String(c.id) === String(d.categoria_id));
                 const nome = cat ? cat.nome : 'Sem Categoria';
                 if (!mapCat[nome]) {
                     mapCat[nome] = 0;
@@ -1096,15 +1291,14 @@
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#cbd5e1' } } } }
             });
 
-            // 3. Gráfico Pizza por Método / Cartão (Período selecionado)
             const mapMet = {};
             despesasPer.forEach(d => {
                 let nome = 'Outros';
                 if (d.cartao_id) {
-                    const c = state.cartoes.find(x => x.id === d.cartao_id);
+                    const c = state.cartoes.find(x => String(x.id) === String(d.cartao_id));
                     nome = c ? `Cartão: ${c.apelido}` : 'Cartão';
                 } else if (d.metodo_id) {
-                    const m = state.metodos.find(x => x.id === d.metodo_id);
+                    const m = state.metodos.find(x => String(x.id) === String(d.metodo_id));
                     nome = m ? m.nome : 'Método';
                 }
                 mapMet[nome] = (mapMet[nome] || 0) + Number(d.valor);
@@ -1153,14 +1347,14 @@
             const mapB = {};
 
             despA.forEach(d => {
-                const cat = state.categorias.find(c => c.id === d.categoria_id);
+                const cat = state.categorias.find(c => String(c.id) === String(d.categoria_id));
                 const nome = cat ? cat.nome : 'Sem Categoria';
                 categoriasEnvolvidas.add(nome);
                 mapA[nome] = (mapA[nome] || 0) + Number(d.valor);
             });
 
             despB.forEach(d => {
-                const cat = state.categorias.find(c => c.id === d.categoria_id);
+                const cat = state.categorias.find(c => String(c.id) === String(d.categoria_id));
                 const nome = cat ? cat.nome : 'Sem Categoria';
                 categoriasEnvolvidas.add(nome);
                 mapB[nome] = (mapB[nome] || 0) + Number(d.valor);
