@@ -113,7 +113,7 @@
 
         <div>
           <label class="block text-slate-300 font-medium mb-1.5">Descrição</label>
-          <input id="txDesc" type="text" required placeholder="Ex: Super Atacado, Aluguel..." class="input-field" />
+          <input id="txDesc" type="text" required placeholder="Ex: Mercado, Aluguel..." class="input-field" />
         </div>
 
         <div>
@@ -386,7 +386,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-800/80">
           <div>
             <label class="block text-[11px] text-slate-400 uppercase font-semibold mb-1">Buscar Descrição</label>
-            <input id="searchTx" type="text" placeholder="Ex: Super Atacado, Unimed..." oninput="renderTransactionsTable()" class="input-field" />
+            <input id="searchTx" type="text" placeholder="Ex: Mercado, Aluguel..." oninput="renderTransactionsTable()" class="input-field" />
           </div>
           <div>
             <label class="block text-[11px] text-slate-400 uppercase font-semibold mb-1">Mês de Referência (MM/AA)</label>
@@ -429,7 +429,7 @@
           <p class="text-[11px] text-slate-400">Altere o fechamento de um cartão para recalcular automaticamente a fatura de seus lançamentos</p>
         </div>
         <form onsubmit="addCard(event)" class="grid grid-cols-3 gap-2 text-xs">
-          <input id="cardName" type="text" placeholder="Nome (ex: LATAM PASS)" required class="input-field" />
+          <input id="cardName" type="text" placeholder="Nome do Cartão" required class="input-field" />
           <input id="cardClose" type="number" min="1" max="31" placeholder="Dia Fechamento" required class="input-field" />
           <input id="cardDue" type="number" min="1" max="31" placeholder="Dia Vencimento" required class="input-field" />
           <button type="submit" class="btn-primary col-span-3">Adicionar Cartão</button>
@@ -520,7 +520,6 @@
         if (p.length > 2) {
           s = p.join('');
         } else if (p[1].length === 3 && Number(p[0]) >= 1) {
-          // Ex: "1.500" (milhar sem decimais em string PT-BR) -> 1500
           s = p.join('');
         }
       }
@@ -672,29 +671,10 @@
     let evolutionChartType = 'line';
     let state = {
       transactions: JSON.parse(localStorage.getItem('fin_transactions') || '[]'),
-      cards: JSON.parse(localStorage.getItem('fin_cards') || JSON.stringify([
-        { id: 1, name: 'ITAÚ MATHEUS', closeDay: 25, dueDay: 5 },
-        { id: 2, name: 'LATAM PASS', closeDay: 26, dueDay: 5 },
-        { id: 3, name: 'UNICLASS', closeDay: 25, dueDay: 5 },
-        { id: 4, name: 'NU MATHEUS', closeDay: 28, dueDay: 7 },
-        { id: 5, name: 'NU JADE', closeDay: 28, dueDay: 7 },
-        { id: 6, name: 'PÃO DE AÇÚCAR', closeDay: 20, dueDay: 1 }
-      ])),
+      cards: JSON.parse(localStorage.getItem('fin_cards') || '[]'),
       bills: JSON.parse(localStorage.getItem('fin_bills') || '[]'),
       investments: JSON.parse(localStorage.getItem('fin_investments') || '[]'),
-      categories: JSON.parse(localStorage.getItem('fin_categories') || JSON.stringify([
-        { name: 'MORADIA', type: 'despesa', limit: 3000 },
-        { name: 'MERCADO', type: 'despesa', limit: 1500 },
-        { name: 'SAÚDE', type: 'despesa', limit: 1600 },
-        { name: 'TRANSPORTE', type: 'despesa', limit: 800 },
-        { name: 'DADOS', type: 'despesa', limit: 200 },
-        { name: 'LAZER', type: 'despesa', limit: 400 },
-        { name: 'INVESTIMENTO', type: 'despesa', limit: 1000 },
-        { name: 'NEGÓCIOS', type: 'despesa', limit: 500 },
-        { name: 'OUTROS', type: 'despesa', limit: 1000 },
-        { name: 'SALÁRIO', type: 'receita', limit: 0 },
-        { name: 'RENDIMENTOS', type: 'receita', limit: 0 }
-      ])),
+      categories: JSON.parse(localStorage.getItem('fin_categories') || '[]'),
       visibleCards: JSON.parse(localStorage.getItem('fin_visible_cards') || JSON.stringify({
         receitas: true, despesas: true, saldo: true, parcelado: true
       }))
@@ -756,7 +736,13 @@
     async function syncFromSupabase() {
       if (!supabaseClient) return;
       const { data, error } = await supabaseClient.from('despesas').select('*');
-      if (!error && data && data.length > 0) {
+      if (!error && Array.isArray(data)) {
+        if (data.length === 0) {
+          state.transactions = [];
+          saveLocalState();
+          refreshAllUI();
+          return;
+        }
         const savedTypes = JSON.parse(localStorage.getItem('fin_tx_types') || '{}');
         const savedFixed = JSON.parse(localStorage.getItem('fin_tx_fixed_meta') || '{}');
         const mapped = data.map(row => {
@@ -786,6 +772,7 @@
         const { cleaned, fixedCount, repairedItems } = sanitizeInflatedTransactions(mapped);
         const { unique } = deduplicateTransactionList(cleaned);
         state.transactions = unique;
+        ensureCategoriesAndCardsExist(unique);
         saveLocalState();
         refreshAllUI();
 
@@ -1433,9 +1420,9 @@
       const data = document.getElementById('txData').value;
       const descricao = document.getElementById('txDesc').value.trim();
       const valor = parseNumericValue(document.getElementById('txValor').value);
-      const categoria = document.getElementById('txCat').value;
+      const categoria = document.getElementById('txCat').value || (tipo === 'receita' ? 'SALÁRIO' : 'OUTROS');
       const metodo = tipo === 'despesa' ? document.getElementById('txMetodo').value : 'PIX/TED';
-      const cartao = (tipo === 'despesa' && metodo === 'CRÉDITO') ? document.getElementById('txCartao').value : null;
+      const cartao = (tipo === 'despesa' && metodo === 'CRÉDITO' && document.getElementById('txCartao').value) ? document.getElementById('txCartao').value : null;
       const mesRef = document.getElementById('txMesRef').value || data.slice(0, 7);
       const isFixedChecked = document.getElementById('txIsFixed').checked;
 
@@ -1537,6 +1524,7 @@
           return;
         }
         state.transactions.push(...created);
+        ensureCategoriesAndCardsExist(created);
         saveLocalState();
         await pushTransactionsToSupabase(created);
         closeTxModal();
@@ -1574,6 +1562,7 @@
       }
 
       state.transactions.push(...created);
+      ensureCategoriesAndCardsExist(created);
       saveLocalState();
       await pushTransactionsToSupabase(created);
       closeTxModal();
@@ -1606,12 +1595,30 @@
       showToast('Lançamento removido.');
     }
 
-    function clearAllTransactions() {
-      if (!confirm('Deseja apagar todos os lançamentos armazenados localmente?')) return;
+    async function clearAllTransactions() {
+      if (!confirm('ATENÇÃO: Isso apagará TODOS os lançamentos, cartões, categorias e investimentos salvos localmente (e no Supabase, se conectado). Deseja continuar?')) return;
       state.transactions = [];
-      saveLocalState();
+      state.cards = [];
+      state.bills = [];
+      state.investments = [];
+      state.categories = [];
+      localStorage.removeItem('fin_transactions');
+      localStorage.removeItem('fin_cards');
+      localStorage.removeItem('fin_bills');
+      localStorage.removeItem('fin_investments');
+      localStorage.removeItem('fin_categories');
+      localStorage.removeItem('fin_tx_types');
+      localStorage.removeItem('fin_tx_fixed_meta');
+
+      if (supabaseClient) {
+        try {
+          await supabaseClient.from('despesas').delete().not('id', 'is', null);
+        } catch (err) {
+          console.warn('Aviso ao limpar Supabase:', err);
+        }
+      }
       refreshAllUI();
-      showToast('Histórico limpo.');
+      showToast('Todos os dados foram apagados com sucesso.');
     }
 
     function getTransactionPriorityGroup(t) {
@@ -1684,7 +1691,7 @@
               </div>
             </td>
           </tr>`;
-      }).join('') || '<tr><td colspan="8" class="py-8 text-center text-slate-500">Nenhum lançamento encontrado para este filtro.</td></tr>';
+      }).join('') || '<tr><td colspan="8" class="py-8 text-center text-slate-500">Nenhum lançamento encontrado. Clique em "Importar dados" para carregar sua planilha.</td></tr>';
     }
 
     function addCard(e) {
@@ -1750,7 +1757,7 @@
       const descricao = document.getElementById('fixName').value.trim();
       const valor = parseNumericValue(document.getElementById('fixVal').value);
       const dayOfMonth = parseInt(document.getElementById('fixDay').value, 10) || 1;
-      const categoria = document.getElementById('fixCat').value || 'MORADIA';
+      const categoria = document.getElementById('fixCat').value || 'OUTROS';
       const startMonth = document.getElementById('fixStartMonth').value || `${getCurrentMonthISO().slice(0, 4)}-01`;
 
       const created = createFixedExpenseInstances({ descricao, valor, categoria, metodo: 'BOLETO', cartao: null, dayOfMonth, startMonth, tipo: 'despesa' });
@@ -1759,6 +1766,7 @@
         return;
       }
       state.transactions.push(...created);
+      ensureCategoriesAndCardsExist(created);
       saveLocalState();
       await pushTransactionsToSupabase(created);
       e.target.reset();
@@ -1814,7 +1822,9 @@
     function populateCategorySelectForForm() {
       const tipo = document.getElementById('txTipo').value;
       const cats = state.categories.filter(c => c.type === tipo);
-      document.getElementById('txCat').innerHTML = cats.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+      document.getElementById('txCat').innerHTML = cats.length
+        ? cats.map(c => `<option value="${c.name}">${c.name}</option>`).join('')
+        : `<option value="${tipo === 'receita' ? 'SALÁRIO' : 'OUTROS'}">${tipo === 'receita' ? 'SALÁRIO' : 'OUTROS'}</option>`;
     }
 
     function populateSelects() {
@@ -1823,7 +1833,9 @@
       const monthOptionsHtml = months.map(m => `<option value="${m}">${formatMonthMMAA(m)}</option>`).join('');
 
       populateCategorySelectForForm();
-      document.getElementById('txCartao').innerHTML = state.cards.map(c => `<option value="${c.name}">${c.name} (Fecha dia ${c.closeDay})</option>`).join('');
+      document.getElementById('txCartao').innerHTML = state.cards.length
+        ? state.cards.map(c => `<option value="${c.name}">${c.name} (Fecha dia ${c.closeDay})</option>`).join('')
+        : '<option value="">Nenhum cartão cadastrado</option>';
       const prevTxMesRef = document.getElementById('txMesRef').value;
       document.getElementById('txMesRef').innerHTML = monthOptionsHtml;
       document.getElementById('txMesRef').value = months.includes(prevTxMesRef) ? prevTxMesRef : curMonth;
@@ -1849,7 +1861,12 @@
       filterTxMonthEl.value = (prevTxFilter && (prevTxFilter === 'TODOS' || months.includes(prevTxFilter))) ? prevTxFilter : curMonth;
 
       const fixCatEl = document.getElementById('fixCat');
-      if (fixCatEl) fixCatEl.innerHTML = state.categories.filter(c => c.type === 'despesa').map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+      if (fixCatEl) {
+        const expCats = state.categories.filter(c => c.type === 'despesa');
+        fixCatEl.innerHTML = expCats.length
+          ? expCats.map(c => `<option value="${c.name}">${c.name}</option>`).join('')
+          : '<option value="OUTROS">OUTROS</option>';
+      }
 
       const fixStartEl = document.getElementById('fixStartMonth');
       if (fixStartEl) {
@@ -1871,7 +1888,7 @@
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
             Editar / Fechamento
           </button>
-        </div>`).join('');
+        </div>`).join('') || '<p class="text-slate-500">Nenhum cartão cadastrado.</p>';
 
       const fixedGroups = {};
       state.transactions.filter(t => t.is_fixed && t.fixed_group_id).forEach(t => {
@@ -1901,7 +1918,7 @@
         return `<div class="p-4 bg-slate-900 rounded-lg border border-slate-800 space-y-1"><div class="font-bold text-cyan-400">${inv.name}</div><div class="text-lg font-bold text-white">${fmt(inv.balance)}</div><div class="text-xs text-emerald-400">Rendimento est./mês: ${fmt(monthlyYield)} (${inv.rate}%)</div><div class="text-[11px] text-slate-400">Projeção 12 meses: ${fmt(yearProj)}</div></div>`;
       }).join('') || '<p class="text-slate-500 text-xs">Nenhum investimento cadastrado.</p>';
 
-      document.getElementById('categoriesList').innerHTML = state.categories.map(c => `<div class="flex justify-between items-center p-2.5 bg-slate-900 rounded-lg border border-slate-800"><span><strong>${c.name}</strong> <span class="text-slate-500">(${c.type})</span></span><span class="text-slate-400">Meta: ${c.limit ? fmt(c.limit) : 'Sem limite'}</span></div>`).join('');
+      document.getElementById('categoriesList').innerHTML = state.categories.map(c => `<div class="flex justify-between items-center p-2.5 bg-slate-900 rounded-lg border border-slate-800"><span><strong>${c.name}</strong> <span class="text-slate-500">(${c.type})</span></span><span class="text-slate-400">Meta: ${c.limit ? fmt(c.limit) : 'Sem limite'}</span></div>`).join('') || '<p class="text-slate-500">Nenhuma categoria cadastrada.</p>';
     }
 
     function exportDataJSON() {
