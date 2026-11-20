@@ -404,24 +404,34 @@
       showToast('Configurações do Supabase salvas.');
     }
 
+    function buildTxSignature(r) {
+      return `${r.mes_referencia}|${String(r.descricao || '').trim().toUpperCase()}|${Number(r.valor || 0).toFixed(2)}`;
+    }
+
     async function syncFromSupabase() {
       if (!supabaseClient) return;
       const { data, error } = await supabaseClient.from('despesas').select('*');
       if (!error && data && data.length > 0) {
-        state.transactions = data.map(row => ({
-          id: row.id || crypto.randomUUID(),
-          tipo: row.tipo || 'despesa',
-          mes_referencia: row.mes_referencia || (row.data ? row.data.slice(0, 7) : '2026-03'),
-          data: row.data,
-          descricao: row.descricao,
-          valor: Number(row.valor),
-          categoria: row.categoria || 'OUTROS',
-          metodo_pagamento: row.metodo_pagamento || '',
-          cartao: row.cartao || null,
-          parcela_texto: row.parcela_texto || null,
-          parcela_atual: Number(row.parcela_atual || 1),
-          parcela_total: Number(row.parcela_total || 1)
-        }));
+        const savedTypes = JSON.parse(localStorage.getItem('fin_tx_types') || '{}');
+        state.transactions = data.map(row => {
+          const mesRef = String(row.mes_referencia || (row.data ? String(row.data).slice(0, 7) : '2026-03')).slice(0, 7);
+          const sig = `${mesRef}|${String(row.descricao || '').trim().toUpperCase()}|${Number(row.valor || 0).toFixed(2)}`;
+          const resolvedTipo = row.tipo || savedTypes[sig] || 'despesa';
+          return {
+            id: row.id || crypto.randomUUID(),
+            tipo: resolvedTipo,
+            mes_referencia: mesRef,
+            data: String(row.data || `${mesRef}-01`).slice(0, 10),
+            descricao: row.descricao,
+            valor: Number(row.valor),
+            categoria: row.categoria || (resolvedTipo === 'receita' ? 'SALÁRIO' : 'OUTROS'),
+            metodo_pagamento: row.metodo_pagamento || '',
+            cartao: row.cartao || null,
+            parcela_texto: row.parcela_texto || null,
+            parcela_atual: Number(row.parcela_atual || 1),
+            parcela_total: Number(row.parcela_total || 1)
+          };
+        });
         saveLocalState();
         refreshAllUI();
       }
@@ -429,7 +439,15 @@
 
     async function pushTransactionsToSupabase(records) {
       if (!supabaseClient || !records.length) return;
-      const payload = records.map(r => ({
+      const savedTypes = JSON.parse(localStorage.getItem('fin_tx_types') || '{}');
+      records.forEach(r => {
+        if (r.tipo === 'receita') {
+          savedTypes[buildTxSignature(r)] = 'receita';
+        }
+      });
+      localStorage.setItem('fin_tx_types', JSON.stringify(savedTypes));
+
+      const basePayload = records.map(r => ({
         mes_referencia: r.mes_referencia,
         data: r.data,
         descricao: r.descricao,
@@ -441,11 +459,46 @@
         parcela_atual: r.parcela_atual,
         parcela_total: r.parcela_total
       }));
-      const { error } = await supabaseClient.from('despesas').insert(payload);
+
+      const payloadWithTipo = records.map((r, idx) => ({
+        ...basePayload[idx],
+        tipo: r.tipo
+      }));
+
+      let { error } = await supabaseClient.from('despesas').insert(payloadWithTipo);
+      if (error && error.message && error.message.toLowerCase().includes('tipo')) {
+        const retry = await supabaseClient.from('despesas').insert(basePayload);
+        error = retry.error;
+      }
+
       if (error) {
         console.warn('Erro ao sincronizar lote com Supabase:', error.message);
         showToast('Salvo localmente. Aviso Supabase: ' + error.message, true);
       }
+    }
+
+    function parseNumericValue(valRaw) {
+      if (typeof valRaw === 'number') {
+        return isNaN(valRaw) ? 0 : valRaw;
+      }
+      if (valRaw !== null && valRaw !== undefined) {
+        const s = String(valRaw).replace(/R\$/gi, '').trim();
+        if (!s) return 0;
+        const parsed = s.includes(',')
+          ? parseFloat(s.replace(/\./g, '').replace(',', '.'))
+          : parseFloat(s);
+        return isNaN(parsed) ? 0 : parsed;
+      }
+      return 0;
+    }
+
+    function classifyIncomeCategory(desc) {
+      const d = String(desc || '').toUpperCase();
+      if (d.includes('RENDIMENTO')) return 'RENDIMENTOS';
+      if (d.includes('SALÁRIO') || d.includes('SALARIO') || d.includes('13º') || d.includes('13O') || d.includes('FÉRIAS') || d.includes('FERIAS') || d.includes('DIÁRIA') || d.includes('DIARIA') || d.includes('ALIMENTAÇÃO') || d.includes('ALIMENTACAO')) {
+        return 'SALÁRIO';
+      }
+      return 'OUTROS RECEBIMENTOS';
     }
 
     // =========================================================
@@ -476,10 +529,19 @@
           workbook.SheetNames.forEach(sheetName => {
             if (sheetName.trim().toUpperCase() === 'HOME') return;
             const sheet = workbook.Sheets[sheetName];
-            const rows = XLSX.utils.sheet_to_json(sheet, { defval: null });
             const defaultMonth = monthMap[sheetName.trim().toUpperCase()] || '2026-03';
-            const normalized = normalizeImportedRows(rows, defaultMonth);
-            importedRecords.push(...normalized);
+            const matrix = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
+            if (!matrix || matrix.length < 2) return;
+
+            const headerRow = matrix[0].map(c => String(c ?? '').trim().toUpperCase());
+            const isConsolidatedFlat = headerRow.includes('MES_REFERENCIA') || (headerRow.includes('DESCRICAO') && headerRow.includes('VALOR') && !headerRow.includes('RECEITAS'));
+
+            if (isConsolidatedFlat) {
+              const rows = XLSX.utils.sheet_to_json(sheet, { defval: null });
+              importedRecords.push(...normalizeImportedRows(rows, defaultMonth));
+            } else {
+              importedRecords.push(...parseMonthlySheetMatrix(matrix, defaultMonth));
+            }
           });
         }
 
@@ -489,12 +551,15 @@
           return;
         }
 
+        const totalDesp = importedRecords.filter(r => r.tipo === 'despesa').length;
+        const totalRec = importedRecords.filter(r => r.tipo === 'receita').length;
+
         state.transactions.push(...importedRecords);
         ensureCategoriesAndCardsExist(importedRecords);
         saveLocalState();
         await pushTransactionsToSupabase(importedRecords);
         refreshAllUI();
-        showToast(`${importedRecords.length} lançamentos importados com sucesso!`);
+        showToast(`${importedRecords.length} lançamentos importados (${totalDesp} despesas e ${totalRec} receitas)!`);
       } catch (err) {
         console.error(err);
         showToast('Erro ao importar arquivo: ' + err.message, true);
@@ -503,10 +568,103 @@
       }
     }
 
+    function parseMonthlySheetMatrix(matrix, defaultMonth) {
+      const result = [];
+      const headerRow = (matrix[0] || []).map(c => String(c ?? '').trim().toUpperCase());
+
+      // Localiza dinamicamente a coluna RECEITAS (normalmente coluna I / índice 8)
+      let recColIdx = headerRow.findIndex(h => h === 'RECEITAS' || h === 'RECEITA' || h === 'VALORES RECEBIDOS');
+      if (recColIdx === -1 && (matrix[0] || []).length >= 10) {
+        recColIdx = 8;
+      }
+
+      for (let i = 1; i < matrix.length; i++) {
+        const row = matrix[i] || [];
+
+        // 1. Extrai Despesa (colunas A..G -> índices 0..6)
+        const dataRaw = row[0] ?? null;
+        const descRaw = row[1] ?? null;
+        const valRaw = row[2] ?? null;
+
+        if ((descRaw !== null && String(descRaw).trim() !== '') || (valRaw !== null && valRaw !== '')) {
+          const valor = parseNumericValue(valRaw);
+          if (valor !== 0 || (descRaw && String(descRaw).trim() !== '')) {
+            let dataStr = `${defaultMonth}-01`;
+            if (dataRaw instanceof Date && !isNaN(dataRaw)) {
+              dataStr = dataRaw.getFullYear() === 2000 ? `${defaultMonth}-01` : dataRaw.toISOString().slice(0, 10);
+            } else if (typeof dataRaw === 'string' && dataRaw.trim() !== '') {
+              const cleanDate = dataRaw.trim().slice(0, 10);
+              dataStr = cleanDate.startsWith('2000') ? `${defaultMonth}-01` : cleanDate;
+            }
+
+            const categoria = String(row[3] ?? 'OUTROS').trim().toUpperCase() || 'OUTROS';
+            const metodo = String(row[4] ?? '').trim().toUpperCase();
+            const cartao = row[5] ? String(row[5]).trim().toUpperCase() : null;
+            const parcelaTexto = row[6] ? String(row[6]).trim() : null;
+
+            let pAtual = 1;
+            let pTotal = 1;
+            if (parcelaTexto) {
+              const match = parcelaTexto.match(/(\d+)\s*(?:de|DE|\/)\s*(\d+)/);
+              if (match) {
+                pAtual = parseInt(match[1], 10);
+                pTotal = parseInt(match[2], 10);
+              }
+            }
+
+            result.push({
+              id: crypto.randomUUID(),
+              tipo: 'despesa',
+              mes_referencia: defaultMonth,
+              data: dataStr,
+              descricao: descRaw ? String(descRaw).trim() : 'SEM DESCRIÇÃO',
+              valor: Math.round(valor * 100) / 100,
+              categoria,
+              metodo_pagamento: metodo,
+              cartao,
+              parcela_texto: parcelaTexto,
+              parcela_atual: pAtual,
+              parcela_total: pTotal
+            });
+          }
+        }
+
+        // 2. Extrai Valores Recebidos / Receitas (colunas I e J -> índices recColIdx e recColIdx + 1)
+        if (recColIdx !== -1) {
+          const recDescRaw = row[recColIdx] ?? null;
+          const recValRaw = row[recColIdx + 1] ?? null;
+
+          if (recDescRaw !== null && String(recDescRaw).trim() !== '') {
+            const recDesc = String(recDescRaw).trim().toUpperCase();
+            if (!recDesc.startsWith('TOTAL') && !recDesc.startsWith('RESULTADO') && recDesc !== 'RECEITAS') {
+              const recValor = parseNumericValue(recValRaw);
+              if (recValor > 0) {
+                result.push({
+                  id: crypto.randomUUID(),
+                  tipo: 'receita',
+                  mes_referencia: defaultMonth,
+                  data: `${defaultMonth}-01`,
+                  descricao: recDesc,
+                  valor: Math.round(recValor * 100) / 100,
+                  categoria: classifyIncomeCategory(recDesc),
+                  metodo_pagamento: 'PIX/TED',
+                  cartao: null,
+                  parcela_texto: null,
+                  parcela_atual: 1,
+                  parcela_total: 1
+                });
+              }
+            }
+          }
+        }
+      }
+
+      return result;
+    }
+
     function normalizeImportedRows(rows, defaultMonth) {
       const result = [];
       for (const raw of rows) {
-        // Suporta tanto chaves do JSON consolidado quanto colunas da planilha Excel/CSV
         const desc = raw.descricao ?? raw.DESCRIÇÃO ?? raw.DESCRICAO ?? raw[' '] ?? null;
         const valRaw = raw.valor ?? raw.VALOR ?? null;
 
@@ -514,14 +672,7 @@
           continue;
         }
 
-        let valor = 0;
-        if (typeof valRaw === 'number') {
-          valor = valRaw;
-        } else if (valRaw !== null && valRaw !== undefined) {
-          const s = String(valRaw).replace('R$', '').trim();
-          valor = s.includes(',') ? parseFloat(s.replace(/\./g, '').replace(',', '.')) : parseFloat(s);
-          if (isNaN(valor)) valor = 0;
-        }
+        const valor = parseNumericValue(valRaw);
         if (valor === 0 && !desc) continue;
 
         let mesRef = defaultMonth;
@@ -546,8 +697,10 @@
           dataStr = cleanDate.startsWith('2000') ? `${mesRef}-01` : cleanDate;
         }
 
-        const categoria = String(raw.categoria ?? raw.SUBCATEGORIAS ?? raw.CATEGORIA ?? 'OUTROS').trim().toUpperCase() || 'OUTROS';
-        const metodo = String(raw.metodo_pagamento ?? raw.MÉTODO ?? raw.METODO ?? '').trim().toUpperCase();
+        const tipo = raw.tipo || 'despesa';
+        const defaultCat = tipo === 'receita' ? classifyIncomeCategory(desc) : 'OUTROS';
+        const categoria = String(raw.categoria ?? raw.SUBCATEGORIAS ?? raw.CATEGORIA ?? defaultCat).trim().toUpperCase() || defaultCat;
+        const metodo = String(raw.metodo_pagamento ?? raw.MÉTODO ?? raw.METODO ?? (tipo === 'receita' ? 'PIX/TED' : '')).trim().toUpperCase();
         const cartaoRaw = raw.cartao ?? raw.CARTÃO ?? raw.CARTAO ?? null;
         const cartao = cartaoRaw ? String(cartaoRaw).trim().toUpperCase() : null;
 
@@ -565,7 +718,7 @@
 
         result.push({
           id: crypto.randomUUID(),
-          tipo: raw.tipo || 'despesa',
+          tipo,
           mes_referencia: mesRef,
           data: dataStr,
           descricao: desc ? String(desc).trim() : 'SEM DESCRIÇÃO',
@@ -583,7 +736,7 @@
 
     function ensureCategoriesAndCardsExist(records) {
       records.forEach(r => {
-        if (r.categoria && !state.categories.some(c => c.name === r.categoria)) {
+        if (r.categoria && !state.categories.some(c => c.name === r.categoria && c.type === r.tipo)) {
           state.categories.push({ name: r.categoria, type: r.tipo, limit: 0 });
         }
         if (r.cartao && !state.cards.some(c => c.name === r.cartao)) {
