@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script>
         tailwind.config = {
@@ -115,7 +116,8 @@
             <div class="flex flex-wrap justify-between items-center gap-3">
                 <div class="inline-flex bg-cobalt-900 p-1 rounded-xl border border-slate-800">
                     <button onclick="setPeriodoDashboard('mensal')" id="per-mensal" class="period-btn active px-3 py-1 rounded-lg text-xs text-slate-300 transition">Mensal</button>
-                    <button onclick="setPeriodoDashboard('bimestral')" id="per-bimestral" class="period-btn px-3 py-1 rounded-lg text-xs text-slate-300 transition">Bimestral</button>
+                    <button onclick="setPeriodoDashboard('trimestral')" id="per-trimestral" class="period-btn px-3 py-1 rounded-lg text-xs text-slate-300 transition">Trimestral</button>
+                    <button onclick="setPeriodoDashboard('semestral')" id="per-semestral" class="period-btn px-3 py-1 rounded-lg text-xs text-slate-300 transition">Semestral</button>
                     <button onclick="setPeriodoDashboard('anual')" id="per-anual" class="period-btn px-3 py-1 rounded-lg text-xs text-slate-300 transition">Anual</button>
                 </div>
 
@@ -359,7 +361,13 @@
                     <h3 class="text-sm font-semibold text-white">Extrato de Lançamentos</h3>
                     <p class="text-xs text-slate-400">Compras no cartão após o fechamento vão para o mês seguinte</p>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex flex-wrap items-center gap-2">
+                    <button onclick="baixarModeloExcel()" class="bg-cobalt-950 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-cyan-400 font-semibold px-3.5 py-2 rounded-xl text-xs flex items-center gap-2 transition" title="Baixe este modelo com instruções para enviar à IA junto com sua planilha atual">
+                        <i class="fa-solid fa-file-arrow-down text-cyan-400"></i> Baixar Modelo (.xlsx)
+                    </button>
+                    <button onclick="abrirModalImportarExcel()" class="bg-cobalt-950 hover:bg-slate-800 border border-emerald-400/30 text-emerald-300 font-semibold px-3.5 py-2 rounded-xl text-xs flex items-center gap-2 transition">
+                        <i class="fa-solid fa-file-excel"></i> Importar Excel
+                    </button>
                     <button onclick="abrirModalBoleto()" class="bg-cobalt-950 hover:bg-slate-800 border border-amber-400/30 text-amber-300 font-semibold px-3.5 py-2 rounded-xl text-xs flex items-center gap-2 transition">
                         <i class="fa-solid fa-barcode"></i> Boleto Programado
                     </button>
@@ -937,6 +945,58 @@
         </div>
     </div>
 
+    <!-- MODAL IMPORTAR EXCEL -->
+    <div id="modal-importar-excel" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-cobalt-900 border border-emerald-500/40 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 space-y-5">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <div>
+                    <h3 class="text-base font-bold text-white">Importar Lançamentos via Excel (.xlsx / .csv)</h3>
+                    <p class="text-xs text-slate-400">Use o arquivo gerado a partir do modelo oficial para evitar erros de formatação</p>
+                </div>
+                <button onclick="fecharModalImportarExcel()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="bg-cobalt-950 p-4 rounded-xl border border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div class="space-y-1">
+                    <p class="text-xs font-semibold text-cyan-400">Passo 1: Selecione a planilha formatada</p>
+                    <p class="text-[11px] text-slate-400">Colunas esperadas: <code class="text-slate-200">Tipo | Data | Descricao | Valor | Categoria | Cartao_ou_Metodo | Parcelas</code></p>
+                </div>
+                <input type="file" id="input-arquivo-excel" accept=".xlsx,.xls,.csv" onchange="processarArquivoExcel(event)" class="text-xs text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-500 file:text-cobalt-950 hover:file:bg-emerald-400 cursor-pointer">
+            </div>
+
+            <div id="resumo-importacao-excel" class="hidden space-y-3">
+                <div class="flex flex-wrap justify-between items-center gap-2">
+                    <span id="status-validacao-excel" class="text-xs font-semibold"></span>
+                    <button onclick="baixarModeloExcel()" class="text-xs text-cyan-400 hover:underline">Baixar modelo novamente</button>
+                </div>
+
+                <div class="overflow-x-auto max-h-72 border border-slate-800 rounded-xl">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead class="bg-cobalt-950 sticky top-0 text-slate-400 uppercase">
+                            <tr>
+                                <th class="py-2 px-3">Status</th>
+                                <th class="py-2 px-3">Tipo</th>
+                                <th class="py-2 px-3">Data</th>
+                                <th class="py-2 px-3">Descrição</th>
+                                <th class="py-2 px-3">Categoria</th>
+                                <th class="py-2 px-3">Cartão/Método</th>
+                                <th class="py-2 px-3 text-right">Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-preview-excel" class="divide-y divide-slate-800/60"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
+                <button type="button" onclick="fecharModalImportarExcel()" class="bg-slate-800 text-slate-300 px-4 py-2 rounded-lg text-xs">Cancelar</button>
+                <button type="button" id="btn-confirmar-importacao" onclick="confirmarImportacaoExcel()" disabled class="bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-emerald-400 text-cobalt-950 font-bold px-5 py-2 rounded-lg text-xs transition">
+                    Confirmar Importação
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const SUPABASE_URL = 'https://nnttefltarkxoeygvzis.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_DDzBAkJlt7nRH6TyBMp5_A_FJZBwOlC';
@@ -1094,7 +1154,6 @@
             }
 
             if (diffMeses === 0) {
-                // No mês do aporte, calcula proporcional aos dias restantes no mês (dia 1 = 100% da taxa)
                 const [anoAp, mesAp, diaAp] = inv.data_aporte.split('-').map(Number);
                 const diasNoMes = new Date(anoAp, mesAp, 0).getDate();
                 const diasAtivos = Math.max(1, diasNoMes - diaAp + 1);
@@ -1109,7 +1168,6 @@
                 };
             }
 
-            // Nos meses seguintes: juros compostos considerando o 1º mês proporcional + meses cheios anteriores
             const [anoAp, mesAp, diaAp] = inv.data_aporte.split('-').map(Number);
             const diasNoMes = new Date(anoAp, mesAp, 0).getDate();
             const diasAtivos = Math.max(1, diasNoMes - diaAp + 1);
@@ -1185,7 +1243,7 @@
         function fecharModalRendimentoMes() { document.getElementById('modal-rendimento-mes').classList.add('hidden'); }
 
         // =========================================================================
-        // GESTÃO DINÂMICA DE RECEBIMENTOS (COM CATEGORIAS EXCLUSIVAS DE RECEBIMENTO)
+        // GESTÃO DINÂMICA DE RECEBIMENTOS
         // =========================================================================
         function abrirModalRecebimento(id = null) {
             popularSelects();
@@ -1868,8 +1926,9 @@
 
         function setPeriodoDashboard(periodo) {
             state.periodoDashboard = periodo;
-            ['mensal', 'bimestral', 'anual'].forEach(p => {
+            ['mensal', 'trimestral', 'semestral', 'anual'].forEach(p => {
                 const el = document.getElementById(`per-${p}`);
+                if (!el) return;
                 el.classList.toggle('active', p === periodo);
                 if (p !== periodo) el.classList.add('text-slate-300');
             });
@@ -2120,11 +2179,20 @@
             if (state.periodoDashboard === 'mensal') {
                 comps = [`${anoSel}-${mesSel}`];
                 rotulo = `${NOMES_MESES[mesNum - 1]}/${anoSel}`;
-            } else if (state.periodoDashboard === 'bimestral') {
-                const mesInicioBim = mesNum % 2 === 1 ? mesNum : mesNum - 1;
-                const mesFimBim = mesInicioBim + 1;
-                comps = [`${anoSel}-${String(mesInicioBim).padStart(2, '0')}`, `${anoSel}-${String(mesFimBim).padStart(2, '0')}`];
-                rotulo = `${NOMES_MESES[mesInicioBim - 1]}–${NOMES_MESES[mesFimBim - 1]}/${anoSel}`;
+            } else if (state.periodoDashboard === 'trimestral') {
+                const mesInicioTrim = Math.floor((mesNum - 1) / 3) * 3 + 1;
+                const mesFimTrim = mesInicioTrim + 2;
+                for (let m = mesInicioTrim; m <= mesFimTrim; m++) {
+                    comps.push(`${anoSel}-${String(m).padStart(2, '0')}`);
+                }
+                rotulo = `${NOMES_MESES[mesInicioTrim - 1]}–${NOMES_MESES[mesFimTrim - 1]}/${anoSel}`;
+            } else if (state.periodoDashboard === 'semestral') {
+                const mesInicioSem = mesNum <= 6 ? 1 : 7;
+                const mesFimSem = mesInicioSem + 5;
+                for (let m = mesInicioSem; m <= mesFimSem; m++) {
+                    comps.push(`${anoSel}-${String(m).padStart(2, '0')}`);
+                }
+                rotulo = `${NOMES_MESES[mesInicioSem - 1]}–${NOMES_MESES[mesFimSem - 1]}/${anoSel}`;
             } else {
                 for (let m = 1; m <= 12; m++) comps.push(`${anoSel}-${String(m).padStart(2, '0')}`);
                 rotulo = `Ano ${anoSel}`;
@@ -2473,6 +2541,289 @@
                     </tr>
                 `;
             }).join('');
+        }
+
+        // =========================================================================
+        // IMPORTAÇÃO DE EXCEL E GERAÇÃO DE PLANILHA MODELO PARA IA
+        // =========================================================================
+        let registrosExcelValidados = [];
+
+        function baixarModeloExcel() {
+            const wb = XLSX.utils.book_new();
+
+            const dadosModelo = [
+                {
+                    Tipo: 'despesa',
+                    Data: '2026-11-15',
+                    Descricao: 'Supermercado Exemplo',
+                    Valor: 250.50,
+                    Categoria: state.categorias[0]?.nome || 'Alimentação',
+                    Cartao_ou_Metodo: state.cartoes[0]?.apelido || state.metodos[0]?.nome || 'Pix',
+                    Parcelas: 1
+                },
+                {
+                    Tipo: 'despesa',
+                    Data: '2026-11-18',
+                    Descricao: 'Compra Parcelada Exemplo (valor total)',
+                    Valor: 600.00,
+                    Categoria: state.categorias[0]?.nome || 'Compras',
+                    Cartao_ou_Metodo: state.cartoes[0]?.apelido || 'Nubank',
+                    Parcelas: 3
+                },
+                {
+                    Tipo: 'receita',
+                    Data: '2026-11-05',
+                    Descricao: 'Salário Exemplo',
+                    Valor: 5000.00,
+                    Categoria: obterCategoriasPorTipo('receita')[0]?.nome || 'Salário',
+                    Cartao_ou_Metodo: '',
+                    Parcelas: 1
+                }
+            ];
+
+            const wsLancamentos = XLSX.utils.json_to_sheet(dadosModelo);
+            wsLancamentos['!cols'] = [
+                { wch: 12 }, { wch: 14 }, { wch: 35 }, { wch: 14 }, { wch: 22 }, { wch: 22 }, { wch: 10 }
+            ];
+            XLSX.utils.book_append_sheet(wb, wsLancamentos, 'Lancamentos');
+
+            const catsDesp = obterCategoriasPorTipo('despesa').map(c => c.nome).join(', ') || 'Nenhuma cadastrada';
+            const catsRec = obterCategoriasPorTipo('receita').map(c => c.nome).join(', ') || 'Nenhuma cadastrada';
+            const cartoesLista = state.cartoes.map(c => c.apelido).join(', ') || 'Nenhum cadastrado';
+            const metodosLista = state.metodos.map(m => m.nome).join(', ') || 'Nenhum cadastrado';
+
+            const guiaParaIA = [
+                ['INSTRUÇÕES PARA CONVERSÃO DE PLANILHA FINANCEIRA (PROMPT / REGRAS PARA IA)'],
+                [''],
+                ['Ao pedir para uma IA converter sua planilha atual para este modelo, envie ambos os arquivos e peça para seguir rigorosamente estas regras:'],
+                ['1. Aba obrigatória: A primeira aba deve conter exatamente as colunas: Tipo | Data | Descricao | Valor | Categoria | Cartao_ou_Metodo | Parcelas'],
+                ['2. Coluna Tipo: Preencher apenas com "despesa" ou "receita" (tudo em minúsculo, sem acento).'],
+                ['3. Coluna Data: Formato ISO YYYY-MM-DD (Ex: 2026-11-20).'],
+                ['4. Coluna Descricao: Texto limpo identificando o lançamento.'],
+                ['5. Coluna Valor: Número decimal positivo usando ponto ou vírgula (Ex: 150.90). Se houver parcelamento, informar o VALOR TOTAL da compra.'],
+                ['6. Coluna Categoria: Mapear para uma das categorias já existentes no sistema abaixo (ou deixar em branco se não houver equivalente):'],
+                ['   - Categorias de Despesa disponíveis:', catsDesp],
+                ['   - Categorias de Receita disponíveis:', catsRec],
+                ['7. Coluna Cartao_ou_Metodo: Para despesas, preencher exatamente com o nome de um cartão ou método abaixo (deixar vazio para receitas):'],
+                ['   - Cartões cadastrados:', cartoesLista],
+                ['   - Métodos cadastrados:', metodosLista],
+                ['8. Coluna Parcelas: Número inteiro >= 1. Se for maior que 1 em uma despesa, o sistema dividirá o Valor automaticamente nos meses seguintes respeitando o fechamento do cartão.']
+            ];
+
+            const wsInstrucoes = XLSX.utils.aoa_to_sheet(guiaParaIA);
+            wsInstrucoes['!cols'] = [{ wch: 75 }, { wch: 60 }];
+            XLSX.utils.book_append_sheet(wb, wsInstrucoes, 'Instrucoes_e_Cadastros');
+
+            XLSX.writeFile(wb, 'Modelo_Importacao_FinancasPro.xlsx');
+        }
+
+        function abrirModalImportarExcel() {
+            registrosExcelValidados = [];
+            document.getElementById('input-arquivo-excel').value = '';
+            document.getElementById('resumo-importacao-excel').classList.add('hidden');
+            document.getElementById('tbody-preview-excel').innerHTML = '';
+            document.getElementById('btn-confirmar-importacao').disabled = true;
+            document.getElementById('modal-importar-excel').classList.remove('hidden');
+        }
+
+        function fecharModalImportarExcel() {
+            document.getElementById('modal-importar-excel').classList.add('hidden');
+        }
+
+        function normalizarDataExcel(valorData) {
+            if (!valorData) return null;
+            if (typeof valorData === 'number') {
+                const parsed = XLSX.SSF.parse_date_code(valorData);
+                if (!parsed) return null;
+                return `${parsed.y}-${String(parsed.m).padStart(2, '0')}-${String(parsed.d).padStart(2, '0')}`;
+            }
+            const str = String(valorData).trim();
+            if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+            const brMatch = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+            if (brMatch) {
+                return `${brMatch[3]}-${brMatch[2].padStart(2, '0')}-${brMatch[1].padStart(2, '0')}`;
+            }
+            return null;
+        }
+
+        function normalizarValorExcel(valorRaw) {
+            if (typeof valorRaw === 'number') return Math.abs(valorRaw);
+            if (!valorRaw) return NaN;
+            const limpo = String(valorRaw)
+                .replace(/R\$/gi, '')
+                .replace(/\s/g, '')
+                .replace(/\.(?=\d{3}(?:,|$))/g, '')
+                .replace(',', '.');
+            return Math.abs(parseFloat(limpo));
+        }
+
+        function processarArquivoExcel(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const primeiraAba = workbook.SheetNames[0];
+                    const linhas = XLSX.utils.sheet_to_json(workbook.Sheets[primeiraAba], { defval: '' });
+
+                    registrosExcelValidados = [];
+                    let validosCount = 0;
+                    let errosCount = 0;
+
+                    const todasCategorias = [...state.categorias, ...state.categoriasReceitaLocais];
+
+                    const htmlLinhas = linhas.map((row) => {
+                        const chavesNorm = {};
+                        Object.keys(row).forEach(k => {
+                            chavesNorm[k.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim()] = row[k];
+                        });
+
+                        const tipoRaw = String(chavesNorm['tipo'] || '').toLowerCase().trim();
+                        const tipo = (tipoRaw === 'receita' || tipoRaw === 'entrada') ? 'receita' : (tipoRaw === 'despesa' || tipoRaw === 'gasto' || tipoRaw === 'saida' ? 'despesa' : '');
+                        const dataISO = normalizarDataExcel(chavesNorm['data']);
+                        const descricao = String(chavesNorm['descricao'] || '').trim();
+                        const valorNum = normalizarValorExcel(chavesNorm['valor']);
+                        const catNome = String(chavesNorm['categoria'] || '').trim();
+                        const formaNome = String(chavesNorm['cartao_ou_metodo'] || chavesNorm['pagamento'] || chavesNorm['cartao'] || '').trim();
+                        const parcelas = Math.max(1, parseInt(chavesNorm['parcelas']) || 1);
+
+                        let motivoErro = '';
+                        if (!tipo) motivoErro = 'Tipo inválido (use despesa/receita)';
+                        else if (!dataISO) motivoErro = 'Data inválida (use YYYY-MM-DD)';
+                        else if (!descricao) motivoErro = 'Descrição vazia';
+                        else if (isNaN(valorNum) || valorNum <= 0) motivoErro = 'Valor inválido';
+
+                        const catEncontrada = catNome
+                            ? todasCategorias.find(c => c.nome.toLowerCase().trim() === catNome.toLowerCase())
+                            : null;
+
+                        let cartaoObj = null, metodoObj = null;
+                        if (tipo === 'despesa' && formaNome) {
+                            cartaoObj = state.cartoes.find(c => c.apelido.toLowerCase().trim() === formaNome.toLowerCase());
+                            if (!cartaoObj) {
+                                metodoObj = state.metodos.find(m => m.nome.toLowerCase().trim() === formaNome.toLowerCase());
+                            }
+                        }
+
+                        if (!motivoErro) {
+                            validosCount++;
+                            registrosExcelValidados.push({
+                                tipo,
+                                data_compra: dataISO,
+                                descricao,
+                                valor: valorNum,
+                                catId: catEncontrada ? catEncontrada.id : null,
+                                cartaoObj,
+                                metodoId: metodoObj ? metodoObj.id : null,
+                                parcelas
+                            });
+                        } else {
+                            errosCount++;
+                        }
+
+                        const statusBadge = !motivoErro
+                            ? '<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-semibold">OK</span>'
+                            : `<span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-semibold">${motivoErro}</span>`;
+
+                        return `
+                            <tr class="${motivoErro ? 'bg-rose-950/20' : ''}">
+                                <td class="py-2 px-3">${statusBadge}</td>
+                                <td class="py-2 px-3 text-slate-300">${tipo || '-'}</td>
+                                <td class="py-2 px-3 text-slate-300">${dataISO || '-'}</td>
+                                <td class="py-2 px-3 text-white">${descricao || '-'} ${parcelas > 1 ? `<span class="text-cyan-400">(${parcelas}x)</span>` : ''}</td>
+                                <td class="py-2 px-3 text-slate-300">${catEncontrada ? catEncontrada.nome : (catNome ? `${catNome} (não achada)` : 'Geral')}</td>
+                                <td class="py-2 px-3 text-slate-300">${cartaoObj ? '💳 ' + cartaoObj.apelido : (metodoObj ? '💵 ' + metodoObj.nome : (formaNome || '-'))}</td>
+                                <td class="py-2 px-3 text-right font-semibold ${tipo === 'receita' ? 'text-emerald-400' : 'text-rose-400'}">${!isNaN(valorNum) ? formatBRL(valorNum) : '-'}</td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                    document.getElementById('tbody-preview-excel').innerHTML = htmlLinhas || '<tr><td colspan="7" class="p-4 text-center text-slate-500">Nenhuma linha encontrada na planilha.</td></tr>';
+                    document.getElementById('status-validacao-excel').innerHTML = `<span class="text-emerald-400">${validosCount} válidos</span> • <span class="text-rose-400">${errosCount} com erro (serão ignorados)</span>`;
+                    document.getElementById('resumo-importacao-excel').classList.remove('hidden');
+                    document.getElementById('btn-confirmar-importacao').disabled = validosCount === 0;
+                } catch (err) {
+                    alert('Erro ao ler arquivo Excel: ' + err.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        async function confirmarImportacaoExcel() {
+            if (registrosExcelValidados.length === 0) return;
+
+            const btn = document.getElementById('btn-confirmar-importacao');
+            btn.disabled = true;
+            btn.innerText = 'Importando...';
+
+            const payloadBanco = [];
+            const mapaCatsLocaisPorIndex = [];
+
+            registrosExcelValidados.forEach(item => {
+                const primeiraCompetencia = calcularMesCompetencia(item.data_compra, item.cartaoObj);
+                const isLocalCat = item.catId && String(item.catId).startsWith('local_cat_');
+                const categoria_id = (item.catId && !isLocalCat) ? item.catId : null;
+                const cartao_id = item.cartaoObj ? item.cartaoObj.id : null;
+                const metodo_id = item.metodoId || null;
+
+                if (item.tipo === 'receita' || item.parcelas <= 1) {
+                    payloadBanco.push({
+                        tipo: item.tipo,
+                        descricao: item.descricao,
+                        valor: Number(item.valor.toFixed(2)),
+                        data_compra: item.data_compra,
+                        mes_competencia: primeiraCompetencia,
+                        categoria_id,
+                        cartao_id,
+                        metodo_id
+                    });
+                    mapaCatsLocaisPorIndex.push(isLocalCat ? item.catId : null);
+                } else {
+                    const numParcelas = item.parcelas;
+                    const valorBase = Math.floor((item.valor / numParcelas) * 100) / 100;
+                    const diffCentavos = Math.round((item.valor - (valorBase * numParcelas)) * 100) / 100;
+
+                    for (let i = 0; i < numParcelas; i++) {
+                        const compParcela = somarMesesCompetencia(primeiraCompetencia, i);
+                        const valParc = (i === numParcelas - 1) ? Number((valorBase + diffCentavos).toFixed(2)) : Number(valorBase.toFixed(2));
+                        payloadBanco.push({
+                            tipo: 'despesa',
+                            descricao: `${item.descricao} (${i + 1}/${numParcelas})`,
+                            valor: valParc,
+                            data_compra: item.data_compra,
+                            mes_competencia: compParcela,
+                            categoria_id,
+                            cartao_id,
+                            metodo_id
+                        });
+                        mapaCatsLocaisPorIndex.push(isLocalCat ? item.catId : null);
+                    }
+                }
+            });
+
+            const { data, error } = await db.from('transacoes').insert(payloadBanco).select();
+            btn.innerText = 'Confirmar Importação';
+
+            if (error) {
+                btn.disabled = false;
+                alert('Erro ao salvar no banco: ' + error.message);
+                return;
+            }
+
+            if (data) {
+                data.forEach((rowInserida, idx) => {
+                    if (mapaCatsLocaisPorIndex[idx]) {
+                        localStorage.setItem(`fp_tx_cat_local_${rowInserida.id}`, mapaCatsLocaisPorIndex[idx]);
+                    }
+                });
+            }
+
+            fecharModalImportarExcel();
+            await carregarDadosBanco();
+            alert(`${payloadBanco.length} lançamento(s) importado(s) com sucesso!`);
         }
     </script>
 </body>
