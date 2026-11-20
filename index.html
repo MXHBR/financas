@@ -521,7 +521,7 @@
               Ordem: <span class="text-slate-300">1º Gastos Fixos → 2º Parcelas Anteriores → 3º Demais (mais antigo → mais novo)</span>
             </p>
           </div>
-          <div class="flex flex-wrap items-center gap-2.5 text-xs">
+          <div class="flex flex-wrap items-center gap-2 text-xs">
             <button onclick="openNewTxModal(false)" class="btn-primary flex items-center gap-1.5">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
               Novo Registro
@@ -529,6 +529,10 @@
             <button onclick="openNewTxModal(true)" class="btn-secondary text-cyan-300 border-cyan-500/40 flex items-center gap-1.5">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
               Novo Gasto Fixo
+            </button>
+            <button onclick="manualDeduplicateAll()" class="btn-secondary text-amber-300 border-amber-500/40 hover:bg-amber-950/30 flex items-center gap-1.5" title="Remove registros duplicados localmente e no Supabase">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+              Remover Duplicados
             </button>
             <button onclick="clearAllTransactions()" class="btn-secondary text-rose-400 border-rose-500/30 hover:bg-rose-950/40">Limpar Tudo</button>
           </div>
@@ -669,14 +673,12 @@
       const hasDot = s.includes('.');
 
       if (hasComma && hasDot) {
-        // Ex: "1.060,25" -> vírgula é decimal; ou "1,060.25" -> ponto é decimal
         if (s.lastIndexOf(',') > s.lastIndexOf('.')) {
           s = s.replace(/\./g, '').replace(',', '.');
         } else {
           s = s.replace(/,/g, '');
         }
       } else if (hasComma) {
-        // Ex: "1060,25" ou "1,060,25"
         const parts = s.split(',');
         if (parts.length > 2) {
           const dec = parts.pop();
@@ -685,29 +687,22 @@
           s = s.replace(',', '.');
         }
       } else if (hasDot) {
-        // Ex: "1060.25" (padrão JS/Excel decimal) vs "1.060" (milhar BR sem decimais)
         const parts = s.split('.');
         if (parts.length > 2) {
-          // Ex: "1.234.567" -> pontos são separadores de milhar
           s = parts.join('');
         } else if (parts[1].length === 3 && parts[0].length >= 1 && parts[0] !== '0') {
-          // Ex: "1.060" ou "2.500" -> 3 dígitos após ponto indica milhar BR
           s = parts.join('');
         }
-        // Caso contrário (ex: "1060.25", "18.5", "0.75"), o ponto já é separador decimal!
       }
 
       const parsed = parseFloat(s);
       return isNaN(parsed) ? 0 : Math.round(parsed * 100) / 100;
     }
 
-    // Corrige automaticamente registros antigos que tenham sido salvos multiplicados por 100
-    // (ex: 106025 quando o valor real da planilha era 1060.25)
     function sanitizeInflatedTransactions(list) {
       let fixedCount = 0;
       const cleaned = list.map(t => {
         const val = Number(t.valor || 0);
-        // Detecta padrão clássico de ponto decimal perdido na importação (ex: 1060.25 virou 106025)
         if (val >= 10000 && Number.isInteger(val) && (val % 100 !== 0) && String(t.descricao || '').toUpperCase() !== 'SALÁRIO') {
           fixedCount++;
           return { ...t, valor: Math.round((val / 100) * 100) / 100 };
@@ -715,6 +710,112 @@
         return t;
       });
       return { cleaned, fixedCount };
+    }
+
+    // =========================================================
+    // DEDUPLICAÇÃO INTELIGENTE (LOCAL + SUPABASE + IMPORTAÇÃO)
+    // =========================================================
+    function getTransactionFingerprint(t) {
+      const tipo = String(t.tipo || 'despesa').trim().toLowerCase();
+      const mesRef = String(t.mes_referencia || '').trim().slice(0, 7);
+      const dataStr = String(t.data || '').trim().slice(0, 10);
+      const desc = String(t.descricao || '').trim().toUpperCase().replace(/\s+/g, ' ');
+      const valor = Number(parseNumericValue(t.valor)).toFixed(2);
+      const cat = String(t.categoria || '').trim().toUpperCase();
+      const cartao = String(t.cartao || '').trim().toUpperCase();
+      const parcela = String(t.parcela_texto || '').trim().toUpperCase();
+      return `${tipo}|${mesRef}|${dataStr}|${desc}|${valor}|${cat}|${cartao}|${parcela}`;
+    }
+
+    function deduplicateTransactionList(list) {
+      const seen = new Map();
+      const unique = [];
+      const duplicateIds = [];
+
+      for (const item of list) {
+        const fp = getTransactionFingerprint(item);
+        if (!seen.has(fp)) {
+          seen.set(fp, item);
+          unique.push(item);
+        } else {
+          // Mantém o registro mais rico (ex: se o novo tiver is_fixed ou db_id)
+          const existing = seen.get(fp);
+          if (!existing.is_fixed && item.is_fixed) {
+            existing.is_fixed = true;
+            existing.fixed_group_id = item.fixed_group_id;
+          }
+          if (item.db_id) {
+            duplicateIds.push(item.db_id);
+          }
+        }
+      }
+
+      return {
+        unique,
+        removedCount: list.length - unique.length,
+        duplicateDbIds: duplicateIds
+      };
+    }
+
+    async function manualDeduplicateAll() {
+      const before = state.transactions.length;
+      const { unique, removedCount, duplicateDbIds } = deduplicateTransactionList(state.transactions);
+
+      if (removedCount === 0 && !supabaseClient) {
+        showToast('Nenhum lançamento duplicado encontrado!');
+        return;
+      }
+
+      state.transactions = unique;
+      saveLocalState();
+
+      // Também limpa duplicados diretamente no Supabase, se conectado
+      let sbRemoved = 0;
+      if (supabaseClient) {
+        try {
+          const { data, error } = await supabaseClient.from('despesas').select('*');
+          if (!error && Array.isArray(data)) {
+            const seenSb = new Set();
+            const idsToDelete = [];
+            for (const row of data) {
+              const fp = getTransactionFingerprint({
+                tipo: row.tipo || 'despesa',
+                mes_referencia: row.mes_referencia || (row.data ? String(row.data).slice(0, 7) : ''),
+                data: row.data || '',
+                descricao: row.descricao || '',
+                valor: row.valor || 0,
+                categoria: row.categoria || '',
+                cartao: row.cartao || '',
+                parcela_texto: row.parcela_texto || ''
+              });
+              if (seenSb.has(fp)) {
+                if (row.id !== undefined && row.id !== null) idsToDelete.push(row.id);
+              } else {
+                seenSb.add(fp);
+              }
+            }
+
+            if (idsToDelete.length > 0) {
+              // Deleta em lotes de 50 para evitar limite de URL
+              for (let i = 0; i < idsToDelete.length; i += 50) {
+                const chunk = idsToDelete.slice(i, i + 50);
+                const delRes = await supabaseClient.from('despesas').delete().in('id', chunk);
+                if (!delRes.error) sbRemoved += chunk.length;
+              }
+            }
+          }
+        } catch (err) {
+          console.warn('Erro ao limpar duplicados no Supabase:', err);
+        }
+      }
+
+      refreshAllUI();
+      const totalCleaned = Math.max(removedCount, sbRemoved);
+      if (totalCleaned > 0) {
+        showToast(`${totalCleaned} lançamento(s) duplicado(s) removido(s) com sucesso!`);
+      } else {
+        showToast('Nenhum lançamento duplicado encontrado!');
+      }
     }
 
     // =========================================================
@@ -815,7 +916,7 @@
         isError ? 'bg-rose-950 border-rose-500 text-rose-200' : 'bg-slate-900 border-cyan-500 text-cyan-200'
       }`;
       el.classList.remove('hidden');
-      setTimeout(() => el.classList.add('hidden'), 4000);
+      setTimeout(() => el.classList.add('hidden'), 4500);
     }
 
     function saveLocalState() {
@@ -864,13 +965,15 @@
       if (!error && data && data.length > 0) {
         const savedTypes = JSON.parse(localStorage.getItem('fin_tx_types') || '{}');
         const savedFixed = JSON.parse(localStorage.getItem('fin_tx_fixed_meta') || '{}');
-        state.transactions = data.map(row => {
+
+        const mapped = data.map(row => {
           const mesRef = String(row.mes_referencia || (row.data ? String(row.data).slice(0, 7) : getCurrentMonthISO())).slice(0, 7);
           const sig = `${mesRef}|${String(row.descricao || '').trim().toUpperCase()}|${Number(row.valor || 0).toFixed(2)}`;
           const resolvedTipo = row.tipo || savedTypes[sig] || 'despesa';
           const fixedMeta = savedFixed[sig] || {};
           return {
-            id: row.id || crypto.randomUUID(),
+            id: row.id ? String(row.id) : crypto.randomUUID(),
+            db_id: row.id || null,
             tipo: resolvedTipo,
             is_fixed: Boolean(row.is_fixed || fixedMeta.is_fixed),
             fixed_group_id: row.fixed_group_id || fixedMeta.fixed_group_id || null,
@@ -886,6 +989,9 @@
             parcela_total: Number(row.parcela_total || 1)
           };
         });
+
+        const { unique } = deduplicateTransactionList(mapped);
+        state.transactions = unique;
         saveLocalState();
         refreshAllUI();
       }
@@ -921,15 +1027,23 @@
         tipo: r.tipo
       }));
 
-      let { error } = await supabaseClient.from('despesas').insert(payloadWithTipo);
-      if (error && error.message && error.message.toLowerCase().includes('tipo')) {
-        const retry = await supabaseClient.from('despesas').insert(basePayload);
-        error = retry.error;
+      let res = await supabaseClient.from('despesas').insert(payloadWithTipo).select();
+      if (res.error && res.error.message && res.error.message.toLowerCase().includes('tipo')) {
+        res = await supabaseClient.from('despesas').insert(basePayload).select();
       }
 
-      if (error) {
-        console.warn('Erro ao sincronizar lote com Supabase:', error.message);
-        showToast('Salvo localmente. Aviso Supabase: ' + error.message, true);
+      if (res.error) {
+        console.warn('Erro ao sincronizar lote com Supabase:', res.error.message);
+        showToast('Salvo localmente. Aviso Supabase: ' + res.error.message, true);
+      } else if (Array.isArray(res.data)) {
+        // Vincula os IDs reais gerados pelo banco aos registros locais
+        res.data.forEach((dbRow, idx) => {
+          if (records[idx] && dbRow.id) {
+            records[idx].db_id = dbRow.id;
+            records[idx].id = String(dbRow.id);
+          }
+        });
+        saveLocalState();
       }
     }
 
@@ -944,6 +1058,7 @@
 
     // =========================================================
     // IMPORTAÇÃO UNIFICADA: EXCEL (.xlsx, .xls, .csv) E JSON (.json)
+    // COM BLOQUEIO AUTOMÁTICO DE DUPLICATAS
     // =========================================================
     async function handleImportData(event) {
       const file = event.target.files[0];
@@ -992,15 +1107,38 @@
           return;
         }
 
-        const totalDesp = importedRecords.filter(r => r.tipo === 'despesa').length;
-        const totalRec = importedRecords.filter(r => r.tipo === 'receita').length;
+        // Deduplica tanto internamente no arquivo quanto contra o que já existe no sistema
+        const existingFingerprints = new Set(state.transactions.map(getTransactionFingerprint));
+        const newRecords = [];
+        let skippedDuplicates = 0;
 
-        state.transactions.push(...importedRecords);
-        ensureCategoriesAndCardsExist(importedRecords);
+        for (const rec of importedRecords) {
+          const fp = getTransactionFingerprint(rec);
+          if (existingFingerprints.has(fp)) {
+            skippedDuplicates++;
+          } else {
+            existingFingerprints.add(fp);
+            newRecords.push(rec);
+          }
+        }
+
+        if (newRecords.length === 0) {
+          showToast(`Todos os ${skippedDuplicates} lançamentos do arquivo já estavam cadastrados (nenhum duplicado adicionado).`);
+          event.target.value = '';
+          return;
+        }
+
+        const totalDesp = newRecords.filter(r => r.tipo === 'despesa').length;
+        const totalRec = newRecords.filter(r => r.tipo === 'receita').length;
+
+        state.transactions.push(...newRecords);
+        ensureCategoriesAndCardsExist(newRecords);
         saveLocalState();
-        await pushTransactionsToSupabase(importedRecords);
+        await pushTransactionsToSupabase(newRecords);
         refreshAllUI();
-        showToast(`${importedRecords.length} lançamentos importados (${totalDesp} despesas e ${totalRec} receitas)!`);
+
+        const skipNote = skippedDuplicates > 0 ? ` (${skippedDuplicates} duplicados ignorados)` : '';
+        showToast(`${newRecords.length} novos lançamentos importados (${totalDesp} despesas e ${totalRec} receitas)${skipNote}!`);
       } catch (err) {
         console.error(err);
         showToast('Erro ao importar arquivo: ' + err.message, true);
@@ -1251,7 +1389,6 @@
       document.getElementById('txDesc').value = tx.descricao || '';
       document.getElementById('txValor').value = Number(tx.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-      // Garante categoria no select
       const catSel = document.getElementById('txCat');
       if (![...catSel.options].some(o => o.value === tx.categoria)) {
         const opt = document.createElement('option');
@@ -1551,7 +1688,7 @@
     }
 
     function autoComputeBillingMonth() {
-      if (document.getElementById('editTxId').value) return; // Não sobrescreve ao editar
+      if (document.getElementById('editTxId').value) return;
       const dataStr = document.getElementById('txData').value || getCurrentDateISO();
       const tipo = document.getElementById('txTipo').value;
       const metodo = document.getElementById('txMetodo').value;
@@ -1576,11 +1713,10 @@
       const dayStr = String(Math.min(Math.max(Number(dayOfMonth) || 1, 1), 28)).padStart(2, '0');
       const instances = [];
 
-      // Gera para todos os meses do ano corrente a partir de startMonth (ou 12 meses se startMonth for jan)
       const endMonth = 12;
       for (let m = startM; m <= endMonth; m++) {
         const mesRef = `${startY}-${String(m).padStart(2, '0')}`;
-        instances.push({
+        const candidate = {
           id: crypto.randomUUID(),
           tipo,
           is_fixed: true,
@@ -1595,7 +1731,11 @@
           parcela_texto: 'FIXO',
           parcela_atual: 1,
           parcela_total: 1
-        });
+        };
+        const fp = getTransactionFingerprint(candidate);
+        if (!state.transactions.some(t => getTransactionFingerprint(t) === fp)) {
+          instances.push(candidate);
+        }
       }
       return instances;
     }
@@ -1655,7 +1795,6 @@
           return;
         }
 
-        // Edição de lançamento comum ou parcelado individual
         const pAtual = parseInt(document.getElementById('txParcelaAtual').value, 10) || 1;
         const pTotal = parseInt(document.getElementById('txParcelas').value, 10) || 1;
 
@@ -1669,7 +1808,6 @@
         target.cartao = cartao;
 
         if (isFixedChecked && !target.is_fixed) {
-          // Converte lançamento existente em gasto fixo para os meses seguintes
           const groupId = crypto.randomUUID();
           target.is_fixed = true;
           target.fixed_group_id = groupId;
@@ -1728,6 +1866,11 @@
           tipo
         });
 
+        if (created.length === 0) {
+          showToast('Este gasto fixo já está cadastrado nesses meses.', true);
+          return;
+        }
+
         state.transactions.push(...created);
         saveLocalState();
         await pushTransactionsToSupabase(created);
@@ -1774,21 +1917,30 @@
       showToast('Lançamento registrado com sucesso!');
     }
 
-    function deleteTransaction(id) {
+    async function deleteTransaction(id) {
       const tx = state.transactions.find(t => t.id === id);
       if (!tx) return;
 
       if (tx.is_fixed && tx.fixed_group_id) {
-        const removeAll = confirm(`"${tx.descricao}" é um gasto fixo.
-
-Clique em OK para remover de TODOS os meses, ou Cancelar para remover apenas deste mês.`);
+        const removeAll = confirm(`"${tx.descricao}" é um gasto fixo.\n\nClique em OK para remover de TODOS os meses, ou Cancelar para remover apenas deste mês.`);
         if (removeAll) {
+          const toDelete = state.transactions.filter(t => t.fixed_group_id === tx.fixed_group_id);
           state.transactions = state.transactions.filter(t => t.fixed_group_id !== tx.fixed_group_id);
+          if (supabaseClient) {
+            const dbIds = toDelete.map(t => t.db_id).filter(Boolean);
+            if (dbIds.length) await supabaseClient.from('despesas').delete().in('id', dbIds);
+          }
         } else {
           state.transactions = state.transactions.filter(t => t.id !== id);
+          if (supabaseClient && tx.db_id) {
+            await supabaseClient.from('despesas').delete().eq('id', tx.db_id);
+          }
         }
       } else {
         state.transactions = state.transactions.filter(t => t.id !== id);
+        if (supabaseClient && tx.db_id) {
+          await supabaseClient.from('despesas').delete().eq('id', tx.db_id);
+        }
       }
 
       saveLocalState();
@@ -1805,10 +1957,7 @@ Clique em OK para remover de TODOS os meses, ou Cancelar para remover apenas des
     }
 
     // =========================================================
-    // ORDENAÇÃO EXATA DA TABELA DE LANÇAMENTOS:
-    // 1º Gastos fixos sempre no topo
-    // 2º Parcelas de compras feitas em meses anteriores
-    // 3º Demais lançamentos do mais antigo para o mais novo
+    // ORDENAÇÃO EXATA DA TABELA DE LANÇAMENTOS
     // =========================================================
     function getTransactionPriorityGroup(t) {
       if (t.is_fixed) return 1;
@@ -1845,7 +1994,6 @@ Clique em OK para remover de TODOS os meses, ou Cancelar para remover apenas des
           const groupB = getTransactionPriorityGroup(b);
           if (groupA !== groupB) return groupA - groupB;
 
-          // Dentro do mesmo grupo: mais antigo para o mais novo
           const dateCmp = String(a.data || '').localeCompare(String(b.data || ''));
           if (dateCmp !== 0) return dateCmp;
 
@@ -1980,6 +2128,11 @@ Clique em OK para remover de TODOS os meses, ou Cancelar para remover apenas des
         tipo: 'despesa'
       });
 
+      if (created.length === 0) {
+        showToast('Este gasto fixo já existe em todos os meses selecionados.', true);
+        return;
+      }
+
       state.transactions.push(...created);
       saveLocalState();
       await pushTransactionsToSupabase(created);
@@ -1988,9 +2141,14 @@ Clique em OK para remover de TODOS os meses, ou Cancelar para remover apenas des
       showToast(`Gasto fixo "${descricao}" lançado em ${created.length} mês(es)!`);
     }
 
-    function deleteFixedGroup(groupId) {
+    async function deleteFixedGroup(groupId) {
       if (!confirm('Deseja excluir este gasto fixo de todos os meses?')) return;
+      const toDelete = state.transactions.filter(t => t.fixed_group_id === groupId);
       state.transactions = state.transactions.filter(t => t.fixed_group_id !== groupId);
+      if (supabaseClient) {
+        const dbIds = toDelete.map(t => t.db_id).filter(Boolean);
+        if (dbIds.length) await supabaseClient.from('despesas').delete().in('id', dbIds);
+      }
       saveLocalState();
       refreshAllUI();
       showToast('Gasto fixo excluído de todos os meses.');
@@ -2051,7 +2209,6 @@ Clique em OK para remover de TODOS os meses, ou Cancelar para remover apenas des
       document.getElementById('txMesRef').innerHTML = monthOptionsHtml;
       document.getElementById('txMesRef').value = months.includes(prevTxMesRef) ? prevTxMesRef : curMonth;
 
-      // Selects do Dashboard
       document.getElementById('filterCategory').innerHTML = '<option value="TODAS">Todas as Categorias</option>' +
         state.categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
 
@@ -2069,7 +2226,6 @@ Clique em OK para remover de TODOS os meses, ou Cancelar para remover apenas des
       cmp1El.value = months.includes(prevCmp1) ? prevCmp1 : addMonthsISO(curMonth, -1);
       cmp2El.value = months.includes(prevCmp2) ? prevCmp2 : curMonth;
 
-      // Select da Aba Lançamentos (padrão = mês atual)
       const filterTxMonthEl = document.getElementById('filterTxMonth');
       const prevTxFilter = filterTxMonthEl.value;
       filterTxMonthEl.innerHTML = '<option value="TODOS">Todos os Meses</option>' + monthOptionsHtml;
@@ -2079,7 +2235,6 @@ Clique em OK para remover de TODOS os meses, ou Cancelar para remover apenas des
         filterTxMonthEl.value = curMonth;
       }
 
-      // Selects da aba Cartões & Gastos Fixos
       const fixCatEl = document.getElementById('fixCat');
       if (fixCatEl) {
         fixCatEl.innerHTML = state.categories.filter(c => c.type === 'despesa').map(c => `<option value="${c.name}">${c.name}</option>`).join('');
@@ -2107,7 +2262,6 @@ Clique em OK para remover de TODOS os meses, ou Cancelar para remover apenas des
         </div>
       `).join('');
 
-      // Agrupa gastos fixos cadastrados nos lançamentos
       const fixedGroups = {};
       state.transactions.filter(t => t.is_fixed && t.fixed_group_id).forEach(t => {
         if (!fixedGroups[t.fixed_group_id]) {
@@ -2193,14 +2347,19 @@ Clique em OK para remover de TODOS os meses, ou Cancelar para remover apenas des
       }));
 
       const { cleaned, fixedCount } = sanitizeInflatedTransactions(rawNormalized);
-      state.transactions = cleaned;
-      if (fixedCount > 0) {
+      const { unique, removedCount } = deduplicateTransactionList(cleaned);
+      state.transactions = unique;
+
+      if (fixedCount > 0 || removedCount > 0) {
         saveLocalState();
       }
 
       initSupabase();
       refreshAllUI();
-      if (fixedCount > 0) {
+
+      if (removedCount > 0) {
+        showToast(`${removedCount} lançamento(s) duplicado(s) foram removidos automaticamente.`);
+      } else if (fixedCount > 0) {
         showToast(`${fixedCount} lançamento(s) com separador decimal incorreto foram corrigidos automaticamente.`);
       }
     });
