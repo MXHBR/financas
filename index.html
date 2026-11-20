@@ -411,22 +411,14 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-800/80">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-800/80">
           <div>
-            <label class="block text-[11px] text-slate-400 uppercase font-semibold mb-1">Buscar Descrição</label>
+            <label class="block text-[11px] text-slate-400 uppercase font-semibold mb-1">Buscar Despesa / Descrição</label>
             <input id="searchTx" type="text" placeholder="Ex: Super Atacado, Unimed..." oninput="renderTransactionsTable()" class="input-field" />
           </div>
           <div>
             <label class="block text-[11px] text-slate-400 uppercase font-semibold mb-1">Mês de Referência (MM/AA)</label>
             <select id="filterTxMonth" onchange="renderTransactionsTable()" class="input-field"></select>
-          </div>
-          <div>
-            <label class="block text-[11px] text-slate-400 uppercase font-semibold mb-1">Tipo</label>
-            <select id="filterTxTipo" onchange="renderTransactionsTable()" class="input-field">
-              <option value="TODOS">Todos os Tipos</option>
-              <option value="despesa">Despesas</option>
-              <option value="receita">Receitas</option>
-            </select>
           </div>
         </div>
 
@@ -643,11 +635,26 @@
         <button onclick="toggleModal('incomeBreakdownModal', false)" class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-600 flex items-center justify-center text-lg leading-none">&times;</button>
       </div>
 
-      <form id="quickIncomeForm" onsubmit="saveQuickIncome(event)" class="p-3.5 rounded-xl bg-slate-900/90 border border-emerald-500/25 space-y-3 text-xs">
+      <div class="flex flex-wrap items-center justify-between gap-3 px-1">
+        <div class="flex items-center gap-3">
+          <span class="text-xs font-semibold text-slate-300">Recebimentos Cadastrados</span>
+          <span class="text-xs text-slate-500">•</span>
+          <div>
+            <span class="text-[11px] text-slate-400 mr-1">Total:</span>
+            <span id="incomeModalTotalValue" class="text-base font-bold text-emerald-400">R$ 0,00</span>
+          </div>
+        </div>
+        <button type="button" id="btnShowNewIncomeForm" onclick="openQuickIncomeFormForCreate()" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1.5 transition shadow-md shadow-emerald-950/50 cursor-pointer">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          Adicionar Recebimento
+        </button>
+      </div>
+
+      <form id="quickIncomeForm" onsubmit="saveQuickIncome(event)" class="hidden p-3.5 rounded-xl bg-slate-900/95 border border-emerald-500/35 space-y-3 text-xs shadow-inner">
         <input type="hidden" id="quickIncEditId" />
         <div class="flex items-center justify-between">
-          <span id="quickIncFormTitle" class="font-semibold text-emerald-300 uppercase tracking-wide text-[11px]">+ Adicionar Recebimento no Mês</span>
-          <button type="button" id="quickIncCancelEditBtn" onclick="resetQuickIncomeForm()" class="hidden text-[11px] text-slate-400 hover:text-white underline">Cancelar edição</button>
+          <span id="quickIncFormTitle" class="font-semibold text-emerald-300 uppercase tracking-wide text-[11px]">Novo Recebimento no Mês</span>
+          <button type="button" onclick="hideQuickIncomeForm()" class="text-[11px] text-slate-400 hover:text-white underline">Cancelar</button>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
           <div class="sm:col-span-4">
@@ -667,20 +674,13 @@
             <input id="quickIncData" type="date" required class="input-field py-1.5 px-2" />
           </div>
         </div>
-        <div class="flex justify-end">
-          <button type="submit" id="quickIncSubmitBtn" class="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition shadow-md shadow-emerald-950/50">Adicionar Recebimento</button>
+        <div class="flex justify-end gap-2">
+          <button type="button" onclick="hideQuickIncomeForm()" class="btn-secondary text-xs py-1.5">Cancelar</button>
+          <button type="submit" id="quickIncSubmitBtn" class="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition shadow-md shadow-emerald-950/50">Salvar Recebimento</button>
         </div>
       </form>
 
-      <div class="flex items-center justify-between px-1">
-        <span class="text-xs font-semibold text-slate-300">Recebimentos Cadastrados</span>
-        <div class="text-right">
-          <span class="text-[11px] text-slate-400 mr-1.5">Total:</span>
-          <span id="incomeModalTotalValue" class="text-base font-bold text-emerald-400">R$ 0,00</span>
-        </div>
-      </div>
-
-      <div id="incomeBreakdownList" class="space-y-2 max-h-[42vh] overflow-y-auto pr-1"></div>
+      <div id="incomeBreakdownList" class="space-y-2 max-h-[45vh] overflow-y-auto pr-1"></div>
 
       <div class="flex justify-end pt-2 border-t border-slate-800">
         <button type="button" onclick="toggleModal('incomeBreakdownModal', false)" class="btn-secondary text-xs">Fechar</button>
@@ -2242,17 +2242,29 @@
 
     function openIncomeBreakdownModal() {
       activeIncomeModalMonth = getActiveLancamentosMonth();
-      resetQuickIncomeForm();
+      hideQuickIncomeForm();
       renderIncomeBreakdownModal();
       toggleModal('incomeBreakdownModal', true);
+    }
+
+    function openQuickIncomeFormForCreate() {
+      resetQuickIncomeForm();
+      document.getElementById('quickIncomeForm').classList.remove('hidden');
+      document.getElementById('btnShowNewIncomeForm').classList.add('hidden');
+      setTimeout(() => document.getElementById('quickIncDesc').focus(), 40);
+    }
+
+    function hideQuickIncomeForm() {
+      resetQuickIncomeForm();
+      document.getElementById('quickIncomeForm').classList.add('hidden');
+      document.getElementById('btnShowNewIncomeForm').classList.remove('hidden');
     }
 
     function resetQuickIncomeForm() {
       const targetMonth = activeIncomeModalMonth || getActiveLancamentosMonth();
       document.getElementById('quickIncEditId').value = '';
-      document.getElementById('quickIncFormTitle').textContent = `+ Adicionar Recebimento em ${formatMonthMMAA(targetMonth)}`;
-      document.getElementById('quickIncSubmitBtn').textContent = 'Adicionar Recebimento';
-      document.getElementById('quickIncCancelEditBtn').classList.add('hidden');
+      document.getElementById('quickIncFormTitle').textContent = `Novo Recebimento em ${formatMonthMMAA(targetMonth)}`;
+      document.getElementById('quickIncSubmitBtn').textContent = 'Salvar Recebimento';
       document.getElementById('quickIncDesc').value = '';
       document.getElementById('quickIncValor').value = '';
 
@@ -2269,10 +2281,12 @@
     function editQuickIncomeItem(txId) {
       const tx = state.transactions.find(t => t.id === txId);
       if (!tx) return;
+      resetQuickIncomeForm();
+      document.getElementById('quickIncomeForm').classList.remove('hidden');
+      document.getElementById('btnShowNewIncomeForm').classList.add('hidden');
       document.getElementById('quickIncEditId').value = tx.id;
       document.getElementById('quickIncFormTitle').textContent = 'Editando Recebimento';
       document.getElementById('quickIncSubmitBtn').textContent = 'Salvar Alteração';
-      document.getElementById('quickIncCancelEditBtn').classList.remove('hidden');
       document.getElementById('quickIncDesc').value = tx.descricao || '';
       document.getElementById('quickIncValor').value = Number(tx.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -2343,7 +2357,7 @@
         showToast(`Recebimento "${descricao}" adicionado em ${formatMonthMMAA(targetMonth)}!`);
       }
 
-      resetQuickIncomeForm();
+      hideQuickIncomeForm();
       refreshAllUI();
       renderIncomeBreakdownModal();
     }
@@ -2357,7 +2371,7 @@
         await supabaseClient.from('despesas').delete().eq('id', tx.db_id);
       }
       if (document.getElementById('quickIncEditId').value === txId) {
-        resetQuickIncomeForm();
+        hideQuickIncomeForm();
       }
       refreshAllUI();
       renderIncomeBreakdownModal();
@@ -2404,7 +2418,6 @@
     function renderTransactionsTable() {
       const search = document.getElementById('searchTx').value.toLowerCase();
       const mFilter = document.getElementById('filterTxMonth').value;
-      const tFilter = document.getElementById('filterTxTipo').value;
       const fmt = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
       const activeLabel = document.getElementById('activeTxMonthLabel');
@@ -2434,8 +2447,8 @@
 
       const rows = state.transactions
         .filter(t => {
+          if (t.tipo !== 'despesa') return false;
           if (mFilter !== 'TODOS' && t.mes_referencia !== mFilter) return false;
-          if (tFilter !== 'TODOS' && t.tipo !== tFilter) return false;
           if (search && !t.descricao.toLowerCase().includes(search)) return false;
           return true;
         })
