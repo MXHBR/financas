@@ -506,7 +506,7 @@
     function normalizeImportedRows(rows, defaultMonth) {
       const result = [];
       for (const raw of rows) {
-        // Suporta tanto chaves do JSON consolidado quanto colunas da planilha Excel
+        // Suporta tanto chaves do JSON consolidado quanto colunas da planilha Excel/CSV
         const desc = raw.descricao ?? raw.DESCRIÇÃO ?? raw.DESCRICAO ?? raw[' '] ?? null;
         const valRaw = raw.valor ?? raw.VALOR ?? null;
 
@@ -514,10 +514,24 @@
           continue;
         }
 
-        const valor = parseFloat(String(valRaw ?? 0).replace('R$', '').replace(/\./g, '').replace(',', '.')) || Number(valRaw) || 0;
+        let valor = 0;
+        if (typeof valRaw === 'number') {
+          valor = valRaw;
+        } else if (valRaw !== null && valRaw !== undefined) {
+          const s = String(valRaw).replace('R$', '').trim();
+          valor = s.includes(',') ? parseFloat(s.replace(/\./g, '').replace(',', '.')) : parseFloat(s);
+          if (isNaN(valor)) valor = 0;
+        }
         if (valor === 0 && !desc) continue;
 
-        const mesRef = raw.mes_referencia || defaultMonth;
+        let mesRef = defaultMonth;
+        const rawMes = raw.mes_referencia ?? raw.MES_REFERENCIA ?? null;
+        if (rawMes instanceof Date && !isNaN(rawMes)) {
+          mesRef = rawMes.toISOString().slice(0, 7);
+        } else if (rawMes !== null && rawMes !== undefined && String(rawMes).trim() !== '') {
+          mesRef = String(rawMes).trim().slice(0, 7);
+        }
+
         const dataRaw = raw.data ?? raw.DATA ?? null;
         let dataStr = `${mesRef}-01`;
 
@@ -868,7 +882,7 @@
           if (search && !t.descricao.toLowerCase().includes(search)) return false;
           return true;
         })
-        .sort((a, b) => b.mes_referencia.localeCompare(a.mes_referencia) || b.data.localeCompare(a.data));
+        .sort((a, b) => String(b.mes_referencia || '').localeCompare(String(a.mes_referencia || '')) || String(b.data || '').localeCompare(String(a.data || '')));
 
       document.getElementById('txTableBody').innerHTML = rows.slice(0, 300).map(t => `
         <tr class="hover:bg-slate-900/70">
@@ -1027,6 +1041,11 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+      state.transactions = (state.transactions || []).map(t => ({
+        ...t,
+        mes_referencia: String(t.mes_referencia || '2026-03').slice(0, 7),
+        data: String(t.data || '2026-03-01').slice(0, 10)
+      }));
       document.getElementById('txData').value = new Date().toISOString().slice(0, 10);
       document.getElementById('txMesRef').value = new Date().toISOString().slice(0, 7);
       initSupabase();
