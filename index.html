@@ -509,14 +509,21 @@
       <div id="deleteSingleSummary" class="p-3 rounded-lg bg-slate-950/90 border border-slate-800 text-xs space-y-1"></div>
 
       <div id="deleteFixedScopeBox" class="hidden space-y-2 pt-1">
-        <p class="text-[11px] font-semibold uppercase tracking-wide text-cyan-400">Este é um gasto fixo. Escolha o alcance:</p>
+        <div class="p-2.5 rounded-lg bg-cyan-950/35 border border-cyan-500/40 text-xs text-cyan-200 flex items-center gap-2">
+          <svg class="w-4 h-4 text-cyan-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          <span><strong>Aviso:</strong> Este lançamento é um <strong>gasto fixo mensal</strong>. Selecione como deseja excluí-lo:</span>
+        </div>
         <label class="flex items-center gap-2.5 p-2.5 rounded-lg bg-slate-900 border border-slate-800 hover:border-cyan-500/40 cursor-pointer text-xs text-slate-200">
           <input type="radio" name="deleteFixedScope" value="single" checked class="accent-rose-500" />
-          <span>Remover <strong>apenas este mês</strong> (<span id="deleteFixedSingleMonth"></span>)</span>
+          <span>Apagar <strong>apenas neste mês</strong> (<span id="deleteFixedSingleMonth"></span>)</span>
+        </label>
+        <label class="flex items-center gap-2.5 p-2.5 rounded-lg bg-slate-900 border border-slate-800 hover:border-amber-500/40 cursor-pointer text-xs text-slate-200">
+          <input type="radio" name="deleteFixedScope" value="future" class="accent-rose-500" />
+          <span>Apagar <strong>apenas deste mês em diante</strong> (<span id="deleteFixedFutureCount"></span>)</span>
         </label>
         <label class="flex items-center gap-2.5 p-2.5 rounded-lg bg-slate-900 border border-slate-800 hover:border-rose-500/40 cursor-pointer text-xs text-slate-200">
           <input type="radio" name="deleteFixedScope" value="all" class="accent-rose-500" />
-          <span>Remover de <strong>todos os meses</strong> (<span id="deleteFixedAllCount"></span>)</span>
+          <span>Apagar <strong>todos os registros</strong> (<span id="deleteFixedAllCount"></span>)</span>
         </label>
       </div>
 
@@ -1666,10 +1673,18 @@
       `;
 
       const fixedBox = document.getElementById('deleteFixedScopeBox');
-      if (tx.is_fixed && tx.fixed_group_id) {
-        const groupCount = state.transactions.filter(t => t.fixed_group_id === tx.fixed_group_id).length;
+      const isFixedTx = Boolean(tx.is_fixed);
+      if (isFixedTx) {
+        const groupItems = tx.fixed_group_id
+          ? state.transactions.filter(t => t.fixed_group_id === tx.fixed_group_id)
+          : state.transactions.filter(t => t.is_fixed && String(t.descricao || '').trim().toUpperCase() === String(tx.descricao || '').trim().toUpperCase());
+        const futureItems = groupItems.filter(t => String(t.mes_referencia || '') >= String(tx.mes_referencia || ''));
+
+        document.getElementById('deleteSingleTitle').textContent = 'Excluir Gasto Fixo?';
+        document.getElementById('deleteSingleMessage').textContent = 'Este registro está marcado como um gasto fixo recorrente. Escolha abaixo quais ocorrências deseja apagar:';
         document.getElementById('deleteFixedSingleMonth').textContent = formatMonthMMAA(tx.mes_referencia);
-        document.getElementById('deleteFixedAllCount').textContent = `${groupCount} meses`;
+        document.getElementById('deleteFixedFutureCount').textContent = `${futureItems.length} registro(s) a partir de ${formatMonthMMAA(tx.mes_referencia)}`;
+        document.getElementById('deleteFixedAllCount').textContent = `${groupItems.length} registro(s)`;
         const singleRadio = document.querySelector('input[name="deleteFixedScope"][value="single"]');
         if (singleRadio) singleRadio.checked = true;
         fixedBox.classList.remove('hidden');
@@ -1692,18 +1707,36 @@
       closeDeleteSingleModal();
       if (!tx) return;
 
-      if (tx.is_fixed && tx.fixed_group_id) {
+      let toastMsg = 'Lançamento excluído com sucesso.';
+
+      if (tx.is_fixed) {
         const scope = document.querySelector('input[name="deleteFixedScope"]:checked')?.value || 'single';
+        const matchSameFixedSeries = t => tx.fixed_group_id
+          ? t.fixed_group_id === tx.fixed_group_id
+          : (t.is_fixed && String(t.descricao || '').trim().toUpperCase() === String(tx.descricao || '').trim().toUpperCase());
+
         if (scope === 'all') {
-          const toDelete = state.transactions.filter(t => t.fixed_group_id === tx.fixed_group_id);
-          state.transactions = state.transactions.filter(t => t.fixed_group_id !== tx.fixed_group_id);
+          const toDelete = state.transactions.filter(matchSameFixedSeries);
+          const deleteIds = new Set(toDelete.map(t => t.id));
+          state.transactions = state.transactions.filter(t => !deleteIds.has(t.id));
           if (supabaseClient) {
             const dbIds = toDelete.map(t => t.db_id).filter(Boolean);
             if (dbIds.length) await supabaseClient.from('despesas').delete().in('id', dbIds);
           }
+          toastMsg = `Todos os ${toDelete.length} registros deste gasto fixo foram excluídos.`;
+        } else if (scope === 'future') {
+          const toDelete = state.transactions.filter(t => matchSameFixedSeries(t) && String(t.mes_referencia || '') >= String(tx.mes_referencia || ''));
+          const deleteIds = new Set(toDelete.map(t => t.id));
+          state.transactions = state.transactions.filter(t => !deleteIds.has(t.id));
+          if (supabaseClient) {
+            const dbIds = toDelete.map(t => t.db_id).filter(Boolean);
+            if (dbIds.length) await supabaseClient.from('despesas').delete().in('id', dbIds);
+          }
+          toastMsg = `${toDelete.length} registro(s) excluído(s) de ${formatMonthMMAA(tx.mes_referencia)} em diante.`;
         } else {
           state.transactions = state.transactions.filter(t => t.id !== id);
           if (supabaseClient && tx.db_id) await supabaseClient.from('despesas').delete().eq('id', tx.db_id);
+          toastMsg = `Gasto fixo removido apenas de ${formatMonthMMAA(tx.mes_referencia)}.`;
         }
       } else {
         state.transactions = state.transactions.filter(t => t.id !== id);
@@ -1711,7 +1744,7 @@
       }
       saveLocalState();
       refreshAllUI();
-      showToast('Lançamento excluído com sucesso.');
+      showToast(toastMsg);
     }
 
     function clearAllTransactions() {
