@@ -498,19 +498,31 @@
 
   <script>
     function parseNumericValue(valRaw) {
-      if (typeof valRaw === 'number') return isNaN(valRaw) ? 0 : Math.round(valRaw * 100) / 100;
+      if (typeof valRaw === 'number') {
+        return isNaN(valRaw) ? 0 : Math.round(valRaw * 100) / 100;
+      }
       if (valRaw === null || valRaw === undefined) return 0;
       let s = String(valRaw).replace(/R\$/gi, '').replace(/\s+/g, '').trim();
       if (!s) return 0;
-      const hasComma = s.includes(','), hasDot = s.includes('.');
+
+      const hasComma = s.includes(',');
+      const hasDot = s.includes('.');
+
       if (hasComma && hasDot) {
-        s = s.lastIndexOf(',') > s.lastIndexOf('.') ? s.replace(/\./g, '').replace(',', '.') : s.replace(/,/g, '');
+        s = s.lastIndexOf(',') > s.lastIndexOf('.')
+          ? s.replace(/\./g, '').replace(',', '.')
+          : s.replace(/,/g, '');
       } else if (hasComma) {
         const p = s.split(',');
         s = p.length > 2 ? p.slice(0, -1).join('') + '.' + p.at(-1) : s.replace(',', '.');
       } else if (hasDot) {
         const p = s.split('.');
-        if (p.length > 2) s = p.join('');
+        if (p.length > 2) {
+          s = p.join('');
+        } else if (p[1].length === 3 && Number(p[0]) >= 1) {
+          // Ex: "1.500" (milhar sem decimais em string PT-BR) -> 1500
+          s = p.join('');
+        }
       }
       const parsed = parseFloat(s);
       return isNaN(parsed) ? 0 : Math.round(parsed * 100) / 100;
