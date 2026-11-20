@@ -277,15 +277,17 @@
     <section id="tab-dashboard" class="tab-content space-y-6">
       <div class="flex flex-wrap items-center justify-between gap-3 card-surface p-4">
         <div class="flex flex-wrap items-center gap-3">
-          <div class="min-w-[140px]">
+          <div class="min-w-[155px]">
             <label class="block text-[11px] text-slate-400 uppercase font-semibold mb-1">Período</label>
-            <select id="filterPeriodType" onchange="renderDashboard()" class="input-field">
-              <option value="mensal">Mensal</option>
-              <option value="bimestral">Bimestral</option>
-              <option value="anual">Anual (2026)</option>
+            <select id="filterPeriodType" onchange="handlePeriodTypeChange()" class="input-field">
+              <option value="mensal">Mês</option>
+              <option value="trimestral">Trimestre</option>
+              <option value="semestral">Semestre</option>
+              <option value="anual">Ano</option>
+              <option value="todo">Todo o Período</option>
             </select>
           </div>
-          <div class="min-w-[145px]">
+          <div id="wrapFilterMonth" class="min-w-[145px]">
             <label class="block text-[11px] text-slate-400 uppercase font-semibold mb-1">Referência (MM/AA)</label>
             <select id="filterMonth" onchange="renderDashboard()" class="input-field"></select>
           </div>
@@ -303,6 +305,8 @@
       </div>
 
       <div id="kpiGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+
+      <div id="dashboardGoalContainer"></div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div id="card-chart-evolucao" class="card-surface p-5 lg:col-span-2">
@@ -357,6 +361,8 @@
     </section>
 
     <section id="tab-lancamentos" class="tab-content hidden space-y-5">
+      <div id="lancamentosGoalContainer"></div>
+
       <div class="card-surface p-5 space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -566,6 +572,40 @@
     </div>
   </div>
 
+  <div id="expenseBreakdownModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="card-surface max-w-xl w-full p-6 space-y-5 border border-rose-500/40 shadow-2xl my-auto">
+      <div class="flex justify-between items-start gap-3 border-b border-slate-800 pb-3.5">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-rose-500/15 border border-rose-500/40 flex items-center justify-center text-rose-400 shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">Detalhamento de Despesas</h3>
+            <p id="expenseModalPeriodLabel" class="text-[11px] text-slate-400">Competência selecionada</p>
+          </div>
+        </div>
+        <button onclick="toggleModal('expenseBreakdownModal', false)" class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-600 flex items-center justify-center text-lg leading-none">&times;</button>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="segmented-group">
+          <button type="button" id="btnExpViewCat" onclick="setExpenseModalGroupBy('categoria')" class="segmented-btn active">Por Categoria</button>
+          <button type="button" id="btnExpViewPay" onclick="setExpenseModalGroupBy('pagamento')" class="segmented-btn">Por Método de Pagamento</button>
+        </div>
+        <div class="text-right">
+          <span class="text-[11px] uppercase text-slate-400 block">Total no Período</span>
+          <span id="expenseModalTotalValue" class="text-base font-bold text-rose-400">R$ 0,00</span>
+        </div>
+      </div>
+
+      <div id="expenseBreakdownList" class="space-y-2.5 max-h-[55vh] overflow-y-auto pr-1"></div>
+
+      <div class="flex justify-end pt-2 border-t border-slate-800">
+        <button type="button" onclick="toggleModal('expenseBreakdownModal', false)" class="btn-secondary text-xs">Fechar</button>
+      </div>
+    </div>
+  </div>
+
   <div id="toast" class="fixed bottom-4 right-4 bg-slate-800 border border-cyan-500/50 text-white px-4 py-3 rounded-lg shadow-xl text-xs font-medium hidden z-50"></div>
 
   <script>
@@ -769,7 +809,8 @@
       ])),
       visibleCards: JSON.parse(localStorage.getItem('fin_visible_cards') || JSON.stringify({
         receitas: true, despesas: true, saldo: true, parcelado: true
-      }))
+      })),
+      monthlyGoals: JSON.parse(localStorage.getItem('fin_monthly_goals') || JSON.stringify({ default: 6000 }))
     };
 
     let lineChartInstance = null;
@@ -792,6 +833,7 @@
       localStorage.setItem('fin_investments', JSON.stringify(state.investments));
       localStorage.setItem('fin_categories', JSON.stringify(state.categories));
       localStorage.setItem('fin_visible_cards', JSON.stringify(state.visibleCards));
+      localStorage.setItem('fin_monthly_goals', JSON.stringify(state.monthlyGoals));
     }
 
     function initSupabase() {
@@ -1315,20 +1357,236 @@
       renderDashboard();
     }
 
+    function getMonthlyGoalValue(ym) {
+      if (!state.monthlyGoals || typeof state.monthlyGoals !== 'object') {
+        state.monthlyGoals = { default: 6000 };
+      }
+      if (ym && ym !== 'TODOS' && state.monthlyGoals[ym] !== undefined) {
+        return Number(state.monthlyGoals[ym]) || 0;
+      }
+      return Number(state.monthlyGoals.default ?? 6000) || 0;
+    }
+
+    function saveMonthlyGoalInline(targetMonth) {
+      const inputEl = document.getElementById('inlineGoalInput');
+      if (!inputEl) return;
+      const newVal = parseNumericValue(inputEl.value);
+      if (newVal <= 0) {
+        showToast('Informe um valor válido maior que zero para a meta.', true);
+        return;
+      }
+      if (!state.monthlyGoals) state.monthlyGoals = { default: newVal };
+      if (targetMonth && targetMonth !== 'TODOS') {
+        state.monthlyGoals[targetMonth] = newVal;
+        state.monthlyGoals.default = newVal;
+      } else {
+        state.monthlyGoals.default = newVal;
+      }
+      saveLocalState();
+      isEditingGoalInline = false;
+      refreshAllUI();
+      showToast(`Meta de gasto mensal atualizada para ${newVal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}!`);
+    }
+
+    let isEditingGoalInline = false;
+
+    function toggleInlineGoalEdit(editing) {
+      isEditingGoalInline = editing;
+      renderMonthlyGoalWidgets();
+      if (editing) {
+        setTimeout(() => {
+          const inp = document.getElementById('inlineGoalInput');
+          if (inp) { inp.focus(); inp.select(); }
+        }, 40);
+      }
+    }
+
+    function buildGoalCardHtml({ targetMonth, editable }) {
+      const fmt = v => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      const activeMonth = (targetMonth && targetMonth !== 'TODOS') ? targetMonth : getCurrentMonthISO();
+      const goalVal = getMonthlyGoalValue(activeMonth);
+      const spentVal = state.transactions
+        .filter(t => t.tipo === 'despesa' && t.mes_referencia === activeMonth)
+        .reduce((s, t) => s + Number(t.valor || 0), 0);
+
+      const rawPct = goalVal > 0 ? (spentVal / goalVal) * 100 : 0;
+      const barPct = Math.min(Math.max(rawPct, 0), 100);
+      const remaining = goalVal - spentVal;
+      const isOver = remaining < 0;
+      const isNear = !isOver && rawPct >= 80;
+
+      const barGradient = isOver
+        ? 'from-rose-500 via-red-500 to-rose-600 shadow-rose-500/40'
+        : isNear
+          ? 'from-amber-400 via-orange-500 to-amber-500 shadow-amber-500/35'
+          : 'from-cyan-400 via-sky-500 to-emerald-400 shadow-cyan-500/35';
+
+      const statusBadge = isOver
+        ? `<span class="px-2 py-0.5 rounded-full bg-rose-500/20 border border-rose-500/40 text-rose-300 text-[10px] font-bold">EXCEDIDO EM ${fmt(Math.abs(remaining))}</span>`
+        : `<span class="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/35 text-emerald-300 text-[10px] font-semibold">Faltam ${fmt(remaining)} para o limite</span>`;
+
+      const editControlsHtml = editable
+        ? (isEditingGoalInline
+            ? `<div class="flex items-center gap-1.5">
+                <input id="inlineGoalInput" type="text" inputmode="decimal" value="${goalVal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}" onkeydown="if(event.key==='Enter'){event.preventDefault();saveMonthlyGoalInline('${activeMonth}');}" class="input-field py-1 px-2.5 w-32 text-xs font-semibold text-right border-cyan-500/60" />
+                <button type="button" onclick="saveMonthlyGoalInline('${activeMonth}')" class="px-2.5 py-1 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs transition">Salvar</button>
+                <button type="button" onclick="toggleInlineGoalEdit(false)" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition">Cancelar</button>
+              </div>`
+            : `<button type="button" onclick="toggleInlineGoalEdit(true)" class="btn-secondary text-[11px] py-1 px-2.5 flex items-center gap-1 text-cyan-300 border-cyan-500/35 hover:border-cyan-400">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                Editar Meta
+              </button>`)
+        : `<button type="button" onclick="switchTab('lancamentos');setTimeout(()=>toggleInlineGoalEdit(true),60)" class="text-[11px] text-cyan-400 hover:text-cyan-300 underline decoration-cyan-500/40 underline-offset-2 transition">Ajustar em Lançamentos</button>`;
+
+      return `
+        <div class="card-surface p-4 sm:p-5 border border-slate-800/90 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-cyan-500/15 border border-cyan-500/35 flex items-center justify-center text-cyan-400 shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+              </div>
+              <div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="text-xs font-bold uppercase tracking-wide text-slate-200">Meta de Gasto Mensal (${formatMonthMMAA(activeMonth)})</span>
+                  ${statusBadge}
+                </div>
+                <p class="text-[11px] text-slate-400 mt-0.5">
+                  Gasto atual: <strong class="text-white">${fmt(spentVal)}</strong> de <strong class="text-cyan-300">${fmt(goalVal)}</strong> (${rawPct.toFixed(1).replace('.', ',')}%)
+                </p>
+              </div>
+            </div>
+            ${editControlsHtml}
+          </div>
+
+          <div class="w-full h-3.5 rounded-full bg-slate-950 border border-slate-800 overflow-hidden p-0.5">
+            <div class="h-full rounded-full bg-gradient-to-r ${barGradient} shadow-md transition-all duration-500 ease-out" style="width: ${barPct.toFixed(2)}%"></div>
+          </div>
+
+          <div class="flex justify-between items-center text-[11px] text-slate-400">
+            <span>Utilizado: <strong class="${isOver ? 'text-rose-400' : 'text-slate-200'}">${fmt(spentVal)}</strong></span>
+            <span>${isOver ? `Acima do teto: <strong class="text-rose-400">+${fmt(Math.abs(remaining))}</strong>` : `Disponível: <strong class="text-emerald-400">${fmt(remaining)}</strong>`}</span>
+          </div>
+        </div>`;
+    }
+
+    function renderMonthlyGoalWidgets() {
+      const dashContainer = document.getElementById('dashboardGoalContainer');
+      const lancContainer = document.getElementById('lancamentosGoalContainer');
+      const dashMonth = document.getElementById('filterMonth')?.value || getCurrentMonthISO();
+      const txFilterMonth = document.getElementById('filterTxMonth')?.value;
+      const lancMonth = (txFilterMonth && txFilterMonth !== 'TODOS') ? txFilterMonth : getCurrentMonthISO();
+
+      if (dashContainer) {
+        dashContainer.innerHTML = buildGoalCardHtml({ targetMonth: dashMonth, editable: false });
+      }
+      if (lancContainer) {
+        lancContainer.innerHTML = buildGoalCardHtml({ targetMonth: lancMonth, editable: true });
+      }
+    }
+
+    function handlePeriodTypeChange() {
+      const period = document.getElementById('filterPeriodType').value;
+      const wrapMonth = document.getElementById('wrapFilterMonth');
+      if (wrapMonth) wrapMonth.classList.toggle('hidden', period === 'todo');
+      renderDashboard();
+    }
+
     function getFilteredTransactions() {
       const period = document.getElementById('filterPeriodType').value;
       const refMonth = document.getElementById('filterMonth').value || getCurrentMonthISO();
       const cat = document.getElementById('filterCategory').value;
       return state.transactions.filter(t => {
         if (cat !== 'TODAS' && t.categoria !== cat) return false;
+        if (period === 'todo') return true;
         if (period === 'mensal') return t.mes_referencia === refMonth;
-        if (period === 'bimestral') {
-          const nextStr = addMonthsISO(refMonth, 1);
-          return t.mes_referencia === refMonth || t.mes_referencia === nextStr;
+        if (period === 'trimestral') {
+          const validMonths = [refMonth, addMonthsISO(refMonth, 1), addMonthsISO(refMonth, 2)];
+          return validMonths.includes(t.mes_referencia);
+        }
+        if (period === 'semestral') {
+          const validMonths = [0, 1, 2, 3, 4, 5].map(offset => addMonthsISO(refMonth, offset));
+          return validMonths.includes(t.mes_referencia);
         }
         if (period === 'anual') return t.mes_referencia.startsWith(refMonth.slice(0, 4));
         return true;
       });
+    }
+
+    function getActivePeriodLabel() {
+      const period = document.getElementById('filterPeriodType').value;
+      const refMonth = document.getElementById('filterMonth').value || getCurrentMonthISO();
+      if (period === 'todo') return 'Todo o Período Cadastrado';
+      if (period === 'mensal') return `Mês ${formatMonthMMAA(refMonth)}`;
+      if (period === 'trimestral') return `Trimestre (${formatMonthMMAA(refMonth)} a ${formatMonthMMAA(addMonthsISO(refMonth, 2))})`;
+      if (period === 'semestral') return `Semestre (${formatMonthMMAA(refMonth)} a ${formatMonthMMAA(addMonthsISO(refMonth, 5))})`;
+      if (period === 'anual') return `Ano ${refMonth.slice(0, 4)}`;
+      return formatMonthMMAA(refMonth);
+    }
+
+    let expenseModalGroupBy = 'categoria';
+
+    function openExpenseBreakdownModal() {
+      expenseModalGroupBy = 'categoria';
+      renderExpenseBreakdownModal();
+      toggleModal('expenseBreakdownModal', true);
+    }
+
+    function setExpenseModalGroupBy(mode) {
+      expenseModalGroupBy = mode;
+      renderExpenseBreakdownModal();
+    }
+
+    function renderExpenseBreakdownModal() {
+      document.getElementById('btnExpViewCat').classList.toggle('active', expenseModalGroupBy === 'categoria');
+      document.getElementById('btnExpViewPay').classList.toggle('active', expenseModalGroupBy === 'pagamento');
+
+      const filteredExpenses = getFilteredTransactions().filter(t => t.tipo === 'despesa');
+      const totalExp = filteredExpenses.reduce((s, t) => s + Number(t.valor || 0), 0);
+      const fmt = v => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+      document.getElementById('expenseModalPeriodLabel').textContent = `${getActivePeriodLabel()} • ${filteredExpenses.length} lançamento(s)`;
+      document.getElementById('expenseModalTotalValue').textContent = fmt(totalExp);
+
+      const groups = {};
+      filteredExpenses.forEach(t => {
+        let key;
+        if (expenseModalGroupBy === 'pagamento') {
+          const met = String(t.metodo_pagamento || 'OUTROS').trim().toUpperCase();
+          key = t.cartao ? `${met} • ${t.cartao}` : met;
+        } else {
+          key = String(t.categoria || 'OUTROS').trim().toUpperCase();
+        }
+        if (!groups[key]) groups[key] = { label: key, total: 0, count: 0 };
+        groups[key].total += Number(t.valor || 0);
+        groups[key].count += 1;
+      });
+
+      const sortedGroups = Object.values(groups).sort((a, b) => b.total - a.total);
+      const colors = ['bg-cyan-400', 'bg-blue-500', 'bg-violet-500', 'bg-pink-500', 'bg-rose-500', 'bg-amber-400', 'bg-emerald-400', 'bg-teal-400'];
+
+      document.getElementById('expenseBreakdownList').innerHTML = sortedGroups.length
+        ? sortedGroups.map((g, idx) => {
+            const pct = totalExp > 0 ? (g.total / totalExp) * 100 : 0;
+            const barColor = colors[idx % colors.length];
+            return `
+              <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2">
+                <div class="flex items-center justify-between gap-2 text-xs">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <span class="w-2.5 h-2.5 rounded-full ${barColor} shrink-0"></span>
+                    <span class="font-semibold text-slate-100 truncate">${g.label}</span>
+                    <span class="text-[11px] text-slate-400 shrink-0">(${g.count}x)</span>
+                  </div>
+                  <div class="text-right shrink-0">
+                    <span class="font-bold text-white">${fmt(g.total)}</span>
+                    <span class="text-[11px] text-cyan-300 font-mono ml-1.5">${pct.toFixed(1).replace('.', ',')}%</span>
+                  </div>
+                </div>
+                <div class="w-full h-2 rounded-full bg-slate-950 overflow-hidden">
+                  <div class="h-full rounded-full ${barColor} transition-all duration-300" style="width: ${pct.toFixed(2)}%"></div>
+                </div>
+              </div>`;
+          }).join('')
+        : '<div class="py-8 text-center text-xs text-slate-500">Nenhuma despesa registrada neste período.</div>';
     }
 
     function renderDashboard() {
@@ -1340,17 +1598,26 @@
       const fmt = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
       const kpis = [
-        { key: 'receitas', title: 'Receitas', val: fmt(receitas), color: 'text-emerald-400' },
-        { key: 'despesas', title: 'Despesas', val: fmt(despesas), color: 'text-rose-400' },
-        { key: 'saldo', title: 'Saldo Líquido', val: fmt(saldo), color: saldo >= 0 ? 'text-cyan-400' : 'text-amber-400' },
-        { key: 'parcelado', title: 'Total Parcelado', val: fmt(parcelado), color: 'text-violet-400' }
+        { key: 'receitas', title: 'Receitas', val: fmt(receitas), color: 'text-emerald-400', clickable: false },
+        { key: 'despesas', title: 'Despesas', val: fmt(despesas), color: 'text-rose-400', clickable: true },
+        { key: 'saldo', title: 'Saldo Líquido', val: fmt(saldo), color: saldo >= 0 ? 'text-cyan-400' : 'text-amber-400', clickable: false },
+        { key: 'parcelado', title: 'Total Parcelado', val: fmt(parcelado), color: 'text-violet-400', clickable: false }
       ];
 
       document.getElementById('kpiGrid').innerHTML = kpis
         .filter(k => state.visibleCards[k.key])
-        .map(k => `<div class="card-surface p-4"><div class="text-xs text-slate-400 uppercase font-medium">${k.title}</div><div class="text-2xl font-bold mt-1 ${k.color}">${k.val}</div></div>`)
+        .map(k => k.clickable
+          ? `<div onclick="openExpenseBreakdownModal()" title="Clique para ver o detalhamento por categoria ou pagamento" class="card-surface p-4 cursor-pointer hover:border-rose-500/50 hover:bg-slate-900/90 transition-all group relative">
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-slate-400 uppercase font-medium">${k.title}</span>
+                <span class="text-[10px] text-rose-300/80 group-hover:text-rose-300 flex items-center gap-0.5 font-medium">Ver detalhes &rsaquo;</span>
+              </div>
+              <div class="text-2xl font-bold mt-1 ${k.color}">${k.val}</div>
+            </div>`
+          : `<div class="card-surface p-4"><div class="text-xs text-slate-400 uppercase font-medium">${k.title}</div><div class="text-2xl font-bold mt-1 ${k.color}">${k.val}</div></div>`)
         .join('');
 
+      renderMonthlyGoalWidgets();
       renderCharts(filtered);
       renderMonthComparison();
     }
@@ -1389,18 +1656,68 @@
 
       const catTotals = {};
       filtered.filter(t => t.tipo === 'despesa').forEach(t => { catTotals[t.categoria] = (catTotals[t.categoria] || 0) + t.valor; });
+      const totalPie = Object.values(catTotals).reduce((a, b) => a + b, 0);
 
       if (pieChartInstance) pieChartInstance.destroy();
       pieChartInstance = new Chart(document.getElementById('pieChart'), {
         type: 'doughnut',
         data: {
           labels: Object.keys(catTotals),
-          datasets: [{ data: Object.values(catTotals), backgroundColor: ['#06b6d4','#3b82f6','#8b5cf6','#ec4899','#f43f5e','#f59e0b','#10b981','#64748b','#14b8a6'], borderWidth: 0 }]
+          datasets: [{
+            data: Object.values(catTotals),
+            backgroundColor: ['#06b6d4','#3b82f6','#8b5cf6','#ec4899','#f43f5e','#f59e0b','#10b981','#64748b','#14b8a6'],
+            borderColor: '#0f172a',
+            borderWidth: 2,
+            hoverOffset: 16,
+            hoverBorderColor: '#ffffff',
+            hoverBorderWidth: 2
+          }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { position: 'right', labels: { color: '#cbd5e1', font: { size: 10 } } } }
+          cutout: '58%',
+          layout: { padding: 10 },
+          animation: {
+            animateRotate: true,
+            animateScale: true,
+            duration: 650,
+            easing: 'easeOutQuart'
+          },
+          transitions: {
+            active: {
+              animation: {
+                duration: 280,
+                easing: 'easeOutBack'
+              }
+            }
+          },
+          onHover: (event, elements) => {
+            if (event && event.native && event.native.target) {
+              event.native.target.style.cursor = elements.length ? 'pointer' : 'default';
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: { color: '#cbd5e1', font: { size: 10 }, usePointStyle: true, pointStyle: 'circle', padding: 10 }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(15, 23, 42, 0.95)',
+              titleColor: '#22d3ee',
+              bodyColor: '#f8fafc',
+              borderColor: 'rgba(34, 211, 238, 0.4)',
+              borderWidth: 1,
+              padding: 10,
+              callbacks: {
+                label: ctx => {
+                  const val = Number(ctx.raw || 0);
+                  const pct = totalPie > 0 ? ((val / totalPie) * 100).toFixed(1).replace('.', ',') : '0,0';
+                  return ` ${val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} (${pct}%)`;
+                }
+              }
+            }
+          }
         }
       });
     }
@@ -1829,6 +2146,7 @@
 
       const activeLabel = document.getElementById('activeTxMonthLabel');
       if (activeLabel) activeLabel.textContent = mFilter === 'TODOS' ? 'Todos os Meses' : formatMonthMMAA(mFilter);
+      renderMonthlyGoalWidgets();
 
       const rows = state.transactions
         .filter(t => {
